@@ -42,6 +42,8 @@ export function AuthInput({
   const inputType = isPassword ? (show ? "text" : "password") : type;
   const hasError = Boolean(error);
 
+  const LeadingIcon = isPassword ? null : icon === "user" ? UserRound : AtSign;
+
   return (
     <div className={cn("auth-field", hasError && "is-invalid", className)}>
       {(label || rightSlot) && (
@@ -56,27 +58,19 @@ export function AuthInput({
           {rightSlot}
         </div>
       )}
-      <div className="auth-input-group">
-        <button
-          type="button"
-          className={cn("auth-input-addon", isPassword && "toggle-password")}
-          tabIndex={isPassword ? 0 : -1}
-          onClick={() => isPassword && setShow((v) => !v)}
-          aria-label={isPassword ? (show ? "Hide password" : "Show password") : undefined}
-        >
-          {isPassword ? (
-            show ? <Eye size={18} /> : <EyeOff size={18} />
-          ) : icon === "user" ? (
-            <UserRound size={18} />
-          ) : (
-            <AtSign size={18} />
-          )}
-        </button>
+
+      <div className="auth-input-shell">
+        {LeadingIcon ? (
+          <span className="auth-input-leading" aria-hidden="true">
+            <LeadingIcon size={17} strokeWidth={2.1} />
+          </span>
+        ) : null}
+
         <input
           id={id}
           name={name || id}
           type={inputType}
-          className="auth-control"
+          className={cn("auth-control", LeadingIcon && "has-leading-icon")}
           placeholder={placeholder}
           value={value}
           autoComplete={autoComplete}
@@ -85,7 +79,20 @@ export function AuthInput({
           aria-invalid={hasError}
           aria-describedby={hasError ? `${id}-error` : helpText ? `${id}-help` : undefined}
         />
+
+        {isPassword ? (
+          <button
+            type="button"
+            className="auth-input-trailing"
+            tabIndex={0}
+            onClick={() => setShow((visible) => !visible)}
+            aria-label={show ? "Hide password" : "Show password"}
+          >
+            {show ? <Eye size={17} /> : <EyeOff size={17} />}
+          </button>
+        ) : null}
       </div>
+
       {hasError ? (
         <p id={`${id}-error`} className="auth-error" role="alert">
           {error}

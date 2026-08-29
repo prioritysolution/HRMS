@@ -13,9 +13,24 @@ export const env = {
   appEnv: process.env.NEXT_PUBLIC_APP_ENV ?? "development",
 } as const;
 
+export function getApiOrigin(): string {
+  return env.apiBaseUrl.replace(/\/api(?:\/v\d+)?$/i, "").replace(/\/$/, "");
+}
+
 export function getApiUrl(path: string): string {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
   return `${env.apiBaseUrl}${normalizedPath}`;
+}
+
+export function resolvePublicFileUrl(path: string, folder = "storage/organizations/logos"): string {
+  const value = path.trim();
+  if (!value) return "";
+  if (/^(https?:|blob:|data:)/i.test(value)) return value;
+
+  const origin = getApiOrigin();
+  if (value.startsWith("/")) return `${origin}${value}`;
+  if (value.includes("/")) return `${origin}/${value.replace(/^\/+/, "")}`;
+  return `${origin}/${folder.replace(/^\/+|\/+$/g, "")}/${value}`;
 }
 
 export function getAuthTokenKey(): string {

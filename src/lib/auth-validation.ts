@@ -1,7 +1,8 @@
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const LOGIN_USERNAME_PATTERN = /^[a-zA-Z0-9._-]+$/;
 
 export type SignInValues = {
-  emailId: string;
+  userName: string;
   password: string;
 };
 
@@ -37,20 +38,29 @@ export function validateUsername(value: string): string | undefined {
   return undefined;
 }
 
+export function validateLoginUsername(value: string): string | undefined {
+  const trimmed = value.trim();
+  if (!trimmed) return "Username is required.";
+  if (trimmed.length < 2) return "Username must be at least 2 characters.";
+  if (!LOGIN_USERNAME_PATTERN.test(trimmed)) {
+    return "Username can only contain letters, numbers, dots, hyphens, and underscores.";
+  }
+  return undefined;
+}
+
 export function validateConfirmPassword(password: string, confirm: string): string | undefined {
   if (!confirm) return "Please confirm your password.";
   if (confirm !== password) return "Passwords do not match.";
   return undefined;
 }
 
-
 export function validateSignInField(
   field: keyof SignInValues,
   values: SignInValues,
 ): string | undefined {
   switch (field) {
-    case "emailId":
-      return validateEmail(values.emailId);
+    case "userName":
+      return validateLoginUsername(values.userName);
     case "password":
       return validatePassword(values.password);
     default:

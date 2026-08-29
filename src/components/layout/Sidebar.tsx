@@ -2,29 +2,41 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Building2,
   ChevronDown,
+  CircleHelp,
   Clock3,
   LayoutDashboard,
+  Settings,
+  UserRound,
   UsersRound,
+  Wallet,
+  BarChart3,
   type LucideIcon,
 } from "lucide-react";
-import { navigation, type NavItem } from "@/config/navigation";
+import { navigation, type NavIcon, type NavItem, type NavSection } from "@/config/navigation";
 import { LogoutButton } from "@/components/layout/LogoutButton";
 import { useUIStore } from "@/components/layout/UIProvider";
+import { menuService } from "@/lib/api/services/menu.service";
+import { menuTreeToNavigation } from "@/lib/menu/map-menu-tree";
 import { cn } from "@/lib/utils";
 
 const sectionIcons: Record<string, LucideIcon> = {
   dashboard: LayoutDashboard,
 };
 
-const itemIcons: Record<NavItem["icon"], LucideIcon> = {
+const itemIcons: Record<NavIcon, LucideIcon> = {
   dashboard: LayoutDashboard,
   organization: Building2,
   employees: UsersRound,
   attendance: Clock3,
+  payroll: Wallet,
+  reports: BarChart3,
+  settings: Settings,
+  helpdesk: CircleHelp,
+  ess: UserRound,
 };
 
 function isActivePath(pathname: string, href?: string, exact?: boolean) {
@@ -35,17 +47,41 @@ function isActivePath(pathname: string, href?: string, exact?: boolean) {
 
 function hasActiveChild(pathname: string, item: NavItem) {
   return (
-    item.children?.some((child) => isActivePath(pathname, child.href, child.exact)) ??
-    false
+    item.children?.some((child) => isActivePath(pathname, child.href, child.exact)) ?? false
   );
 }
 
 export function Sidebar() {
   const pathname = usePathname();
   const { closeMobile } = useUIStore();
+  const [sections, setSections] = useState<NavSection[]>([]);
+  const [menuReady, setMenuReady] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadMenu() {
+      try {
+        const tree = await menuService.tree({ status: 1 });
+        if (cancelled) return;
+        const mapped = menuTreeToNavigation(tree);
+        setSections(mapped.length && mapped[0].items.length > 0 ? mapped : navigation);
+      } catch {
+        if (!cancelled) setSections(navigation);
+      } finally {
+        if (!cancelled) setMenuReady(true);
+      }
+    }
+
+    void loadMenu();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const initiallyOpen = useMemo(() => {
     const open: Record<string, boolean> = {};
-    navigation.forEach((section) => {
+    sections.forEach((section) => {
       section.items.forEach((item) => {
         if (item.children && hasActiveChild(pathname, item)) {
           open[item.label] = true;
@@ -53,9 +89,13 @@ export function Sidebar() {
       });
     });
     return open;
-  }, [pathname]);
+  }, [pathname, sections]);
 
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(initiallyOpen);
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    setOpenGroups((prev) => ({ ...prev, ...initiallyOpen }));
+  }, [initiallyOpen]);
 
   const toggleGroup = (label: string) => {
     setOpenGroups((prev) => ({ ...prev, [label]: !prev[label] }));
@@ -70,7 +110,12 @@ export function Sidebar() {
   return (
     <aside className="left-sidebar">
       <div className="leftbar-menu">
-        {navigation.map((section) => {
+        {!menuReady ? (
+          <div className="menu-title">
+            <p className="fw-semibold mb-0 d-inline-block opacity-60">Loading menu...</p>
+          </div>
+        ) : (
+          sections.map((section) => {
           const SectionIcon = sectionIcons[section.icon];
           return (
             <div key={section.title || "menu"}>
@@ -81,7 +126,7 @@ export function Sidebar() {
                 </div>
               ) : null}
               {section.items.map((item) => {
-                const Icon = itemIcons[item.icon];
+                const Icon = itemIcons[item.icon] ?? LayoutDashboard;
                 if (item.children) {
                   const open = openGroups[item.label] || hasActiveChild(pathname, item);
                   return (
@@ -104,7 +149,7 @@ export function Sidebar() {
                       {open && (
                         <div className="sub-menu">
                           {item.children.map((child) => (
-                            <div className="nav-item" key={child.href}>
+                            <div className="nav-item" key={`${item.label}-${child.href}`}>
                               <Link
                                 href={child.href}
                                 onClick={handleNavClick}
@@ -127,7 +172,7 @@ export function Sidebar() {
                 }
 
                 return (
-                  <div className="nav-item" key={item.href}>
+                  <div className="nav-item" key={item.href ?? item.label}>
                     <Link
                       href={item.href!}
                       onClick={handleNavClick}
@@ -146,7 +191,8 @@ export function Sidebar() {
               })}
             </div>
           );
-        })}
+        })
+        )}
       </div>
       <div className="sidebar-footer">
         <LogoutButton variant="sidebar" />

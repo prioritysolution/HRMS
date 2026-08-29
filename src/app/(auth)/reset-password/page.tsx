@@ -52,7 +52,7 @@ export default function ResetPasswordPage() {
               Your old password has been reset. Please choose a new one.
             </p>
 
-            <form className="auth-form" action="/signin">
+            <form className="auth-form" action="/login">
               <FloatingPassword
                 id="currentPassword"
                 label="Current Password"
@@ -87,7 +87,7 @@ export default function ResetPasswordPage() {
             </form>
 
             <p className="auth-bottom-note">
-              Remember your password? <Link href="/signin">Sign In</Link>
+              Remember your password? <Link href="/login">Login</Link>
             </p>
           </div>
         </div>

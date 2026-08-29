@@ -7,7 +7,7 @@ import {
   buildInitialFormValues,
   FormFieldsRenderer,
 } from "@/components/ui/FormFieldsRenderer";
-import { validateFormField, validateFormFields } from "@/lib/form-validation";
+import { validateFormField, validateFormFields, type FormValue } from "@/lib/form-validation";
 import type { FormField } from "@/types/hrms";
 
 type LeaveRequestModalProps = {
@@ -32,7 +32,7 @@ const leaveFields: FormField[] = [
 ];
 
 export function LeaveRequestModal({ open, onClose }: LeaveRequestModalProps) {
-  const [values, setValues] = useState<Record<string, string | boolean>>({});
+  const [values, setValues] = useState<Record<string, FormValue>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [leaveDuration, setLeaveDuration] = useState("Full Day");
 
@@ -46,7 +46,7 @@ export function LeaveRequestModal({ open, onClose }: LeaveRequestModalProps) {
     setErrors({});
   }, [open]);
 
-  const handleFieldChange = (name: string, value: string | boolean) => {
+  const handleFieldChange = (name: string, value: FormValue) => {
     setValues((prev) => ({ ...prev, [name]: value }));
     const field = leaveFields.find((item) => item.name === name);
     if (!field) return;

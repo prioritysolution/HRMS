@@ -1,5 +1,10 @@
 import { GuestGate } from "@/components/auth/GuestGate";
+import { ToastProvider } from "@/components/ui/ToastProvider";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
-  return <GuestGate>{children}</GuestGate>;
+  return (
+    <ToastProvider>
+      <GuestGate>{children}</GuestGate>
+    </ToastProvider>
+  );
 }

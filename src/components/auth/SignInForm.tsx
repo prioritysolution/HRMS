@@ -1,12 +1,11 @@
 "use client";
 
-import { FormEvent, Suspense, useState } from "react";
+import { FormEvent, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { AuthInput } from "@/components/auth/AuthInput";
+import { useToast } from "@/components/ui/ToastProvider";
 import { ApiError, authService } from "@/lib/api";
 import { DEFAULT_AUTH_REDIRECT, isAuthPublicPath } from "@/lib/auth/constants";
-import { LOCAL_DEMO_ACCOUNT } from "@/lib/auth/local-auth";
 import {
   FieldErrors,
   SignInValues,
@@ -15,7 +14,7 @@ import {
 } from "@/lib/auth-validation";
 
 const initialValues: SignInValues = {
-  emailId: "",
+  userName: "",
   password: "",
 };
 
@@ -27,13 +26,17 @@ function safeNextPath(from: string | null): string {
   return from;
 }
 
-function SignInFormFields() {
-  const searchParams = useSearchParams();
+function readFromQuery(): string | null {
+  if (typeof window === "undefined") return null;
+  return new URLSearchParams(window.location.search).get("from");
+}
+
+export function SignInForm() {
+  const toast = useToast();
   const [values, setValues] = useState<SignInValues>(initialValues);
   const [errors, setErrors] = useState<FieldErrors<keyof SignInValues>>({});
   const [touched, setTouched] = useState<Partial<Record<keyof SignInValues, boolean>>>({});
   const [submitting, setSubmitting] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
 
   const setFieldValue = (field: keyof SignInValues, value: string) => {
     const nextValues = { ...values, [field]: value };
@@ -54,68 +57,52 @@ function SignInFormFields() {
     }));
   };
 
-  const fillDemoAccount = () => {
-    setValues({
-      emailId: LOCAL_DEMO_ACCOUNT.email,
-      password: LOCAL_DEMO_ACCOUNT.password,
-    });
-    setErrors({});
-    setFormError(null);
-  };
-
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const nextErrors = validateSignIn(values);
     setErrors(nextErrors);
-    setTouched({ emailId: true, password: true });
+    setTouched({ userName: true, password: true });
 
     if (Object.keys(nextErrors).length > 0) return;
 
     setSubmitting(true);
-    setFormError(null);
 
     try {
       await authService.login({
-        email: values.emailId.trim(),
+        user_name: values.userName.trim(),
         password: values.password,
       });
-      window.location.assign(safeNextPath(searchParams.get("from")));
+      toast.success({
+        title: "Logged in successfully",
+        message: "Redirecting to your workspace...",
+      });
+      window.setTimeout(() => {
+        window.location.assign(safeNextPath(readFromQuery()));
+      }, 700);
     } catch (error) {
-      setFormError(error instanceof ApiError ? error.message : "Unable to sign in. Please try again.");
-    } finally {
+      toast.error({
+        title: "Login failed",
+        message:
+          error instanceof ApiError ? error.message : "Unable to login. Please try again.",
+      });
       setSubmitting(false);
     }
   };
 
   return (
     <form className="auth-form" onSubmit={handleSubmit} noValidate>
-      <div className="auth-demo-hint">
-        <p>
-          <strong>Static login</strong> — no backend API required for now.
-        </p>
-        <p>
-          Email: <code>{LOCAL_DEMO_ACCOUNT.email}</code>
-        </p>
-        <p>
-          Password: <code>{LOCAL_DEMO_ACCOUNT.password}</code>
-        </p>
-        <button type="button" className="auth-demo-fill" onClick={fillDemoAccount}>
-          Fill demo login
-        </button>
-      </div>
-
       <AuthInput
-        id="authVerifyEmail"
-        label="Email ID"
-        type="email"
-        icon="email"
-        placeholder="Enter Your Email ID"
-        name="emailId"
-        autoComplete="email"
-        value={values.emailId}
-        onChange={(event) => setFieldValue("emailId", event.target.value)}
-        onBlur={() => handleBlur("emailId")}
-        error={touched.emailId ? errors.emailId : undefined}
+        id="authUserName"
+        label="Username"
+        type="text"
+        icon="user"
+        placeholder="Enter your username"
+        name="userName"
+        autoComplete="username"
+        value={values.userName}
+        onChange={(event) => setFieldValue("userName", event.target.value)}
+        onBlur={() => handleBlur("userName")}
+        error={touched.userName ? errors.userName : undefined}
       />
 
       <AuthInput
@@ -141,23 +128,9 @@ function SignInFormFields() {
         Forgot password?
       </Link>
 
-      {formError && (
-        <p className="auth-error mb-3" role="alert">
-          {formError}
-        </p>
-      )}
-
       <button type="submit" className="btn btn-primary w-full" disabled={submitting}>
-        {submitting ? "Signing In..." : "Sign In"}
+        {submitting ? "Logging in..." : "Login"}
       </button>
     </form>
-  );
-}
-
-export function SignInForm() {
-  return (
-    <Suspense>
-      <SignInFormFields />
-    </Suspense>
   );
 }

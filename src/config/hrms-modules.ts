@@ -1,4 +1,5 @@
-import type { HrmsModuleConfig } from "@/types/hrms";
+import type { FormField, HrmsModuleConfig } from "@/types/hrms";
+import { EMPLOYEE_FORM_SECTIONS } from "@/config/employee-form-sections";
 
 const statusOptions = ["ACTIVE", "INACTIVE"];
 const activeInactive = ["Active", "Inactive"];
@@ -12,10 +13,17 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
     actionLabel: "Add Organization",
     nameKey: "Org_Name",
     modalSize: "xl",
+    usesApi: true,
     searchKeys: ["Org_Cd", "Org_Name", "Legal_Name", "Email", "City"],
     columns: [
       { key: "Org_Cd", header: "Org Code" },
-      { key: "Org_Name", header: "Organization Name", type: "person", subtitleKey: "Org_Cd" },
+      {
+        key: "Org_Name",
+        header: "Organization Name",
+        type: "person",
+        subtitleKey: "Org_Cd",
+        avatarKey: "Logo_Url",
+      },
       { key: "Legal_Name", header: "Legal Name" },
       { key: "Email", header: "Email" },
       { key: "Contact", header: "Contact" },
@@ -34,9 +42,28 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
       { name: "Address_line2", label: "Address Line 2", span: "full" },
       { name: "City", label: "City" },
       { name: "State", label: "State" },
-      { name: "Country", label: "Country" },
+      { name: "Country", label: "Country", defaultValue: "India" },
       { name: "Pincode", label: "Pincode" },
-      { name: "Status", label: "Status", type: "select", options: statusOptions },
+      {
+        name: "Logo",
+        label: "Logo",
+        type: "file",
+        accept: "image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp",
+        maxSizeMb: 2,
+        hint: "JPG, JPEG, PNG, WEBP · max 2 MB · optional",
+        previewKey: "Logo_Url",
+        fileNameKey: "Logo_Path",
+      },
+      {
+        name: "Status",
+        label: "Status",
+        type: "select",
+        options: [
+          { value: "Active", label: "Active" },
+          { value: "Inactive", label: "Inactive" },
+        ],
+        defaultValue: "Active",
+      },
     ],
   },
   branches: {
@@ -47,10 +74,12 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
     actionLabel: "Add Branch",
     nameKey: "Branch_Name",
     modalSize: "xl",
-    searchKeys: ["Branch_Code", "Branch_Name", "City", "Email"],
+    usesApi: true,
+    searchKeys: ["Branch_Code", "Branch_Name", "Org_Name", "City", "Email"],
     columns: [
       { key: "Branch_Code", header: "Branch Code" },
       { key: "Branch_Name", header: "Branch Name", type: "person", subtitleKey: "Branch_Code" },
+      { key: "Org_Name", header: "Organization" },
       { key: "City", header: "City" },
       { key: "State", header: "State" },
       { key: "Contact", header: "Contact" },
@@ -58,6 +87,12 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
       { key: "Status", header: "Status", type: "status" },
     ],
     formFields: [
+      {
+        name: "Org_Id",
+        label: "Organization",
+        type: "select",
+        required: true,
+      },
       { name: "Branch_Code", label: "Branch Code", required: true },
       { name: "Branch_Name", label: "Branch Name", required: true },
       { name: "Open_Date", label: "Open Date", type: "date" },
@@ -70,7 +105,16 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
       { name: "Email", label: "Email", type: "email" },
       { name: "Latitude", label: "Latitude", type: "number" },
       { name: "Longitude", label: "Longitude", type: "number" },
-      { name: "Status", label: "Status", type: "select", options: statusOptions },
+      {
+        name: "Status",
+        label: "Status",
+        type: "select",
+        options: [
+          { value: "Active", label: "Active" },
+          { value: "Inactive", label: "Inactive" },
+        ],
+        defaultValue: "Active",
+      },
     ],
   },
   departments: {
@@ -80,16 +124,33 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
     tableName: "mst_department",
     actionLabel: "Add Department",
     nameKey: "Dept_Name",
-    searchKeys: ["Dept_Cd", "Dept_Name"],
+    usesApi: true,
+    searchKeys: ["Dept_Cd", "Dept_Name", "Org_Name"],
     columns: [
       { key: "Dept_Cd", header: "Dept Code" },
       { key: "Dept_Name", header: "Department Name" },
-      { key: "status", header: "Status", type: "status" },
+      { key: "Org_Name", header: "Organization" },
+      { key: "Status", header: "Status", type: "status" },
     ],
     formFields: [
+      {
+        name: "Org_Id",
+        label: "Organization",
+        type: "select",
+        required: true,
+      },
       { name: "Dept_Cd", label: "Department Code", required: true },
       { name: "Dept_Name", label: "Department Name", required: true },
-      { name: "status", label: "Status", type: "select", options: statusOptions },
+      {
+        name: "Status",
+        label: "Status",
+        type: "select",
+        options: [
+          { value: "Active", label: "Active" },
+          { value: "Inactive", label: "Inactive" },
+        ],
+        defaultValue: "Active",
+      },
     ],
   },
   designations: {
@@ -99,18 +160,35 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
     tableName: "mst_designation",
     actionLabel: "Add Designation",
     nameKey: "Desig_Name",
-    searchKeys: ["Desig_Code", "Desig_Name"],
+    usesApi: true,
+    searchKeys: ["Desig_Code", "Desig_Name", "Org_Name"],
     columns: [
       { key: "Desig_Code", header: "Designation Code" },
       { key: "Desig_Name", header: "Designation Name" },
+      { key: "Org_Name", header: "Organization" },
       { key: "Level_No", header: "Level" },
       { key: "Status", header: "Status", type: "status" },
     ],
     formFields: [
+      {
+        name: "Org_Id",
+        label: "Organization",
+        type: "select",
+        required: true,
+      },
       { name: "Desig_Code", label: "Designation Code", required: true },
       { name: "Desig_Name", label: "Designation Name", required: true },
       { name: "Level_No", label: "Level No", type: "number" },
-      { name: "Status", label: "Status", type: "select", options: statusOptions },
+      {
+        name: "Status",
+        label: "Status",
+        type: "select",
+        options: [
+          { value: "Active", label: "Active" },
+          { value: "Inactive", label: "Inactive" },
+        ],
+        defaultValue: "Active",
+      },
     ],
   },
   grades: {
@@ -120,22 +198,39 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
     tableName: "mst_grade",
     actionLabel: "Add Grade",
     nameKey: "Grade_Name",
-    searchKeys: ["Grade_Code", "Grade_Name"],
+    usesApi: true,
+    searchKeys: ["Grade_Code", "Grade_Name", "Org_Name", "Pay_Band"],
     columns: [
       { key: "Grade_Code", header: "Grade Code" },
       { key: "Grade_Name", header: "Grade Name" },
+      { key: "Org_Name", header: "Organization" },
       { key: "Min_salary", header: "Min Salary", type: "currency" },
       { key: "Max_salary", header: "Max Salary", type: "currency" },
       { key: "Pay_Band", header: "Pay Band" },
-      { key: "status", header: "Status", type: "status" },
+      { key: "Status", header: "Status", type: "status" },
     ],
     formFields: [
+      {
+        name: "Org_Id",
+        label: "Organization",
+        type: "select",
+        required: true,
+      },
       { name: "Grade_Code", label: "Grade Code", required: true },
       { name: "Grade_Name", label: "Grade Name", required: true },
       { name: "Min_salary", label: "Minimum Salary", type: "number", required: true },
       { name: "Max_salary", label: "Maximum Salary", type: "number", required: true },
       { name: "Pay_Band", label: "Pay Band", span: "full" },
-      { name: "status", label: "Status", type: "select", options: statusOptions },
+      {
+        name: "Status",
+        label: "Status",
+        type: "select",
+        options: [
+          { value: "Active", label: "Active" },
+          { value: "Inactive", label: "Inactive" },
+        ],
+        defaultValue: "Active",
+      },
     ],
   },
   "employee-categories": {
@@ -164,18 +259,40 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
     tableName: "mst_employment_type",
     actionLabel: "Add Employment Type",
     nameKey: "Type_name",
-    searchKeys: ["Type_code", "Type_name"],
+    usesApi: true,
+    searchKeys: ["Type_code", "Type_name", "Org_Name"],
     columns: [
       { key: "Type_code", header: "Type Code" },
       { key: "Type_name", header: "Type Name" },
+      { key: "Org_Name", header: "Organization" },
       { key: "Is_payroll_applicable", header: "Payroll", type: "boolean" },
       { key: "Status", header: "Status", type: "status" },
     ],
     formFields: [
+      {
+        name: "Org_Id",
+        label: "Organization",
+        type: "select",
+        required: true,
+      },
       { name: "Type_code", label: "Type Code", required: true },
       { name: "Type_name", label: "Type Name", required: true },
-      { name: "Is_payroll_applicable", label: "Payroll Applicable", type: "checkbox" },
-      { name: "Status", label: "Status", type: "select", options: statusOptions },
+      {
+        name: "Is_payroll_applicable",
+        label: "Payroll Applicable",
+        type: "checkbox",
+        defaultValue: "1",
+      },
+      {
+        name: "Status",
+        label: "Status",
+        type: "select",
+        options: [
+          { value: "Active", label: "Active" },
+          { value: "Inactive", label: "Inactive" },
+        ],
+        defaultValue: "Active",
+      },
     ],
   },
   "job-types": {
@@ -204,22 +321,39 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
     tableName: "mst_work_shift",
     actionLabel: "Add Shift",
     nameKey: "Shift_name",
-    searchKeys: ["Shift_code", "Shift_name"],
+    usesApi: true,
+    searchKeys: ["Shift_code", "Shift_name", "Org_Name"],
     columns: [
       { key: "Shift_code", header: "Shift Code" },
       { key: "Shift_name", header: "Shift Name" },
+      { key: "Org_Name", header: "Organization" },
       { key: "Start_time", header: "Start Time", type: "time" },
       { key: "End_time", header: "End Time", type: "time" },
       { key: "Overtime_hr", header: "OT Hours" },
       { key: "Status", header: "Status", type: "status" },
     ],
     formFields: [
+      {
+        name: "Org_Id",
+        label: "Organization",
+        type: "select",
+        required: true,
+      },
       { name: "Shift_code", label: "Shift Code", required: true },
       { name: "Shift_name", label: "Shift Name", required: true },
       { name: "Start_time", label: "Start Time", type: "time", required: true },
       { name: "End_time", label: "End Time", type: "time", required: true },
       { name: "Overtime_hr", label: "Overtime Hours", type: "number" },
-      { name: "Status", label: "Status", type: "select", options: statusOptions },
+      {
+        name: "Status",
+        label: "Status",
+        type: "select",
+        options: [
+          { value: "Active", label: "Active" },
+          { value: "Inactive", label: "Inactive" },
+        ],
+        defaultValue: "Active",
+      },
     ],
   },
   "salary-grades": {
@@ -229,7 +363,8 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
     tableName: "mst_grade_salary",
     actionLabel: "Add Salary Grade",
     nameKey: "Grade_Name",
-    searchKeys: ["Grade_Name"],
+    usesApi: true,
+    searchKeys: ["Grade_Name", "Scale_Frm", "Yr_Inc", "Scale_Upto"],
     columns: [
       { key: "Grade_Name", header: "Grade" },
       { key: "Scale_Frm", header: "Scale From", type: "currency" },
@@ -239,16 +374,24 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
     ],
     formFields: [
       {
-        name: "Grade_Name",
+        name: "Grade_Id",
         label: "Grade",
         type: "select",
-        options: ["Grade A", "Grade B", "Grade C", "Grade D"],
         required: true,
       },
       { name: "Scale_Frm", label: "Scale From", type: "number", required: true },
       { name: "Yr_Inc", label: "Yearly Increment", type: "number", required: true },
       { name: "Scale_Upto", label: "Scale Upto", type: "number", required: true },
-      { name: "Status", label: "Status", type: "select", options: statusOptions },
+      {
+        name: "Status",
+        label: "Status",
+        type: "select",
+        options: [
+          { value: "Active", label: "Active" },
+          { value: "Inactive", label: "Inactive" },
+        ],
+        defaultValue: "Active",
+      },
     ],
   },
   employees: {
@@ -259,7 +402,7 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
     actionLabel: "Add Employee",
     nameKey: "Display_name",
     modalSize: "xl",
-    searchKeys: ["Employee_code", "First_name", "Last_name", "Email", "Mobile"],
+    searchKeys: ["Employee_code", "First_name", "Last_name", "Email", "Mobile", "Org_Name"],
     columns: [
       {
         key: "Display_name",
@@ -270,32 +413,13 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
       },
       { key: "Email", header: "Email" },
       { key: "Mobile", header: "Mobile" },
+      { key: "Org_Name", header: "Organization" },
       { key: "Department", header: "Department", filterable: true },
       { key: "Designation", header: "Designation", filterable: true },
       { key: "Date_of_joining", header: "Join Date", type: "date" },
       { key: "Employment_status", header: "Status", type: "status" },
     ],
-    formFields: [
-      { name: "Employee_code", label: "Employee Code", required: true },
-      { name: "First_name", label: "First Name", required: true },
-      { name: "Middle_name", label: "Middle Name" },
-      { name: "Last_name", label: "Last Name", required: true },
-      { name: "Email", label: "Email", type: "email", required: true },
-      { name: "Mobile", label: "Mobile", type: "tel", required: true },
-      { name: "Alternate_mobile", label: "Alternate Mobile", type: "tel" },
-      { name: "Gender", label: "Gender", type: "select", options: ["Male", "Female", "Transgender"] },
-      { name: "Date_of_birth", label: "Date of Birth", type: "date" },
-      { name: "Date_of_joining", label: "Date of Joining", type: "date", required: true },
-      { name: "Department", label: "Department", type: "select", options: ["IT", "HR", "Finance", "Operations"] },
-      { name: "Designation", label: "Designation", type: "select", options: ["Manager", "Executive", "Analyst"] },
-      { name: "Branch", label: "Branch", type: "select", options: ["Head Office", "Branch 1", "Branch 2"] },
-      { name: "Employment_status", label: "Employment Status", type: "select", options: activeInactive },
-      { name: "Address_line1", label: "Address Line 1", span: "full" },
-      { name: "City", label: "City" },
-      { name: "State", label: "State" },
-      { name: "Pincode", label: "Pincode" },
-      { name: "Emergency_contact", label: "Emergency Contact", type: "tel" },
-    ],
+    formSections: EMPLOYEE_FORM_SECTIONS,
   },
   "employee-profile": {
     id: "employee-profile",
@@ -675,4 +799,11 @@ export function getModuleFilterFields(config: HrmsModuleConfig) {
   return config.columns
     .filter((column) => column.filterable || column.type === "status")
     .map((column) => ({ key: column.key, label: column.header }));
+}
+
+export function getModuleFormFields(config: HrmsModuleConfig): FormField[] {
+  if (config.formSections?.length) {
+    return config.formSections.flatMap((section) => section.fields);
+  }
+  return config.formFields ?? [];
 }

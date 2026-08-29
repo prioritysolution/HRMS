@@ -67,16 +67,50 @@ function unwrapResponse<T>(payload: unknown): T {
   return payload as T;
 }
 
+const inflightGets = new Map<string, Promise<unknown>>();
+
+function getRequestKey(method: string, path: string, auth: boolean, unwrap: boolean): string {
+  return `${method}:${auth ? "auth" : "public"}:${unwrap ? "unwrap" : "raw"}:${getApiUrl(path)}`;
+}
+
 async function request<T>(
   method: string,
   path: string,
   body?: unknown,
   options: RequestOptions = {},
 ): Promise<T> {
+  const { auth = true, unwrap = true, signal } = options;
+  const canDedupe = method === "GET" && !signal;
+  const requestKey = canDedupe ? getRequestKey(method, path, auth, unwrap) : null;
+
+  if (requestKey) {
+    const existing = inflightGets.get(requestKey);
+    if (existing) return existing as Promise<T>;
+  }
+
+  const pending = sendRequest<T>(method, path, body, options);
+
+  if (requestKey) {
+    inflightGets.set(requestKey, pending);
+    void pending.finally(() => {
+      if (inflightGets.get(requestKey) === pending) inflightGets.delete(requestKey);
+    });
+  }
+
+  return pending;
+}
+
+async function sendRequest<T>(
+  method: string,
+  path: string,
+  body: unknown,
+  options: RequestOptions,
+): Promise<T> {
   const { auth = true, unwrap = true, headers, signal } = options;
+  const isFormData = typeof FormData !== "undefined" && body instanceof FormData;
   const requestHeaders: Record<string, string> = {
     Accept: "application/json",
-    ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
+    ...(body !== undefined && !isFormData ? { "Content-Type": "application/json" } : {}),
     ...(headers as Record<string, string>),
   };
 
@@ -93,7 +127,8 @@ async function request<T>(
     const response = await fetch(getApiUrl(path), {
       method,
       headers: requestHeaders,
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      body:
+        body === undefined ? undefined : isFormData ? (body as FormData) : JSON.stringify(body),
       signal: abortSignal,
     });
 

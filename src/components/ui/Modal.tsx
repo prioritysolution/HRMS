@@ -10,6 +10,8 @@ type ModalProps = {
   title: string;
   subtitle?: string;
   size?: "sm" | "md" | "lg" | "xl";
+  hideHeader?: boolean;
+  footerClassName?: string;
   children: React.ReactNode;
   footer?: React.ReactNode;
 };
@@ -27,6 +29,8 @@ export function Modal({
   title,
   subtitle,
   size = "lg",
+  hideHeader = false,
+  footerClassName,
   children,
   footer,
 }: ModalProps) {
@@ -50,20 +54,24 @@ export function Modal({
       <button type="button" className="modal-backdrop" aria-label="Close modal" onClick={onClose} />
       <div className={cn("modal-dialog", sizes[size])}>
         <div className="modal-content animate-modal-in">
-          <div className="modal-header">
-            <div>
-              <h2 id="modal-title" className="modal-title">
-                {title}
-              </h2>
-              {subtitle && <p className="modal-subtitle">{subtitle}</p>}
-            </div>
-            <button type="button" className="modal-close" onClick={onClose} aria-label="Close">
-              <X size={18} />
-            </button>
-          </div>
-          <hr className="modal-divider" />
+          {!hideHeader && (
+            <>
+              <div className="modal-header">
+                <div>
+                  <h2 id="modal-title" className="modal-title">
+                    {title}
+                  </h2>
+                  {subtitle && <p className="modal-subtitle">{subtitle}</p>}
+                </div>
+                <button type="button" className="modal-close" onClick={onClose} aria-label="Close">
+                  <X size={18} />
+                </button>
+              </div>
+              <hr className="modal-divider" />
+            </>
+          )}
           <div className="modal-body">{children}</div>
-          {footer && <div className="modal-footer">{footer}</div>}
+          {footer && <div className={cn("modal-footer", footerClassName)}>{footer}</div>}
         </div>
       </div>
     </div>

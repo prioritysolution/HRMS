@@ -5,6 +5,7 @@ import Image from "next/image";
 import {
   ChevronLeft,
   ChevronRight,
+  CircleCheck,
   Inbox,
   PlusCircle,
   Search,
@@ -15,12 +16,21 @@ import {
 } from "lucide-react";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ResetButton } from "@/components/ui/ResetButton";
+import {
+  ACTIVATE_CONFIRM_MESSAGE,
+  DEACTIVATE_CONFIRM_MESSAGE,
+  formatConfirmMessage,
+} from "@/lib/confirm-messages";
 import { SearchableSelect } from "@/components/ui/SearchableSelect";
 import { TableEmptyState } from "@/components/ui/TableEmptyState";
+import { TableLoadingOverlay } from "@/components/ui/TableLoadingOverlay";
 import { TableSectionHeader } from "@/components/ui/TableSectionHeader";
 import { StatusBadge, statusTone } from "@/components/ui/StatusBadge";
 import { useToast } from "@/components/ui/ToastProvider";
+import { resolvePublicFileUrl } from "@/lib/env";
+import { TABLE_LOADING_LABEL } from "@/lib/table-loading";
 import { getRowLabel } from "@/lib/row-label";
+import { isRowInactive } from "@/lib/row-status";
 import {
   applyTableFilters,
   applyTableSearch,
@@ -47,31 +57,53 @@ type DataTableProps<T> = {
   showRowActions?: boolean;
   onRowEdit?: (row: T) => void;
   onRowDelete?: (row: T) => void | Promise<void>;
+  onRowActivate?: (row: T) => void | Promise<void>;
+  statusToggle?: boolean;
   deleteConfirmTitle?: string;
+  deleteConfirmMessage?: string;
+  activateConfirmTitle?: string;
+  activateConfirmMessage?: string;
   searchKeys?: string[];
   filterFields?: TableFilterDef[];
   defaultPageSize?: number;
   getDeleteLabel?: (row: T) => string;
   emptyStateIcon?: LucideIcon;
+  loading?: boolean;
+  emptyStateTitle?: string;
+  emptyStateMessage?: string;
 };
 
 export function RowActions<T extends object>({
   row,
   onEdit,
   onDelete,
+  onActivate,
+  statusToggle = false,
   deleteConfirmTitle,
+  deleteConfirmMessage,
+  activateConfirmTitle,
+  activateConfirmMessage,
   getDeleteLabel,
 }: {
   row: T;
   onEdit?: (row: T) => void;
   onDelete?: (row: T) => void | Promise<void>;
+  onActivate?: (row: T) => void | Promise<void>;
+  statusToggle?: boolean;
   deleteConfirmTitle?: string;
+  deleteConfirmMessage?: string;
+  activateConfirmTitle?: string;
+  activateConfirmMessage?: string;
   getDeleteLabel?: (row: T) => string;
 }) {
   const toast = useToast();
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [activateOpen, setActivateOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [activating, setActivating] = useState(false);
   const rowLabel = getDeleteLabel?.(row) ?? getRowLabel(row);
+  const inactive = statusToggle && isRowInactive(row);
+  const isDeactivateAction = deleteConfirmTitle?.toLowerCase().includes("deactivate");
 
   const handleConfirmDelete = async () => {
     setDeleting(true);
@@ -83,17 +115,49 @@ export function RowActions<T extends object>({
       }
 
       toast.success({
-        title: "Deleted successfully",
-        message: `"${rowLabel}" has been removed.`,
+        title: isDeactivateAction ? "Deactivated successfully" : "Deleted successfully",
+        message: isDeactivateAction
+          ? `"${rowLabel}" has been set to Inactive.`
+          : `"${rowLabel}" has been removed.`,
       });
       setConfirmOpen(false);
-    } catch {
+    } catch (error) {
       toast.error({
-        title: "Delete failed",
-        message: "Something went wrong while deleting. Please try again.",
+        title: isDeactivateAction ? "Deactivate failed" : "Delete failed",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Something went wrong while deleting. Please try again.",
       });
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const handleConfirmActivate = async () => {
+    setActivating(true);
+    try {
+      if (onActivate) {
+        await onActivate(row);
+      } else {
+        await new Promise((resolve) => window.setTimeout(resolve, 350));
+      }
+
+      toast.success({
+        title: "Activated successfully",
+        message: `"${rowLabel}" has been set to Active.`,
+      });
+      setActivateOpen(false);
+    } catch (error) {
+      toast.error({
+        title: "Activate failed",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Something went wrong while activating. Please try again.",
+      });
+    } finally {
+      setActivating(false);
     }
   };
 
@@ -108,14 +172,25 @@ export function RowActions<T extends object>({
         >
           <SquarePen size={16} strokeWidth={2.25} />
         </button>
-        <button
-          type="button"
-          className="btn-action btn-action-delete"
-          aria-label="Delete"
-          onClick={() => setConfirmOpen(true)}
-        >
-          <Trash2 size={15} strokeWidth={2} />
-        </button>
+        {inactive ? (
+          <button
+            type="button"
+            className="btn-action btn-action-activate"
+            aria-label="Activate"
+            onClick={() => setActivateOpen(true)}
+          >
+            <CircleCheck size={16} strokeWidth={2.25} />
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="btn-action btn-action-delete"
+            aria-label={isDeactivateAction ? "Deactivate" : "Delete"}
+            onClick={() => setConfirmOpen(true)}
+          >
+            <Trash2 size={15} strokeWidth={2} />
+          </button>
+        )}
       </div>
 
       <ConfirmDialog
@@ -123,10 +198,27 @@ export function RowActions<T extends object>({
         onClose={() => setConfirmOpen(false)}
         onConfirm={handleConfirmDelete}
         title={deleteConfirmTitle ?? "Delete record?"}
-        message={`Are you sure you want to delete "${rowLabel}"?`}
-        confirmLabel="Delete"
+        message={
+          deleteConfirmMessage
+            ? formatConfirmMessage(deleteConfirmMessage, rowLabel)
+            : isDeactivateAction
+              ? formatConfirmMessage(DEACTIVATE_CONFIRM_MESSAGE, rowLabel)
+              : `Are you sure you want to delete "${rowLabel}"?`
+        }
+        confirmLabel={isDeactivateAction ? "Deactivate" : "Delete"}
         variant="danger"
         loading={deleting}
+      />
+
+      <ConfirmDialog
+        open={activateOpen}
+        onClose={() => setActivateOpen(false)}
+        onConfirm={handleConfirmActivate}
+        title={activateConfirmTitle ?? "Activate record?"}
+        message={formatConfirmMessage(activateConfirmMessage ?? ACTIVATE_CONFIRM_MESSAGE, rowLabel)}
+        confirmLabel="Activate"
+        variant="success"
+        loading={activating}
       />
     </>
   );
@@ -142,12 +234,20 @@ export function DataTable<T extends object>({
   showRowActions = false,
   onRowEdit,
   onRowDelete,
+  onRowActivate,
+  statusToggle = false,
   deleteConfirmTitle,
+  deleteConfirmMessage,
+  activateConfirmTitle,
+  activateConfirmMessage,
   searchKeys,
   filterFields = [],
   defaultPageSize = 10,
   getDeleteLabel,
   emptyStateIcon: EmptyIcon = Inbox,
+  loading = false,
+  emptyStateTitle,
+  emptyStateMessage,
 }: DataTableProps<T>) {
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState<Record<string, string>>({});
@@ -203,7 +303,12 @@ export function DataTable<T extends object>({
             title={title}
             action={
               actionLabel ? (
-                <button type="button" className="btn btn-primary" onClick={onAction}>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={onAction}
+                  disabled={loading}
+                >
                   <PlusCircle size={16} strokeWidth={2} />
                   {actionLabel}
                 </button>
@@ -212,7 +317,12 @@ export function DataTable<T extends object>({
           />
         ) : actionLabel ? (
           <div className="toolbar toolbar-end">
-            <button type="button" className="btn btn-primary" onClick={onAction}>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={onAction}
+              disabled={loading}
+            >
               <PlusCircle size={16} strokeWidth={2} />
               {actionLabel}
             </button>
@@ -287,7 +397,15 @@ export function DataTable<T extends object>({
               </tr>
             </thead>
             <tbody>
-              {paginatedRows.length > 0 ? (
+              {loading ? (
+                <tr className="table-loading-row">
+                  <td colSpan={colSpan}>
+                    <div className="table-loading-panel">
+                      <TableLoadingOverlay />
+                    </div>
+                  </td>
+                </tr>
+              ) : paginatedRows.length > 0 ? (
                 paginatedRows.map((row, index) => (
                   <tr key={"id" in row ? String((row as { id?: string }).id) : JSON.stringify(row)}>
                     <td className="si-col">{(page - 1) * pageSize + index + 1}</td>
@@ -300,7 +418,12 @@ export function DataTable<T extends object>({
                           row={row}
                           onEdit={onRowEdit}
                           onDelete={onRowDelete}
+                          onActivate={onRowActivate}
+                          statusToggle={statusToggle}
                           deleteConfirmTitle={deleteConfirmTitle}
+                          deleteConfirmMessage={deleteConfirmMessage}
+                          activateConfirmTitle={activateConfirmTitle}
+                          activateConfirmMessage={activateConfirmMessage}
                           getDeleteLabel={getDeleteLabel}
                         />
                       </td>
@@ -312,10 +435,12 @@ export function DataTable<T extends object>({
                   <td colSpan={colSpan}>
                     <TableEmptyState
                       icon={EmptyIcon}
+                      title={emptyStateTitle}
                       message={
-                        search || hasActiveFilters
+                        emptyStateMessage ??
+                        (search || hasActiveFilters
                           ? "Try adjusting your search or filters."
-                          : "No data available in this list yet."
+                          : "No data available in this list yet.")
                       }
                     />
                   </td>
@@ -328,7 +453,7 @@ export function DataTable<T extends object>({
         <div className="table-footer">
           <div className="table-footer-left">
             <span className="table-result-text">
-              Showing {start}-{end} of {filteredRows.length}
+              {loading ? TABLE_LOADING_LABEL : `Showing ${start}-${end} of ${filteredRows.length}`}
             </span>
             <div className="table-page-size">
               <label htmlFor="table-page-size">Rows per page</label>
@@ -336,6 +461,7 @@ export function DataTable<T extends object>({
                 id="table-page-size"
                 className="form-control table-page-size-select"
                 value={pageSize}
+                disabled={loading}
                 onChange={(event) => setPageSize(Number(event.target.value))}
               >
                 {PAGE_SIZE_OPTIONS.map((size) => (
@@ -351,19 +477,19 @@ export function DataTable<T extends object>({
             <button
               type="button"
               className="table-page-btn"
-              disabled={page <= 1}
+              disabled={loading || page <= 1}
               onClick={() => setPage((prev) => Math.max(1, prev - 1))}
               aria-label="Previous page"
             >
               <ChevronLeft size={16} />
             </button>
             <span className="table-page-indicator">
-              Page {page} of {totalPages}
+              {loading ? "—" : `Page ${page} of ${totalPages}`}
             </span>
             <button
               type="button"
               className="table-page-btn"
-              disabled={page >= totalPages}
+              disabled={loading || page >= totalPages}
               onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
               aria-label="Next page"
             >
@@ -385,10 +511,22 @@ export function PersonCell({
   subtitle?: string;
   avatar?: string;
 }) {
+  const src = avatar ? resolvePublicFileUrl(avatar) : "";
+  const isRemote = /^https?:\/\//i.test(src);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    setFailed(false);
+  }, [src]);
+
   return (
     <div className="user-cell">
-      {avatar ? (
-        <Image src={avatar} alt={name} width={36} height={36} />
+      {src && !failed ? (
+        isRemote ? (
+          <img src={src} alt={name} width={36} height={36} onError={() => setFailed(true)} />
+        ) : (
+          <Image src={src} alt={name} width={36} height={36} onError={() => setFailed(true)} />
+        )
       ) : (
         <div className="avatar avatar-md avatar-soft-primary">
           {name.slice(0, 1)}

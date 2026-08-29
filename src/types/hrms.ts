@@ -1,4 +1,4 @@
-export type HrmsRow = Record<string, string | number | boolean | undefined> & {
+export type HrmsRow = Record<string, string | number | boolean | File | null | undefined> & {
   id: string;
 };
 
@@ -11,16 +11,30 @@ export type FormFieldType =
   | "number"
   | "select"
   | "textarea"
-  | "checkbox";
+  | "checkbox"
+  | "file";
 
 export type FormField = {
   name: string;
   label: string;
   type?: FormFieldType;
-  options?: string[];
+  options?: Array<string | { value: string; label: string }>;
   required?: boolean;
   span?: "full";
   placeholder?: string;
+  defaultValue?: string;
+  accept?: string;
+  maxSizeMb?: number;
+  hint?: string;
+  previewKey?: string;
+  fileNameKey?: string;
+};
+
+export type FormSection = {
+  id: string;
+  title: string;
+  description?: string;
+  fields: FormField[];
 };
 
 export type TableColumnType = "text" | "status" | "person" | "date" | "time" | "currency" | "boolean";
@@ -42,7 +56,9 @@ export type HrmsModuleConfig = {
   actionLabel: string;
   nameKey: string;
   columns: TableColumn[];
-  formFields: FormField[];
+  formFields?: FormField[];
+  formSections?: FormSection[];
   modalSize?: "sm" | "md" | "lg" | "xl";
   searchKeys?: string[];
+  usesApi?: boolean;
 };

@@ -4,14 +4,21 @@ export type NavChild = {
   exact?: boolean;
 };
 
+export type NavIcon =
+  | "dashboard"
+  | "organization"
+  | "employees"
+  | "attendance"
+  | "payroll"
+  | "reports"
+  | "settings"
+  | "helpdesk"
+  | "ess";
+
 export type NavItem = {
   label: string;
   href?: string;
-  icon:
-    | "dashboard"
-    | "organization"
-    | "employees"
-    | "attendance";
+  icon: NavIcon;
   children?: NavChild[];
 };
 
@@ -23,6 +30,7 @@ export type NavSection = {
 
 export const APP_NAME = "Staffu";
 
+/** Fallback navigation used when the menu API is unavailable. */
 export const navigation: NavSection[] = [
   {
     title: "",
@@ -33,24 +41,23 @@ export const navigation: NavSection[] = [
         label: "Organization Setup",
         icon: "organization",
         children: [
-          { label: "Organization", href: "/organization", exact: true },
-          { label: "Branch / Office", href: "/organization/branches" },
-          { label: "Department", href: "/organization/departments" },
-          { label: "Designation", href: "/organization/designations" },
-          { label: "Grade", href: "/organization/grades" },
-          { label: "Employee Category", href: "/organization/employee-categories" },
+          { label: "Organization Profile", href: "/organization", exact: true },
+          { label: "Branch / Office Master", href: "/organization/branches" },
+          { label: "Department Master", href: "/organization/departments" },
+          { label: "Designation Master", href: "/organization/designations" },
+          { label: "Grade / Level Master", href: "/organization/grades" },
+          { label: "Shift Master", href: "/organization/shifts" },
           { label: "Employment Type", href: "/organization/employment-types" },
-          { label: "Job Type", href: "/organization/job-types" },
-          { label: "Shift", href: "/organization/shifts" },
+          { label: "Employment Status", href: "/organization/employee-categories" },
           { label: "Salary Grade", href: "/organization/salary-grades" },
+          { label: "Holiday Calendar", href: "/attendance/holidays" },
         ],
       },
       {
         label: "Employee Management",
         icon: "employees",
         children: [
-          { label: "Employee List", href: "/employees", exact: true },
-          { label: "Employee Profile", href: "/employees/profile" },
+          { label: "Employee Profile", href: "/employees", exact: true },
           { label: "Employee Onboarding", href: "/employees/onboarding" },
           { label: "Service History", href: "/employees/service-history" },
         ],

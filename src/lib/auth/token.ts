@@ -78,23 +78,67 @@ export function extractAuthUser(payload: unknown, fallbackEmail = ""): AuthUser 
   );
 
   for (const userRecord of candidates) {
-    const email = readString(userRecord, ["email", "email_id"]) ?? fallbackEmail;
-    const firstName = readString(userRecord, ["first_name", "firstName"]);
-    const lastName = readString(userRecord, ["last_name", "lastName"]);
+    const userName = readString(userRecord, ["user_name", "User_Name", "username", "UserName"]);
+    const email =
+      readString(userRecord, ["email", "Email", "email_id", "Email_Id"]) ||
+      fallbackEmail ||
+      userName ||
+      "";
+    const firstName = readString(userRecord, ["first_name", "firstName", "First_Name"]);
+    const lastName = readString(userRecord, ["last_name", "lastName", "Last_Name"]);
     const combinedName = [firstName, lastName].filter(Boolean).join(" ").trim();
     const name =
-      readString(userRecord, ["name", "full_name", "user_name", "username"]) ||
+      readString(userRecord, ["name", "full_name", "Full_Name", "Emp_Name", "emp_name"]) ||
       combinedName ||
-      (email ? email.split("@")[0] : "");
-    const id = readString(userRecord, ["id", "user_id", "uuid"]);
+      userName ||
+      (email.includes("@") ? email.split("@")[0] : email) ||
+      "";
+    const id = readString(userRecord, ["id", "user_id", "User_Id", "uuid"]);
+    const role =
+      readString(userRecord, [
+        "role",
+        "role_name",
+        "Role_Name",
+        "user_type",
+        "userType",
+        "designation",
+      ]) ?? undefined;
 
-    if (!email && !name && !id) continue;
+    if (!email && !name && !id && !userName) continue;
+
+    const roleIdRaw = userRecord.role_id ?? userRecord.Role_Id ?? userRecord.roleId;
+    const orgIdRaw = userRecord.org_id ?? userRecord.Org_Id ?? userRecord.orgId;
+    const isAdminRaw = userRecord.is_admin ?? userRecord.Is_Admin ?? userRecord.isAdmin;
+
+    const roleId =
+      typeof roleIdRaw === "number"
+        ? roleIdRaw
+        : typeof roleIdRaw === "string" && roleIdRaw.trim() && Number.isFinite(Number(roleIdRaw))
+          ? Number(roleIdRaw)
+          : undefined;
+    const orgId =
+      typeof orgIdRaw === "number"
+        ? orgIdRaw
+        : typeof orgIdRaw === "string" && orgIdRaw.trim() && Number.isFinite(Number(orgIdRaw))
+          ? Number(orgIdRaw)
+          : undefined;
 
     return {
       id: id ?? "user",
       name: name || "User",
-      email,
-      role: readString(userRecord, ["role", "user_type", "userType", "designation"]) ?? undefined,
+      email: email || userName || "",
+      role,
+      userName: userName ?? undefined,
+      roleId,
+      orgId,
+      isAdmin:
+        typeof isAdminRaw === "boolean"
+          ? isAdminRaw
+          : isAdminRaw === 1 || isAdminRaw === "1"
+            ? true
+            : isAdminRaw === 0 || isAdminRaw === "0"
+              ? false
+              : undefined,
     };
   }
 

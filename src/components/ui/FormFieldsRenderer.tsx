@@ -1,20 +1,29 @@
 "use client";
 
 import { DatePicker } from "@/components/ui/DatePicker";
+import { FileUploadField } from "@/components/ui/FileUploadField";
 import { FormFieldLabel } from "@/components/ui/FormFieldLabel";
 import { SearchableSelect } from "@/components/ui/SearchableSelect";
 import { cn } from "@/lib/utils";
+import type { FormValue } from "@/lib/form-validation";
 import type { FormField, HrmsRow } from "@/types/hrms";
 
 type FormFieldsRendererProps = {
   fields: FormField[];
-  values: Record<string, string | boolean>;
+  values: Record<string, FormValue>;
   errors: Record<string, string>;
-  onChange: (name: string, value: string | boolean) => void;
+  onChange: (name: string, value: FormValue) => void;
 };
 
-function isCheckedValue(value: string | boolean | undefined): boolean {
+function isCheckedValue(value: FormValue): boolean {
   return value === true || value === "true";
+}
+
+function asText(value: FormValue): string {
+  if (value === undefined || value === null || typeof value === "boolean" || value instanceof File) {
+    return "";
+  }
+  return String(value);
 }
 
 export function FormFieldsRenderer({
@@ -52,6 +61,34 @@ export function FormFieldsRenderer({
                 </p>
               ) : null}
             </>
+          ) : field.type === "file" ? (
+            <FileUploadField
+              id={field.name}
+              name={field.name}
+              label={field.label}
+              required={field.required}
+              accept={field.accept}
+              maxSizeMb={field.maxSizeMb}
+              hint={field.hint}
+              file={values[field.name] instanceof File ? (values[field.name] as File) : null}
+              existingUrl={
+                values[field.name] instanceof File
+                  ? ""
+                  : asText(field.previewKey ? values[field.previewKey] : values[field.name])
+              }
+              existingName={
+                values[field.name] instanceof File
+                  ? ""
+                  : asText(field.fileNameKey ? values[field.fileNameKey] : "")
+              }
+              error={errors[field.name]}
+              onChange={(file) => {
+                onChange(field.name, file);
+                if (file) return;
+                if (field.previewKey) onChange(field.previewKey, "");
+                if (field.fileNameKey) onChange(field.fileNameKey, "");
+              }}
+            />
           ) : (
             <>
               <FormFieldLabel htmlFor={field.name} label={field.label} required={field.required} />
@@ -59,7 +96,7 @@ export function FormFieldsRenderer({
                 <SearchableSelect
                   id={field.name}
                   name={field.name}
-                  value={String(values[field.name] ?? "")}
+                  value={asText(values[field.name])}
                   onChange={(nextValue) => onChange(field.name, nextValue)}
                   options={field.options ?? []}
                   placeholder={`Select ${field.label}`}
@@ -69,7 +106,7 @@ export function FormFieldsRenderer({
                 <DatePicker
                   id={field.name}
                   name={field.name}
-                  value={String(values[field.name] ?? "")}
+                  value={asText(values[field.name])}
                   onChange={(nextValue) => onChange(field.name, nextValue)}
                   placeholder="dd-mm-yyyy"
                 />
@@ -79,7 +116,7 @@ export function FormFieldsRenderer({
                   name={field.name}
                   className="form-control"
                   rows={3}
-                  value={String(values[field.name] ?? "")}
+                  value={asText(values[field.name])}
                   placeholder={field.placeholder ?? `Enter ${field.label.toLowerCase()}`}
                   onChange={(event) => onChange(field.name, event.target.value)}
                 />
@@ -89,7 +126,7 @@ export function FormFieldsRenderer({
                   name={field.name}
                   type={field.type || "text"}
                   className="form-control"
-                  value={String(values[field.name] ?? "")}
+                  value={asText(values[field.name])}
                   placeholder={field.placeholder ?? `Enter ${field.label.toLowerCase()}`}
                   onChange={(event) => onChange(field.name, event.target.value)}
                 />
@@ -110,16 +147,31 @@ export function FormFieldsRenderer({
 export function buildInitialFormValues(
   fields: FormField[],
   initialValues?: HrmsRow,
-): Record<string, string | boolean> {
-  const values: Record<string, string | boolean> = {};
+): Record<string, FormValue> {
+  const values: Record<string, FormValue> = {};
 
   fields.forEach((field) => {
-    const raw = initialValues?.[field.name];
-    if (field.type === "checkbox") {
-      values[field.name] = raw === true || raw === "true" || raw === 1 || raw === "1";
+    if (field.type === "file") {
+      values[field.name] = null;
+      if (field.previewKey) {
+        values[field.previewKey] = asText(initialValues?.[field.previewKey] as FormValue);
+      }
+      if (field.fileNameKey) {
+        values[field.fileNameKey] = asText(initialValues?.[field.fileNameKey] as FormValue);
+      }
       return;
     }
-    values[field.name] = raw === undefined || raw === null ? "" : String(raw);
+
+    const raw = initialValues?.[field.name];
+    if (field.type === "checkbox") {
+      const source = raw === undefined || raw === null || raw === "" ? field.defaultValue : raw;
+      values[field.name] = source === true || source === "true" || source === 1 || source === "1";
+      return;
+    }
+    values[field.name] =
+      raw === undefined || raw === null || raw === "" || raw instanceof File
+        ? (field.defaultValue ?? "")
+        : String(raw);
   });
 
   return values;

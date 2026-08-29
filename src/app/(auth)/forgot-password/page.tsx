@@ -47,7 +47,7 @@ export default function ForgotPasswordPage() {
               <hr className="auth-divider mt-6" />
               <div className="auth-help-row">
                 <small>
-                  Remember your password ? <Link href="/signin">Sign In</Link>
+                  Remember your password ? <Link href="/login">Login</Link>
                 </small>
                 <a href="#" className="auth-help-link">
                   <Headphones size={14} /> Help

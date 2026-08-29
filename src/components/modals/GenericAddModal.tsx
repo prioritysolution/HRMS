@@ -6,7 +6,7 @@ import {
   buildInitialFormValues,
   FormFieldsRenderer,
 } from "@/components/ui/FormFieldsRenderer";
-import { validateFormField, validateFormFields } from "@/lib/form-validation";
+import { validateFormField, validateFormFields, type FormValue } from "@/lib/form-validation";
 import type { FormField } from "@/types/hrms";
 
 type GenericAddModalProps = {
@@ -39,7 +39,7 @@ export function GenericAddModal({
   submitLabel = "Save & Continue",
   fields = defaultFields,
 }: GenericAddModalProps) {
-  const [values, setValues] = useState<Record<string, string | boolean>>({});
+  const [values, setValues] = useState<Record<string, FormValue>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -51,7 +51,7 @@ export function GenericAddModal({
     setErrors({});
   }, [open, fields]);
 
-  const handleFieldChange = (name: string, value: string | boolean) => {
+  const handleFieldChange = (name: string, value: FormValue) => {
     setValues((prev) => ({ ...prev, [name]: value }));
     const field = fields.find((item) => item.name === name);
     if (!field) return;

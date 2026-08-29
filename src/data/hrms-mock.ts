@@ -126,6 +126,8 @@ export const HRMS_MOCK_DATA: Record<string, HrmsRow[]> = {
   ],
   employees: [
     row("emp-1", {
+      Org_Id: 1,
+      Org_Name: "Priority Solutions",
       Employee_code: "EMP-1001",
       Display_name: "Joyce Neal",
       First_name: "Joyce",
@@ -139,6 +141,8 @@ export const HRMS_MOCK_DATA: Record<string, HrmsRow[]> = {
       Photo_path: "/images/avatars/avatar1.jpg",
     }),
     row("emp-2", {
+      Org_Id: 1,
+      Org_Name: "Priority Solutions",
       Employee_code: "EMP-1002",
       Display_name: "Marcus Hale",
       First_name: "Marcus",
@@ -152,6 +156,8 @@ export const HRMS_MOCK_DATA: Record<string, HrmsRow[]> = {
       Photo_path: "/images/avatars/avatar2.jpg",
     }),
     row("emp-3", {
+      Org_Id: 1,
+      Org_Name: "Priority Solutions",
       Employee_code: "EMP-1003",
       Display_name: "Priya Sharma",
       First_name: "Priya",

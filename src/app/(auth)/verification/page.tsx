@@ -84,7 +84,7 @@ export default function VerificationPage() {
             </form>
 
             <p className="auth-bottom-note">
-              Wrong email address? <Link href="/signup">Change email</Link>
+              Wrong email address? <Link href="/forgot-password">Change email</Link>
             </p>
           </div>
         </div>

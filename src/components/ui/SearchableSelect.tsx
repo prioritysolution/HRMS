@@ -14,7 +14,7 @@ type SearchableSelectProps = {
   name?: string;
   value: string;
   onChange: (value: string) => void;
-  options: string[] | SearchableSelectOption[];
+  options: Array<string | SearchableSelectOption>;
   placeholder?: string;
   searchPlaceholder?: string;
   disabled?: boolean;
@@ -25,7 +25,7 @@ type SearchableSelectProps = {
   clearable?: boolean;
 };
 
-function normalizeOptions(options: string[] | SearchableSelectOption[]): SearchableSelectOption[] {
+function normalizeOptions(options: Array<string | SearchableSelectOption>): SearchableSelectOption[] {
   return options.map((option) =>
     typeof option === "string" ? { value: option, label: option } : option,
   );
@@ -113,8 +113,7 @@ export function SearchableSelect({
   const handleFocus = () => {
     if (disabled) return;
     setOpen(true);
-    setQuery(closedDisplay);
-    window.setTimeout(() => inputRef.current?.select(), 0);
+    setQuery("");
   };
 
   const handleBlur = () => {

@@ -1,13 +1,25 @@
 import type { FormField } from "@/types/hrms";
 import { isValidDateValue } from "@/lib/date-utils";
+import { validateImageFile } from "@/lib/file-upload";
 
-export function validateFormField(
-  field: FormField,
-  value: string | boolean,
-): string | undefined {
+export type FormValue = string | boolean | File | null | undefined;
+
+export function validateFormField(field: FormField, value: FormValue): string | undefined {
   if (field.type === "checkbox") return undefined;
 
-  const text = typeof value === "boolean" ? "" : value.trim();
+  if (field.type === "file") {
+    const file = value instanceof File ? value : null;
+    if (!file) {
+      return field.required ? `${field.label} is required.` : undefined;
+    }
+    return validateImageFile(file, {
+      required: field.required,
+      label: field.label,
+      maxSizeMb: field.maxSizeMb,
+    });
+  }
+
+  const text = typeof value === "boolean" || value instanceof File ? "" : String(value ?? "").trim();
 
   if (field.required && !text) {
     return `${field.label} is required.`;
@@ -36,12 +48,12 @@ export function validateFormField(
 
 export function validateFormFields(
   fields: FormField[],
-  values: Record<string, string | boolean>,
+  values: Record<string, FormValue>,
 ): Record<string, string> {
   const errors: Record<string, string> = {};
 
   fields.forEach((field) => {
-    const error = validateFormField(field, values[field.name] ?? "");
+    const error = validateFormField(field, values[field.name]);
     if (error) errors[field.name] = error;
   });
 

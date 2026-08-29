@@ -6,6 +6,8 @@ import { StatCard } from "@/components/ui/StatCard";
 import { DataTable, PersonCell, SoftStatus } from "@/components/ui/DataTable";
 import { GenericAddModal } from "@/components/modals/GenericAddModal";
 import { getEmptyIconByTitle } from "@/lib/module-icons";
+import { getRowStatusKey } from "@/lib/row-status";
+import { ACTIVATE_CONFIRM_MESSAGE } from "@/lib/confirm-messages";
 
 type Stat = {
   title: string;
@@ -80,6 +82,13 @@ export function ModulePage({
     setTableRows((prev) => prev.filter((item) => item !== row));
   };
 
+  const handleActivate = async (row: Row) => {
+    const statusKey = getRowStatusKey(row);
+    setTableRows((prev) =>
+      prev.map((item) => (item === row ? { ...item, [statusKey]: "Active" } : item)),
+    );
+  };
+
   return (
     <>
       <PageHeader title={title} section={section} hideTitle />
@@ -98,9 +107,13 @@ export function ModulePage({
           actionLabel={actionLabel}
           onAction={() => setOpen(true)}
           showRowActions={showRowActions}
+          statusToggle
           onRowEdit={handleEdit}
           onRowDelete={handleDelete}
+          onRowActivate={handleActivate}
           deleteConfirmTitle={deleteConfirmTitle ?? `Delete ${title.toLowerCase()}?`}
+          activateConfirmTitle={`Activate ${title.toLowerCase()}?`}
+          activateConfirmMessage={ACTIVATE_CONFIRM_MESSAGE}
           rows={tableRows}
           searchKeys={["primary", "secondary", "c1", "c2", "c3", "status"]}
           filterFields={[{ key: "status", label: "Status" }]}
