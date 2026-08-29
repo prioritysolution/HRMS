@@ -5,15 +5,61 @@ export type TableFilterDef = {
   label: string;
 };
 
-export function getFilterOptions<T extends object>(rows: T[], key: string): string[] {
+// export function getFilterOptions<T extends object>(rows: T[], key: string): string[] {
+// export function getFilterOptions<T extends object>(
+//   rows: T[],
+//   key: string,
+// ): Array<string | { value: string; label: string }> {
+//   const values = new Set<string>();
+//   rows.forEach((row) => {
+//     const value = (row as Record<string, unknown>)[key];
+//     if (value !== undefined && value !== null && String(value).trim() !== "") {
+//       values.add(String(value));
+//     }
+//   });
+//   return Array.from(values).sort((a, b) => a.localeCompare(b));
+// }
+export function getFilterOptions<T extends object>(
+  rows: T[],
+  key: string,
+): Array<string | { value: string; label: string }> {
   const values = new Set<string>();
+
   rows.forEach((row) => {
     const value = (row as Record<string, unknown>)[key];
-    if (value !== undefined && value !== null && String(value).trim() !== "") {
+
+    if (
+      value !== undefined &&
+      value !== null &&
+      String(value).trim() !== ""
+    ) {
       values.add(String(value));
     }
   });
-  return Array.from(values).sort((a, b) => a.localeCompare(b));
+
+  const options = Array.from(values);
+
+  const isStatusField =
+    key === "Status" ||
+    key === "status" ||
+    key === "Employment_status" ||
+    key === "Asset_status";
+
+  if (isStatusField) {
+    return options
+      .map((value) => ({
+        value,
+        label:
+          value === "1"
+            ? "Active"
+            : value === "0"
+              ? "Inactive"
+              : value,
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }
+
+  return options.sort((a, b) => a.localeCompare(b));
 }
 
 export function applyTableSearch<T extends object>(

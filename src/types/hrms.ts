@@ -53,7 +53,7 @@ export type HrmsModuleConfig = {
   title: string;
   section: string;
   tableName: string;
-  actionLabel: string;
+  actionLabel?: string;
   nameKey: string;
   columns: TableColumn[];
   formFields?: FormField[];
@@ -61,4 +61,6 @@ export type HrmsModuleConfig = {
   modalSize?: "sm" | "md" | "lg" | "xl";
   searchKeys?: string[];
   usesApi?: boolean;
+  statusToggle?: boolean;
+  disableEditSubmit?: boolean;
 };

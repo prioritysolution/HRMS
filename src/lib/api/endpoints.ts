@@ -52,6 +52,30 @@ export const API_ENDPOINTS = {
     update: (id: string | number) => `/api/v1/employment-type/update/${id}`,
     delete: (id: string | number) => `/api/v1/employment-type/delete/${id}`,
   },
+  employmentStatus: {
+    list: "/api/v1/employment-status/list",
+    get: (id: string | number) =>
+      `/api/v1/employment-status/list?emp_status_id=${encodeURIComponent(String(id))}`,
+    create: "/api/v1/employment-status/create",
+    update: (id: string | number) =>
+      `/api/v1/employment-status/update/${id}`,
+    delete: (id: string | number) =>
+      `/api/v1/employment-status/delete/${id}`,
+  },
+  holiday: {
+    list: "/api/v1/holiday/list",
+
+    get: (id: string | number) =>
+      `/api/v1/holiday/list?holiday_id=${encodeURIComponent(String(id))}`,
+
+    create: "/api/v1/holiday/create",
+
+    update: (id: string | number) =>
+      `/api/v1/holiday/update/${id}`,
+
+    delete: (id: string | number) =>
+      `/api/v1/holiday/delete/${id}`,
+  },
   workShift: {
     list: "/api/v1/work-shift/list",
     get: (id: string | number) => `/api/v1/work-shift/get/${id}`,
@@ -67,6 +91,12 @@ export const API_ENDPOINTS = {
     create: "/api/v1/grade-salary/create",
     update: (id: string | number) => `/api/v1/grade-salary/update/${id}`,
     delete: (id: string | number) => `/api/v1/grade-salary/delete/${id}`,
+  },
+  asset: {
+    list: "/api/v1/asset/list",
+    create: "/api/v1/asset/create",
+    update: (id: string | number) => `/api/v1/asset/update/${id}`,
+    delete: (id: string | number) => `/api/v1/asset/delete/${id}`,
   },
   applOptions: {
     list: "/api/v1/appl-options/list",
@@ -140,4 +170,13 @@ export const API_ENDPOINTS = {
     calendar: "/apps/calendar",
     teams: "/apps/teams",
   },
+  employee: {
+  list: "/api/v1/employee/list",
+  create: "/api/v1/employee/create",
+  update: (id: string | number) =>
+    `/api/v1/employee/update/${id}`,
+  remove: (id: string | number) =>
+    `/api/v1/employee/delete/${id}`,
+},
+
 } as const;

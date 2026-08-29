@@ -1098,7 +1098,9 @@ textarea {
   padding: 0.85rem 0.75rem;
   text-align: left;
   border-bottom: 1px solid var(--border);
-  white-space: nowrap;
+  /* white-space: nowrap; */
+  white-space: normal; /* <-- Changed from nowrap to normal */
+  word-break: break-word; /* <-- Add this to handle extremely long continuous words */
 }
 
 .data-table th {

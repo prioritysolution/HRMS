@@ -3,7 +3,18 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getHrmsModule, getModuleFilterFields, getModuleFormFields } from "@/config/hrms-modules";
 import { getHrmsMockRows } from "@/data/hrms-mock";
-import { ApiError, applOptionService, gradeService, organizationService } from "@/lib/api";
+import {
+  ApiError,
+  applOptionService,
+  branchService,
+  departmentService,
+  designationService,
+  employmentStatusService,
+  employmentTypeService,
+  gradeService,
+  organizationService,
+  workShiftService,
+} from "@/lib/api";
 import { applOptionsToSelectOptions } from "@/lib/api/services/appl-options.service";
 import { EMPLOYEE_APPL_OPTION_FALLBACKS } from "@/config/employee-form-sections";
 import { getMasterDataApiService, moduleUsesGradeSelect, moduleUsesOrganizationSelect } from "@/lib/api/master-data-services";
@@ -130,6 +141,29 @@ export function MasterDataPage({ moduleId, onRowEdit }: MasterDataPageProps) {
   );
   const [gradeOptions, setGradeOptions] = useState<Array<{ value: string; label: string }>>([]);
   const [genderOptions, setGenderOptions] = useState<Array<{ value: string; label: string }>>([]);
+  const [branchOptions, setBranchOptions] = useState<
+    Array<{ value: string; label: string }>
+  >([]);
+
+  const [departmentOptions, setDepartmentOptions] = useState<
+    Array<{ value: string; label: string }>
+  >([]);
+
+  const [designationOptions, setDesignationOptions] = useState<
+    Array<{ value: string; label: string }>
+  >([]);
+
+  const [employmentTypeOptions, setEmploymentTypeOptions] = useState<
+    Array<{ value: string; label: string }>
+  >([]);
+
+  const [employmentStatusOptions, setEmploymentStatusOptions] = useState<
+    Array<{ value: string; label: string }>
+  >([]);
+
+  const [shiftOptions, setShiftOptions] = useState<
+    Array<{ value: string; label: string }>
+  >([]);
   const [bloodGroupOptions, setBloodGroupOptions] = useState<Array<{ value: string; label: string }>>([]);
   const [maritalStatusOptions, setMaritalStatusOptions] = useState<Array<{ value: string; label: string }>>([]);
 
@@ -150,6 +184,33 @@ export function MasterDataPage({ moduleId, onRowEdit }: MasterDataPageProps) {
     (field: FormField): FormField => {
       if (field.name === "Org_Id" && usesOrganizationSelect) {
         return { ...field, options: organizationOptions };
+      }
+      if (isEmployeeModule && field.name === "Branch") {
+        return { ...field, options: branchOptions };
+      }
+
+      if (isEmployeeModule && field.name === "Department") {
+        return { ...field, options: departmentOptions };
+      }
+
+      if (isEmployeeModule && field.name === "Designation") {
+        return { ...field, options: designationOptions };
+      }
+
+      if (isEmployeeModule && field.name === "Grade") {
+        return { ...field, options: gradeOptions };
+      }
+
+      if (isEmployeeModule && field.name === "Employment_type") {
+        return { ...field, options: employmentTypeOptions };
+      }
+
+      if (isEmployeeModule && field.name === "Employment_status") {
+        return { ...field, options: employmentStatusOptions };
+      }
+
+      if (isEmployeeModule && field.name === "Shift") {
+        return { ...field, options: shiftOptions };
       }
       if (field.name === "Grade_Id" && usesGradeSelect) {
         return { ...field, options: gradeOptions };
@@ -174,6 +235,12 @@ export function MasterDataPage({ moduleId, onRowEdit }: MasterDataPageProps) {
       organizationOptions,
       usesGradeSelect,
       usesOrganizationSelect,
+      branchOptions,
+      departmentOptions,
+      designationOptions,
+      employmentTypeOptions,
+      employmentStatusOptions,
+      shiftOptions,
     ],
   );
 
@@ -255,12 +322,15 @@ export function MasterDataPage({ moduleId, onRowEdit }: MasterDataPageProps) {
           applOptionService.bloodGroup(1),
           applOptionService.maritalStatus(1),
         ]);
+
         if (cancelled) return;
+
         setGenderOptions(applOptionsToSelectOptions(gender));
         setBloodGroupOptions(applOptionsToSelectOptions(bloodGroup));
         setMaritalStatusOptions(applOptionsToSelectOptions(maritalStatus));
       } catch {
         if (cancelled) return;
+
         setGenderOptions([...EMPLOYEE_APPL_OPTION_FALLBACKS.gender]);
         setBloodGroupOptions([...EMPLOYEE_APPL_OPTION_FALLBACKS.bloodGroup]);
         setMaritalStatusOptions([...EMPLOYEE_APPL_OPTION_FALLBACKS.maritalStatus]);
@@ -268,10 +338,104 @@ export function MasterDataPage({ moduleId, onRowEdit }: MasterDataPageProps) {
     }
 
     void loadApplOptions();
+
     return () => {
       cancelled = true;
     };
   }, [isEmployeeModule, moduleId]);
+
+  useEffect(() => {
+    if (!isEmployeeModule) {
+      setBranchOptions([]);
+      setDepartmentOptions([]);
+      setDesignationOptions([]);
+      setEmploymentTypeOptions([]);
+      setEmploymentStatusOptions([]);
+      setShiftOptions([]);
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadEmployeeMasterOptions() {
+      try {
+        const [
+          branches,
+          departments,
+          designations,
+          employmentTypes,
+          employmentStatuses,
+          shifts,
+        ] = await Promise.all([
+          branchService.list(),
+          departmentService.list(),
+          designationService.list(),
+          employmentTypeService.list(),
+          employmentStatusService.list(),
+          workShiftService.list(),
+        ]);
+
+        if (cancelled) return;
+
+        setBranchOptions(
+          branches.map((row) => ({
+            value: String(row.Branch_Id),
+            label: String(row.Branch_Name ?? ""),
+          })),
+        );
+
+        setDepartmentOptions(
+          departments.map((row) => ({
+            value: String(row.Dept_Id),
+            label: String(row.Dept_Name ?? ""),
+          })),
+        );
+
+        setDesignationOptions(
+          designations.map((row) => ({
+            value: String(row.Desig_Id),
+            label: String(row.Desig_Name ?? ""),
+          })),
+        );
+
+        setEmploymentTypeOptions(
+          employmentTypes.map((row) => ({
+            value: String(row.Emp_type_id),
+            label: String(row.Emp_type_name ?? ""),
+          })),
+        );
+
+        setEmploymentStatusOptions(
+          employmentStatuses.map((row) => ({
+            value: String(row.Emp_status_id),
+            label: String(row.Status_name ?? ""),
+          })),
+        );
+
+        setShiftOptions(
+          shifts.map((row) => ({
+            value: String(row.Shift_id),
+            label: String(row.Shift_name ?? ""),
+          })),
+        );
+      } catch {
+        if (cancelled) return;
+
+        setBranchOptions([]);
+        setDepartmentOptions([]);
+        setDesignationOptions([]);
+        setEmploymentTypeOptions([]);
+        setEmploymentStatusOptions([]);
+        setShiftOptions([]);
+      }
+    }
+
+    void loadEmployeeMasterOptions();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isEmployeeModule]);
 
   useEffect(() => {
     if (!usesGradeSelect || !usesApi) {
@@ -438,7 +602,7 @@ export function MasterDataPage({ moduleId, onRowEdit }: MasterDataPageProps) {
           actionLabel={config.actionLabel}
           onAction={() => setAddOpen(true)}
           showRowActions
-          statusToggle={usesApi}
+          statusToggle={config.statusToggle ?? usesApi}
           onRowEdit={handleEdit}
           onRowDelete={handleDelete}
           onRowActivate={handleActivate}
@@ -461,7 +625,8 @@ export function MasterDataPage({ moduleId, onRowEdit }: MasterDataPageProps) {
       <MasterDataModal
         open={addOpen}
         onClose={() => setAddOpen(false)}
-        title={config.actionLabel}
+        // title={config.actionLabel}
+        title={config.actionLabel || `Add ${config.title}`}
         fields={modalFields}
         sections={modalSections}
         size={config.modalSize}
@@ -477,6 +642,7 @@ export function MasterDataPage({ moduleId, onRowEdit }: MasterDataPageProps) {
         size={config.modalSize}
         initialValues={editInitialValues}
         onSubmit={(values) => handleSave(values, "edit")}
+        disableSubmit={config.disableEditSubmit}
       />
     </>
   );

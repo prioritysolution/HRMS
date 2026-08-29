@@ -22,6 +22,7 @@ type MasterDataModalProps = {
   size?: "sm" | "md" | "lg" | "xl";
   initialValues?: HrmsRow;
   onSubmit: (values: HrmsRow) => void | Promise<void>;
+  disableSubmit?: boolean;
 };
 
 function resolveFields(fields: FormField[] | undefined, sections: FormSection[] | undefined): FormField[] {
@@ -44,6 +45,7 @@ export function MasterDataModal({
   size = "lg",
   initialValues,
   onSubmit,
+  disableSubmit = false,
 }: MasterDataModalProps) {
   const resolvedFields = useMemo(() => resolveFields(fields, sections), [fields, sections]);
   const [values, setValues] = useState<Record<string, FormValue>>({});
@@ -202,7 +204,7 @@ export function MasterDataModal({
             type="submit"
             form="master-data-form"
             className="btn btn-primary"
-            disabled={submitting}
+            disabled={submitting || disableSubmit}
           >
             {submitting ? "Saving..." : submitLabel}
           </button>

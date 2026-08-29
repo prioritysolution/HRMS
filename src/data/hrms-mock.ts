@@ -47,6 +47,57 @@ export const HRMS_MOCK_DATA: Record<string, HrmsRow[]> = {
       Status: "ACTIVE",
     }),
   ],
+  assets: [
+    row("asset-1", {
+      Asset_Code: "AST-001",
+      Asset_Name: "Dell Latitude Laptop",
+      Asset_Type: "Laptop",
+      Serial_Number: "DL-2026-00125",
+      Purchase_Date: "2026-01-15",
+      Condition: "New",
+      Status: "Available",
+    }),
+
+    row("asset-2", {
+      Asset_Code: "AST-002",
+      Asset_Name: "Samsung Galaxy S24",
+      Asset_Type: "Mobile",
+      Serial_Number: "SM-S24-78231",
+      Purchase_Date: "2026-02-10",
+      Condition: "Good",
+      Status: "Assigned",
+    }),
+
+    row("asset-3", {
+      Asset_Code: "AST-003",
+      Asset_Name: "Samsung Galaxy Tab",
+      Asset_Type: "Tablet",
+      Serial_Number: "TAB-A9-45120",
+      Purchase_Date: "2026-03-05",
+      Condition: "Good",
+      Status: "Available",
+    }),
+
+    row("asset-4", {
+      Asset_Code: "AST-004",
+      Asset_Name: "Office Vehicle",
+      Asset_Type: "Vehicle",
+      Serial_Number: "WB-24-AX-4521",
+      Purchase_Date: "2025-12-20",
+      Condition: "Good",
+      Status: "Assigned",
+    }),
+
+    row("asset-5", {
+      Asset_Code: "AST-005",
+      Asset_Name: "HP ProBook Laptop",
+      Asset_Type: "Laptop",
+      Serial_Number: "HP-PB-88921",
+      Purchase_Date: "2025-08-18",
+      Condition: "Fair",
+      Status: "Under Repair",
+    }),
+  ],
   departments: [
     row("dept-1", { Dept_Cd: "IT", Dept_Name: "Information Technology", status: "ACTIVE" }),
     row("dept-2", { Dept_Cd: "HR", Dept_Name: "Human Resources", status: "ACTIVE" }),

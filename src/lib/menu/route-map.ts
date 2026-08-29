@@ -22,9 +22,8 @@ const ROUTE_ALIASES: Record<string, string> = {
   "/organization/shifts": "/organization/shifts",
   "/organization/employment-type": "/organization/employment-types",
   "/organization/employment-types": "/organization/employment-types",
-  "/organization/employment-status": "/organization/employee-categories",
-  "/organization/employee-category": "/organization/employee-categories",
-  "/organization/employee-categories": "/organization/employee-categories",
+  "/organization/employment-status": "/organization/employee-status",
+  "/organization/employee-status": "/organization/employee-status",
   "/organization/job-type": "/organization/job-types",
   "/organization/job-types": "/organization/job-types",
   "/organization/salary-grade": "/organization/salary-grades",
@@ -32,6 +31,7 @@ const ROUTE_ALIASES: Record<string, string> = {
   "/organization/holiday": "/attendance/holidays",
   "/organization/holiday-calendar": "/attendance/holidays",
   "/organization/holidays": "/attendance/holidays",
+  "/organization/assets": "/organization/assets",
 
   // Employee Management
   "/employee": "/employees",
@@ -84,6 +84,7 @@ const LABEL_ROUTES: Array<{ match: RegExp; href: string }> = [
   { match: /^employee\s*categor/i, href: "/organization/employee-categories" },
   { match: /^job\s*type/i, href: "/organization/job-types" },
   { match: /^salary\s*grade/i, href: "/organization/salary-grades" },
+  { match: /^assets?\s*(management|master)?$/i, href: "/organization/assets" },
   { match: /^holiday/i, href: "/attendance/holidays" },
   { match: /^employee\s*list$/i, href: "/employees" },
   { match: /^employee\s*profile$/i, href: "/employees" },

@@ -2,14 +2,19 @@ export { applOptionService, applOptionsToSelectOptions } from "@/lib/api/service
 export { authService } from "@/lib/api/services/auth.service";
 export { menuService } from "@/lib/api/services/menu.service";
 export { branchService } from "@/lib/api/services/branch.service";
+export { assetService } from "@/lib/api/services/asset.service";
 export { departmentService } from "@/lib/api/services/department.service";
 export { designationService } from "@/lib/api/services/designation.service";
 export { gradeService } from "@/lib/api/services/grade.service";
 export { gradeSalaryService } from "@/lib/api/services/grade-salary.service";
 export { workShiftService } from "@/lib/api/services/work-shift.service";
 export { employeesService } from "@/lib/api/services/employees.service";
+export { employeeService } from "@/lib/api/services/employee.service";
 export { employmentTypeService } from "@/lib/api/services/employment-type.service";
+export { employmentStatusService } from "@/lib/api/services/employment-status.service";
 export { organizationService } from "@/lib/api/services/organization.service";
+export { holidayService } from "@/lib/api/services/holiday.service";
+
 
 import { apiClient } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/endpoints";

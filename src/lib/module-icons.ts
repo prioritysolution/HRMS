@@ -43,6 +43,7 @@ const MODULE_ICONS: Record<string, LucideIcon> = {
   "employee-profile": UserCircle,
   onboarding: UserPlus,
   "service-history": History,
+  assets: ClipboardList,
   "attendance-dashboard": LayoutDashboard,
   "daily-attendance": CalendarCheck,
   "attendance-register": ClipboardList,

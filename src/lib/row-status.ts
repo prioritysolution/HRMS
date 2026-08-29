@@ -1,4 +1,9 @@
-const STATUS_KEYS = ["Status", "status", "Employment_status"] as const;
+const STATUS_KEYS = [
+  "Status",
+  "status",
+  "Employment_status",
+  "Asset_status",
+] as const;
 
 export function getRowStatusKey(row: object): (typeof STATUS_KEYS)[number] {
   const record = row as Record<string, unknown>;

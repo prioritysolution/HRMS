@@ -48,9 +48,11 @@ export const navigation: NavSection[] = [
           { label: "Grade / Level Master", href: "/organization/grades" },
           { label: "Shift Master", href: "/organization/shifts" },
           { label: "Employment Type", href: "/organization/employment-types" },
-          { label: "Employment Status", href: "/organization/employee-categories" },
+          { label: "Employment Status", href: "/organization/employee-status" },
           { label: "Salary Grade", href: "/organization/salary-grades" },
           { label: "Holiday Calendar", href: "/attendance/holidays" },
+          { label: "Asset Management", href: "/organization/assets" },
+
         ],
       },
       {
@@ -60,6 +62,7 @@ export const navigation: NavSection[] = [
           { label: "Employee Profile", href: "/employees", exact: true },
           { label: "Employee Onboarding", href: "/employees/onboarding" },
           { label: "Service History", href: "/employees/service-history" },
+          
         ],
       },
       {
