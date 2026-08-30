@@ -8,7 +8,6 @@ export { designationService } from "@/lib/api/services/designation.service";
 export { gradeService } from "@/lib/api/services/grade.service";
 export { gradeSalaryService } from "@/lib/api/services/grade-salary.service";
 export { workShiftService } from "@/lib/api/services/work-shift.service";
-export { employeesService } from "@/lib/api/services/employees.service";
 export { employeeService } from "@/lib/api/services/employee.service";
 export { employmentTypeService } from "@/lib/api/services/employment-type.service";
 export { employmentStatusService } from "@/lib/api/services/employment-status.service";

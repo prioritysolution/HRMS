@@ -523,6 +523,7 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
     tableName: "mst_employee",
     actionLabel: "Add Employee",
     nameKey: "Display_name",
+    usesApi: true,
     modalSize: "xl",
     searchKeys: ["Employee_code", "First_name", "Last_name", "Email", "Mobile", "Org_Name"],
     columns: [
@@ -535,7 +536,7 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
       },
       { key: "Email", header: "Email" },
       { key: "Mobile", header: "Mobile" },
-      { key: "Org_Name", header: "Organization" },
+      // { key: "Org_Name", header: "Organization" },
       { key: "Department", header: "Department", filterable: true },
       { key: "Designation", header: "Designation", filterable: true },
       { key: "Date_of_joining", header: "Join Date", type: "date" },

@@ -17,7 +17,12 @@ import {
 } from "@/lib/api";
 import { applOptionsToSelectOptions } from "@/lib/api/services/appl-options.service";
 import { EMPLOYEE_APPL_OPTION_FALLBACKS } from "@/config/employee-form-sections";
-import { getMasterDataApiService, moduleUsesGradeSelect, moduleUsesOrganizationSelect } from "@/lib/api/master-data-services";
+import {
+  getMasterDataApiService,
+  moduleUsesGradeSelect,
+  moduleUsesOrganizationSelect,
+  getEmployeeDetails,
+} from "@/lib/api/master-data-services";
 import { DEACTIVATE_CONFIRM_MESSAGE, ACTIVATE_CONFIRM_MESSAGE } from "@/lib/confirm-messages";
 import { formatDateDisplay } from "@/lib/date-utils";
 import { formatRowStatus, getRowStatusKey } from "@/lib/row-status";
@@ -401,7 +406,7 @@ export function MasterDataPage({ moduleId, onRowEdit }: MasterDataPageProps) {
         setEmploymentTypeOptions(
           employmentTypes.map((row) => ({
             value: String(row.Emp_type_id),
-            label: String(row.Emp_type_name ?? ""),
+            label: String(row.Type_name ?? ""),
           })),
         );
 
@@ -527,14 +532,62 @@ export function MasterDataPage({ moduleId, onRowEdit }: MasterDataPageProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [moduleId, usesApi]);
 
-  const handleEdit = (row: HrmsRow) => {
+  // const handleEdit = (row: HrmsRow) => {
+  //   if (onRowEdit) {
+  //     onRowEdit(row);
+  //     return;
+  //   }
+  //   setEditRow(row);
+  // };
+
+  // 1. Add a specific state for edit loading alongside your other states
+  const [editLoading, setEditLoading] = useState(false);
+
+  // 2. Update the handleEdit function
+  const handleEdit = async (row: HrmsRow) => {
     if (onRowEdit) {
       onRowEdit(row);
       return;
     }
-    setEditRow(row);
-  };
 
+    if (isEmployeeModule && usesApi) {
+      const employeeId = row.Employee_id;
+
+      if (
+        employeeId === undefined ||
+        employeeId === null ||
+        !Number.isInteger(Number(employeeId)) ||
+        Number(employeeId) <= 0
+      ) {
+        toast.error({
+          title: "Invalid employee",
+          message: "Employee ID is missing or invalid.",
+        });
+        return;
+      }
+
+      setEditLoading(true);
+
+      try {
+        const detailedRow = await getEmployeeDetails(
+          Number(employeeId),
+        );
+        setEditRow(detailedRow);
+      } catch (error) {
+        toast.error({
+          title: "Failed to fetch employee",
+          message:
+            error instanceof ApiError
+              ? error.message
+              : "Unable to load complete employee profile for editing.",
+        });
+      } finally {
+        setEditLoading(false);
+      }
+    } else {
+      setEditRow(row);
+    }
+  };
   const handleDelete = async (row: HrmsRow) => {
     if (usesApi && apiService) {
       await apiService.remove(row.id);
@@ -545,45 +598,135 @@ export function MasterDataPage({ moduleId, onRowEdit }: MasterDataPageProps) {
   };
 
   const handleActivate = async (row: HrmsRow) => {
-    const statusKey = getRowStatusKey(row);
-    const activated = { ...row, [statusKey]: "Active" };
-
     if (usesApi && apiService) {
+      if (isEmployeeModule) {
+        const employeeId = row.Employee_id;
+
+        if (
+          employeeId === undefined ||
+          employeeId === null ||
+          !Number.isInteger(Number(employeeId)) ||
+          Number(employeeId) <= 0
+        ) {
+          toast.error({
+            title: "Invalid employee",
+            message: "Employee ID is missing or invalid.",
+          });
+          return;
+        }
+
+        try {
+          await apiService.update(Number(employeeId), {
+            ...row,
+            Employee_id: Number(employeeId),
+            Status: 1,
+          });
+
+          await loadRows();
+          return;
+        } catch (error) {
+          toast.error({
+            title: "Failed to activate employee",
+            message:
+              error instanceof ApiError
+                ? error.message
+                : "Unable to activate employee.",
+          });
+          return;
+        }
+      }
+
+      const statusKey = getRowStatusKey(row);
+      const activated = {
+        ...row,
+        [statusKey]: "Active",
+      };
+
       await apiService.update(row.id, activated);
       await loadRows();
       return;
     }
 
-    setRows((prev) => prev.map((item) => (item.id === row.id ? activated : item)));
+    const statusKey = getRowStatusKey(row);
+    const activated = {
+      ...row,
+      [statusKey]: "Active",
+    };
+
+    setRows((prev) =>
+      prev.map((item) =>
+        item.id === row.id ? activated : item,
+      ),
+    );
   };
 
-  const handleSave = async (values: HrmsRow, mode: "add" | "edit") => {
-    let saved =
-      moduleId === "employees"
-        ? enrichEmployeeRow(values, organizationOptions, employeeApplOptions)
-        : values;
+  const handleSave = async (
+    values: HrmsRow,
+    mode: "add" | "edit",
+  ) => {
+    try {
+      let saved: HrmsRow;
 
-    if (usesApi && apiService) {
-      saved =
-        mode === "edit"
-          ? await apiService.update(saved.id, saved)
-          : await apiService.create(saved);
-      await loadRows();
-    } else {
-      setRows((prev) => {
-        const exists = prev.some((row) => row.id === saved.id);
-        if (exists) {
-          return prev.map((row) => (row.id === saved.id ? { ...row, ...saved } : row));
-        }
-        return [...prev, saved];
+      if (usesApi && apiService) {
+        saved =
+          mode === "edit"
+            ? await apiService.update(
+              values.id,
+              values,
+            )
+            : await apiService.create(values);
+
+        await loadRows();
+      } else {
+        saved = values;
+
+        setRows((prev) => {
+          const exists = prev.some(
+            (row) => row.id === saved.id,
+          );
+
+          if (exists) {
+            return prev.map((row) =>
+              row.id === saved.id
+                ? { ...row, ...saved }
+                : row,
+            );
+          }
+
+          return [...prev, saved];
+        });
+      }
+
+      const label = String(
+        saved[config.nameKey] ??
+        getRowLabel(saved),
+      );
+
+      toast.success({
+        title:
+          mode === "edit"
+            ? "Updated successfully"
+            : "Saved successfully",
+
+        message:
+          `"${label}" has been ${mode === "edit"
+            ? "updated"
+            : "added"
+          }.`,
+      });
+    } catch (error) {
+      toast.error({
+        title:
+          mode === "edit"
+            ? "Update failed"
+            : "Save failed",
+
+        message:
+          error instanceof ApiError
+            ? error.message
+            : "Unable to save employee data.",
       });
     }
-
-    const label = String(saved[config.nameKey] ?? getRowLabel(saved));
-    toast.success({
-      title: mode === "edit" ? "Updated successfully" : "Saved successfully",
-      message: `"${label}" has been ${mode === "edit" ? "updated" : "added"}.`,
-    });
   };
 
   const deleteName = (row: HrmsRow) => {
@@ -618,7 +761,7 @@ export function MasterDataPage({ moduleId, onRowEdit }: MasterDataPageProps) {
           filterFields={filterFields}
           getDeleteLabel={deleteName}
           emptyStateIcon={getModuleEmptyIcon(moduleId)}
-          loading={loading}
+          loading={loading || editLoading}
         />
       </div>
 

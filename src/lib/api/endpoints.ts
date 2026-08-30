@@ -129,15 +129,11 @@ export const API_ENDPOINTS = {
     attendance: "/dashboard/attendance",
     performance: "/dashboard/performance",
   },
-  employees: {
-    list: "/employees",
-    detail: (id: string) => `/employees/${id}`,
-    create: "/employees",
-    update: (id: string) => `/employees/${id}`,
-    delete: (id: string) => `/employees/${id}`,
-    attendance: "/employees/attendance",
-    leaves: "/employees/leaves",
-    onboarding: "/employees/onboarding",
+  employee: {
+    list: "/api/v1/employee/list",
+    create: "/api/v1/employee/create",
+    update: (id: number | string) => `/api/v1/employee/update/${id}`,
+    remove: (id: number | string) => `/api/v1/employee/delete/${id}`,
   },
   clients: {
     leads: "/clients/leads",
@@ -170,13 +166,5 @@ export const API_ENDPOINTS = {
     calendar: "/apps/calendar",
     teams: "/apps/teams",
   },
-  employee: {
-  list: "/api/v1/employee/list",
-  create: "/api/v1/employee/create",
-  update: (id: string | number) =>
-    `/api/v1/employee/update/${id}`,
-  remove: (id: string | number) =>
-    `/api/v1/employee/delete/${id}`,
-},
 
 } as const;

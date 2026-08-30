@@ -25,12 +25,12 @@ export const EMPLOYEE_FORM_SECTIONS: FormSection[] = [
     title: "Personal Information",
     description: "Basic identity and contact details for the employee.",
     fields: [
-      {
-        name: "Org_Id",
-        label: "Organization",
-        type: "select",
-        required: true,
-      },
+      // {
+      //   name: "Org_Id",
+      //   label: "Organization",
+      //   type: "select",
+      //   required: true,
+      // },
       { name: "Employee_code", label: "Employee ID", required: true, placeholder: "EMP-1001" },
       { name: "First_name", label: "First Name", required: true },
       { name: "Middle_name", label: "Middle Name" },
@@ -79,11 +79,12 @@ export const EMPLOYEE_FORM_SECTIONS: FormSection[] = [
         label: "Employee Type",
         type: "select",
         options: employmentTypeOptions,
+        required: true,
       },
-      { name: "Department", label: "Department", type: "select", options: departmentOptions },
-      { name: "Branch", label: "Branch", type: "select", options: branchOptions },
-      { name: "Designation", label: "Designation", type: "select", options: designationOptions },
-      { name: "Grade", label: "Grade", type: "select", options: gradeOptions },
+      { name: "Department", label: "Department", type: "select", options: departmentOptions, required: true },
+      { name: "Branch", label: "Branch", type: "select", options: branchOptions, required: true },
+      { name: "Designation", label: "Designation", type: "select", options: designationOptions, required: true },
+      { name: "Grade", label: "Grade", type: "select", options: gradeOptions},
       { name: "Reporting_manager", label: "Reporting Manager", placeholder: "Manager name" },
       {
         name: "Employment_status",
@@ -91,10 +92,11 @@ export const EMPLOYEE_FORM_SECTIONS: FormSection[] = [
         type: "select",
         options: employmentStatusOptions,
         defaultValue: "Active",
+        required: true,
       },
       { name: "Probation_period", label: "Probation Period", placeholder: "e.g. 6 months" },
       { name: "Work_location", label: "Work Location", placeholder: "Office / city" },
-      { name: "Shift", label: "Shift", type: "select", options: shiftOptions },
+      { name: "Shift", label: "Shift", type: "select", options: shiftOptions, required: true },
     ],
   },
   {
@@ -124,6 +126,12 @@ export const EMPLOYEE_FORM_SECTIONS: FormSection[] = [
       { name: "Account_number", label: "Account Number" },
       { name: "IFSC_code", label: "IFSC" },
       { name: "Bank_branch", label: "Branch" },
+      { 
+      name: "Account_type", 
+      label: "Account Type", 
+      type: "select", 
+      options: ["Savings", "Current", "Salary"] 
+    }, // <-- Added field
       { name: "Account_holder_name", label: "Account Holder Name", span: "full" },
     ],
   },

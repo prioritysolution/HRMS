@@ -66,6 +66,26 @@
 
 * {
   box-sizing: border-box;
+  scrollbar-width: thin;
+  scrollbar-color: #c1c9d6 transparent;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c9d6;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--secondary);
 }
 
 html,
@@ -1098,9 +1118,7 @@ textarea {
   padding: 0.85rem 0.75rem;
   text-align: left;
   border-bottom: 1px solid var(--border);
-  /* white-space: nowrap; */
-  white-space: normal; /* <-- Changed from nowrap to normal */
-  word-break: break-word; /* <-- Add this to handle extremely long continuous words */
+  white-space: nowrap;
 }
 
 .data-table th {
@@ -2758,6 +2776,9 @@ textarea {
 .form-section.is-open {
   border-color: rgba(var(--primary-rgb), 0.28);
   box-shadow: 0 8px 22px rgba(var(--primary-rgb), 0.08);
+  overflow: visible;
+  position: relative;
+  z-index: 10;
 }
 
 .form-section-header {
@@ -2772,6 +2793,8 @@ textarea {
   text-align: left;
   cursor: pointer;
   transition: background-color 0.2s ease;
+  border-top-left-radius: 0.8rem;
+  border-top-right-radius: 0.8rem;
 }
 
 .form-section-header:hover {

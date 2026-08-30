@@ -13,7 +13,6 @@ export {
   dashboardService,
   departmentService,
   designationService,
-  employeesService,
   employeeService,
   employmentTypeService,
   employmentStatusService,

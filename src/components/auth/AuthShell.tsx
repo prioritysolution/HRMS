@@ -31,6 +31,7 @@ export function AuthShell({ eyebrow, title, subtitle, children, footer }: AuthSh
                     alt="Staffu"
                     width={132}
                     height={34}
+                    style={{ width: "auto", height: "auto" }} // Add this
                     priority
                   />
                 </div>

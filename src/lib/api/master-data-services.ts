@@ -1,8 +1,4 @@
 import type { HrmsRow } from "@/types/hrms";
-import type {
-  EmployeeCreatePayload,
-  EmployeeUpdatePayload,
-} from "@/lib/api/types";
 import { branchService } from "@/lib/api/services/branch.service";
 import { departmentService } from "@/lib/api/services/department.service";
 import { assetService } from "@/lib/api/services/asset.service";
@@ -17,11 +13,20 @@ import { workShiftService } from "@/lib/api/services/work-shift.service";
 import { employeeService } from "@/lib/api/services/employee.service";
 
 
+
 type MasterDataApiService = {
   list: () => Promise<HrmsRow[]>;
   create: (row: HrmsRow) => Promise<HrmsRow>;
-  update: (id: string | number, row: HrmsRow) => Promise<HrmsRow>;
-  remove: (id: string | number) => Promise<unknown>;
+  update: (
+    id: string | number,
+    row: HrmsRow,
+  ) => Promise<HrmsRow>;
+  remove: (
+    id: string | number,
+  ) => Promise<unknown>;
+  getDetails?: (
+    id: string | number,
+  ) => Promise<HrmsRow>;
 };
 
 export const ORG_SCOPED_MODULE_IDS = new Set([
@@ -78,337 +83,34 @@ async function listGradeSalaries(): Promise<HrmsRow[]> {
   return gradeSalaryService.list(undefined, await buildGradeNameMap());
 }
 
-async function listEmployees(): Promise<HrmsRow[]> {
-  const employees = await employeeService.list();
-
-  return employees.map((employee) => ({
-    id: String(employee.Employee_id),
-
-    Employee_id: employee.Employee_id,
-    Employee_code: employee.Employee_code,
-    First_name: employee.First_name,
-    Last_name: employee.Last_name,
-    Display_name: employee.Display_name,
-
-    Dept_Id: employee.Dept_Id,
-    Dept_Name: employee.Dept_Name,
-    Department: employee.Dept_Name,
-
-    Desig_Id: employee.Desig_Id,
-    Desig_Name: employee.Desig_Name,
-    Designation: employee.Desig_Name,
-
-    Grade_Name: employee.Grade_Name,
-
-    Emp_type_name: employee.Emp_type_name,
-    Employment_type: employee.Emp_type_name,
-
-    Employment_status_name: employee.Employment_status_name,
-    Employment_status: employee.Employment_status_name,
-
-    Shift_name: employee.Shift_name,
-
-    Date_of_joining: employee.Date_of_joining,
-
-    Status: employee.Status,
-
-    Email: "",
-    Mobile: "",
-    Org_Name: "",
-  }));
-}
-
-
-
-function nullableNumber(value: unknown): number | null {
-  if (value === undefined || value === null || String(value).trim() === "") {
-    return null;
-  }
-
-  const numberValue = Number(value);
-
-  return Number.isFinite(numberValue) ? numberValue : null;
-}
-
-
-async function createEmployee(row: HrmsRow): Promise<HrmsRow> {
-  const payload: EmployeeCreatePayload = {
-    employee_code: String(row.Employee_code ?? "").trim(),
-
-    first_name: String(row.First_name ?? "").trim(),
-
-    middle_name: String(row.Middle_name ?? "").trim() || null,
-
-    last_name: String(row.Last_name ?? "").trim() || null,
-
-    display_name: String(row.Display_name ?? "").trim() || null,
-
-    gender: nullableNumber(row.Gender),
-
-    date_of_birth:
-      String(row.Date_of_birth ?? "").trim() || null,
-
-    blood_group: nullableNumber(row.Blood_group),
-
-    marital_status: nullableNumber(row.Marital_status),
-
-    mobile:
-      String(row.Mobile ?? "").trim() || null,
-
-    email:
-      String(row.Email ?? "").trim() || null,
-
-    address_line1:
-      String(row.Address_line1 ?? "").trim() || null,
-
-    city:
-      String(row.City ?? "").trim() || null,
-
-    state:
-      String(row.State ?? "").trim() || null,
-
-    country:
-      String(row.Country ?? "India").trim() || null,
-
-    pincode:
-      String(row.Pincode ?? "").trim() || null,
-
-    branch_id: nullableNumber(row.Branch),
-
-    dept_id: nullableNumber(row.Department),
-
-    desig_id: nullableNumber(row.Designation),
-
-    grade_id: nullableNumber(row.Grade),
-
-    shift_id: nullableNumber(row.Shift),
-
-    emp_type_id: nullableNumber(row.Employment_type),
-
-    date_of_joining:
-      String(row.Date_of_joining ?? "").trim() || null,
-
-    employment_status:
-      nullableNumber(row.Employment_status),
-
-    status: nullableNumber(row.Status) ?? 1,
-
-    bank: {
-      bank_name:
-        String(row.Bank_name ?? "").trim() || null,
-
-      branch_name:
-        String(row.Bank_branch ?? "").trim() || null,
-
-      account_holder_name:
-        String(row.Account_holder_name ?? "").trim() || null,
-
-      account_number:
-        String(row.Account_number ?? "").trim() || null,
-
-      ifsc_code:
-        String(row.IFSC_code ?? "").trim() || null,
-
-      account_type:
-        String(row.Account_type ?? "").trim() || null,
-    },
-
-    statutory: {
-      pf_no:
-        String(row.PF_number ?? "").trim() || null,
-
-      uan_no:
-        String(row.UAN ?? "").trim() || null,
-
-      esi_no:
-        String(row.ESI_number ?? "").trim() || null,
-
-      ptax_no:
-        String(row.Professional_tax ?? "").trim() || null,
-
-      tds_applicable:
-        nullableNumber(row.TDS) ?? 0,
-    },
-  };
-
-  const saved = await employeeService.create(payload);
-
-  return {
-    ...row,
-
-    id: String(saved.Employee_id),
-
-    Employee_id: saved.Employee_id,
-    Employee_code: saved.Employee_code,
-    First_name: saved.First_name,
-    Last_name: saved.Last_name,
-    Display_name: saved.Display_name,
-
-    Dept_Id: saved.Dept_Id,
-    Dept_Name: saved.Dept_Name,
-    Department: saved.Dept_Name,
-
-    Desig_Id: saved.Desig_Id,
-    Desig_Name: saved.Desig_Name,
-    Designation: saved.Desig_Name,
-
-    Grade_Name: saved.Grade_Name,
-
-    Emp_type_name: saved.Emp_type_name,
-
-    Employment_status_name:
-      saved.Employment_status_name,
-
-    Employment_status:
-      saved.Employment_status_name,
-
-    Shift_name: saved.Shift_name,
-
-    Date_of_joining:
-      saved.Date_of_joining,
-
-    Status: saved.Status,
-  };
-}
-async function updateEmployee(
+const listEmployees = async (): Promise<HrmsRow[]> => {
+  return employeeService.list();
+};
+
+const createEmployee = async (
+  row: HrmsRow,
+): Promise<HrmsRow> => {
+  return employeeService.create(row);
+};
+
+const updateEmployee = async (
   id: string | number,
   row: HrmsRow,
-): Promise<HrmsRow> {
-  const payload: EmployeeUpdatePayload = {
-    employee_code:
-      String(row.Employee_code ?? "").trim(),
+): Promise<HrmsRow> => {
+  return employeeService.update(id, row);
+};
 
-    first_name:
-      String(row.First_name ?? "").trim(),
+const deleteEmployee = async (
+  id: string | number,
+): Promise<unknown> => {
+  return employeeService.remove(id);
+};
 
-    middle_name:
-      String(row.Middle_name ?? "").trim() || null,
-
-    last_name:
-      String(row.Last_name ?? "").trim() || null,
-
-    display_name:
-      String(row.Display_name ?? "").trim() || null,
-
-    gender: nullableNumber(row.Gender),
-
-    date_of_birth:
-      String(row.Date_of_birth ?? "").trim() || null,
-
-    blood_group:
-      nullableNumber(row.Blood_group),
-
-    marital_status:
-      nullableNumber(row.Marital_status),
-
-    mobile:
-      String(row.Mobile ?? "").trim() || null,
-
-    email:
-      String(row.Email ?? "").trim() || null,
-
-    address_line1:
-      String(row.Address_line1 ?? "").trim() || null,
-
-    city:
-      String(row.City ?? "").trim() || null,
-
-    state:
-      String(row.State ?? "").trim() || null,
-
-    country:
-      String(row.Country ?? "India").trim() || null,
-
-    pincode:
-      String(row.Pincode ?? "").trim() || null,
-
-    branch_id:
-      nullableNumber(row.Branch),
-
-    dept_id:
-      nullableNumber(row.Department),
-
-    desig_id:
-      nullableNumber(row.Designation),
-
-    grade_id:
-      nullableNumber(row.Grade),
-
-    shift_id:
-      nullableNumber(row.Shift),
-
-    emp_type_id:
-      nullableNumber(row.Employment_type),
-
-    date_of_joining:
-      String(row.Date_of_joining ?? "").trim() || null,
-
-    employment_status:
-      nullableNumber(row.Employment_status),
-
-    status:
-      nullableNumber(row.Status) ?? 1,
-
-    statutory: {
-      pf_no:
-        String(row.PF_number ?? "").trim() || null,
-
-      uan_no:
-        String(row.UAN ?? "").trim() || null,
-
-      esi_no:
-        String(row.ESI_number ?? "").trim() || null,
-
-      ptax_no:
-        String(row.Professional_tax ?? "").trim() || null,
-
-      tds_applicable:
-        nullableNumber(row.TDS) ?? 0,
-    },
-  };
-
-  const saved = await employeeService.update(
-    id,
-    payload,
-  );
-
-  return {
-    ...row,
-
-    id: String(saved.Employee_id),
-
-    Employee_id: saved.Employee_id,
-    Employee_code: saved.Employee_code,
-    First_name: saved.First_name,
-    Last_name: saved.Last_name,
-    Display_name: saved.Display_name,
-
-    Dept_Id: saved.Dept_Id,
-    Dept_Name: saved.Dept_Name,
-    Department: saved.Dept_Name,
-
-    Desig_Id: saved.Desig_Id,
-    Desig_Name: saved.Desig_Name,
-    Designation: saved.Desig_Name,
-
-    Grade_Name: saved.Grade_Name,
-
-    Emp_type_name: saved.Emp_type_name,
-
-    Employment_status_name:
-      saved.Employment_status_name,
-
-    Employment_status:
-      saved.Employment_status_name,
-
-    Shift_name: saved.Shift_name,
-
-    Date_of_joining:
-      saved.Date_of_joining,
-
-    Status: saved.Status,
-  };
-}
+export const getEmployeeDetails = async (
+  id: string | number,
+): Promise<HrmsRow> => {
+  return employeeService.getById(id);
+};
 
 export const MASTER_DATA_API_SERVICES: Record<string, MasterDataApiService> = {
   organization: organizationService,
@@ -452,7 +154,8 @@ export const MASTER_DATA_API_SERVICES: Record<string, MasterDataApiService> = {
     list: listEmployees,
     create: createEmployee,
     update: updateEmployee,
-    remove: employeeService.remove,
+    remove: deleteEmployee,
+    getDetails: getEmployeeDetails,
   },
   "employee-status": {
     list: employmentStatusService.list,
@@ -488,3 +191,5 @@ export function moduleUsesOrganizationSelect(moduleId: string): boolean {
 export function moduleUsesGradeSelect(moduleId: string): boolean {
   return GRADE_SCOPED_MODULE_IDS.has(moduleId);
 }
+
+

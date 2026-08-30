@@ -87,7 +87,7 @@ export function AuthCarousel() {
             width={720}
             height={480}
             className="auth-slide-img"
-            priority={index === 0}
+            priority={index <= 1} // Preload the first two slides for better performance
           />
         </div>
       </div>

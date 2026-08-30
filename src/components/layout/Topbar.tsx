@@ -61,6 +61,7 @@ export function Topbar() {
                 alt="Staffu"
                 width={112}
                 height={28}
+                style={{ width: "auto", height: "auto" }} // Add this
                 priority
               />
             </Link>

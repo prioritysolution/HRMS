@@ -444,70 +444,168 @@ export type ApplOptionListQuery = {
 export interface EmployeeRecord {
   Employee_id: number;
   Employee_code: string;
+
   First_name: string;
-  Last_name: string | null;
+  Middle_name?: string | null;
+  Last_name: string;
   Display_name: string;
+
   Dept_Id: number | null;
   Dept_Name: string | null;
+
   Desig_Id: number | null;
   Desig_Name: string | null;
+
   Grade_Name: string | null;
   Emp_type_name: string | null;
   Employment_status_name: string | null;
   Shift_name: string | null;
+
   Date_of_joining: string | null;
   Status: number;
-};
+}
+
+export interface EmployeeDetailRecord {
+  Employee_id: number;
+  Employee_code: string;
+
+  Title?: string | null;
+  First_name?: string | null;
+  Middle_name?: string | null;
+  Last_name?: string | null;
+  Display_name?: string | null;
+
+  Gender?: number | null;
+  Date_of_birth?: string | null;
+  Blood_group?: number | null;
+  Marital_status?: number | null;
+
+  Father_name?: string | null;
+  Mother_name?: string | null;
+  Spouse_name?: string | null;
+
+  Mobile?: string | null;
+  Alternate_mobile?: string | null;
+  Email?: string | null;
+
+  Address_line1?: string | null;
+  Address_line2?: string | null;
+  City?: string | null;
+  State?: string | null;
+  Country?: string | null;
+  Pincode?: string | null;
+
+  Emergency_contact?: string | null;
+
+  Branch_Id?: number | null;
+  Dept_Id?: number | null;
+  Desig_Id?: number | null;
+  Grade_Id?: number | null;
+  Shift_id?: number | null;
+  Emp_type_id?: number | null;
+
+  Reporting_manager_id?: number | null;
+
+  Date_of_joining?: string | null;
+  Confirmation_date?: string | null;
+  Probation_end_date?: string | null;
+
+  Employment_status?: number | null;
+
+  Work_location?: string | null;
+  Photo_path?: string | null;
+
+  Status?: number | null;
+
+  Created_by?: number | null;
+  Created_at?: string | null;
+  Updated_at?: string | null;
+
+  Dept_Name?: string | null;
+  Desig_Name?: string | null;
+  Grade_Name?: string | null;
+  Emp_type_name?: string | null;
+  Employment_status_name?: string | null;
+  Shift_name?: string | null;
+}
+
 export interface EmployeeBank {
   Employee_bank_id?: number;
   Employee_id?: number;
+
   Bank_name: string | null;
   Branch_name?: string | null;
   Account_holder_name?: string | null;
   Account_number: string | null;
   Ifsc_code: string | null;
   Account_type?: string | null;
+
   Status?: number;
-};
+}
+
 export interface EmployeeIdentification {
   Identification_id?: number;
   Employee_id?: number;
+
   Id_type: number;
   Id_number: string;
+
   Issue_date?: string | null;
   Expiry_date?: string | null;
+
   Status?: number;
   Verified?: number;
-};
+}
+
 export interface EmployeeStatutory {
   Statutory_id?: number;
   Employee_id?: number;
-  Pf_no?: string | null;
-  Uan_no?: string | null;
-  Esi_no?: string | null;
-  PTax_no?: string | null;
-  Tds_applicable?: number;
+
+  Pf_no: string | null;
+  Uan_no: string | null;
+  Esi_no: string | null;
+  Ptax_no: string | null;
+  Tds_applicable: number;
+
   Status?: number;
-};
+}
+
 export interface EmployeeDetail {
-  employee: {
-    Employee_id: number;
-    Employee_code: string;
-    [key: string]: unknown;
-  };
-
+  employee: EmployeeDetailRecord;
   banks: EmployeeBank[];
-
   identifications: EmployeeIdentification[];
-
   statutory: EmployeeStatutory | null;
-};
+}
+
+export interface EmployeeBankPayload {
+  bank_name: string;
+  branch_name?: string | null;
+  account_holder_name?: string | null;
+  account_number: string;
+  ifsc_code: string;
+  account_type?: string | null;
+}
+
+export interface EmployeeIdentificationPayload {
+  id_type: number;
+  id_number: string;
+  issue_date?: string | null;
+  expiry_date?: string | null;
+}
+
+export interface EmployeeStatutoryPayload {
+  pf_no?: string | null;
+  uan_no?: string | null;
+  esi_no?: string | null;
+  ptax_no?: string | null;
+  tds_applicable: number;
+}
 
 export interface EmployeeCreatePayload {
   employee_code: string;
   first_name: string;
   middle_name?: string | null;
-  last_name?: string | null;
+  last_name: string;
   display_name?: string | null;
 
   gender?: number | null;
@@ -524,62 +622,98 @@ export interface EmployeeCreatePayload {
   country?: string | null;
   pincode?: string | null;
 
-  branch_id?: number | null;
-  dept_id?: number | null;
-  desig_id?: number | null;
-  grade_id?: number | null;
-  shift_id?: number | null;
-  emp_type_id?: number | null;
+  branch_id: number;
+  dept_id: number;
+  desig_id: number;
+  grade_id: number;
+  shift_id: number;
+  emp_type_id: number;
 
-  date_of_joining?: string | null;
-  employment_status?: number | null;
-  status?: number;
+  date_of_joining: string;
+  employment_status: number;
+  status: number;
 
-  bank?: {
-    bank_name?: string | null;
-    branch_name?: string | null;
-    account_holder_name?: string | null;
-    account_number?: string | null;
-    ifsc_code?: string | null;
-    account_type?: string | null;
-  };
+  bank?: EmployeeBankPayload;
+  identifications?: EmployeeIdentificationPayload[];
+  statutory?: EmployeeStatutoryPayload;
+  photo?: File | string | null;
+}
 
-  identifications?: Array<{
-    id_type: number;
-    id_number: string;
-    issue_date?: string | null;
-    expiry_date?: string | null;
-  }>;
+// export interface EmployeeUpdatePayload {
+//   employee_code?: string;
+//   first_name?: string;
+//   middle_name?: string | null;
+//   last_name?: string;
+//   display_name?: string | null;
 
-  statutory?: {
-    pf_no?: string | null;
-    uan_no?: string | null;
-    esi_no?: string | null;
-    ptax_no?: string | null;
-    tds_applicable?: number;
-  };
-};
+//   gender?: number | null;
+//   date_of_birth?: string | null;
+//   blood_group?: number | null;
+//   marital_status?: number | null;
+
+//   mobile?: string | null;
+//   email?: string | null;
+
+//   father_name?: string | null;
+//   mother_name?: string | null;
+//   spouse_name?: string | null;
+
+//   address_line1?: string | null;
+//   city?: string | null;
+//   state?: string | null;
+//   country?: string | null;
+//   pincode?: string | null;
+
+//   branch_id?: number | null;
+//   dept_id?: number | null;
+//   desig_id?: number | null;
+//   grade_id?: number | null;
+//   shift_id?: number | null;
+//   emp_type_id?: number | null;
+
+//   date_of_joining?: string | null;
+//   employment_status?: number | null;
+//   status?: number;
+
+//   bank?: Partial<EmployeeBankPayload>;
+//   identifications?: EmployeeIdentificationPayload[];
+//   statutory?: Partial<EmployeeStatutoryPayload>;
+// }
+
+
 export interface EmployeeUpdatePayload {
+  // Employee identity
   employee_code?: string;
+  title?: string | null;
   first_name?: string;
   middle_name?: string | null;
-  last_name?: string | null;
+  last_name?: string;
   display_name?: string | null;
 
+  // Personal information
   gender?: number | null;
   date_of_birth?: string | null;
   blood_group?: number | null;
   marital_status?: number | null;
 
+  father_name?: string | null;
+  mother_name?: string | null;
+  spouse_name?: string | null;
+
   mobile?: string | null;
+  alternate_mobile?: string | null;
   email?: string | null;
 
+  // Address
   address_line1?: string | null;
+  address_line2?: string | null;
   city?: string | null;
   state?: string | null;
   country?: string | null;
   pincode?: string | null;
+  emergency_contact?: string | null;
 
+  // Employment
   branch_id?: number | null;
   dept_id?: number | null;
   desig_id?: number | null;
@@ -587,13 +721,32 @@ export interface EmployeeUpdatePayload {
   shift_id?: number | null;
   emp_type_id?: number | null;
 
+  reporting_manager_id?: number | null;
+  reporting_manager?: string | null;
+
   date_of_joining?: string | null;
+  confirmation_date?: string | null;
+  probation_end_date?: string | null;
+  probation_period?: number | null;
+
   employment_status?: number | null;
+  work_location?: string | null;
+
+  // Photo
+  photo?: File | string | null;
+  photo_path?: string | null;
+
+  // Record status
   status?: number;
 
-  bank?: EmployeeCreatePayload["bank"];
+  // Related employee data
+  bank?: Partial<EmployeeBankPayload>;
 
-  identifications?: EmployeeCreatePayload["identifications"];
+  identifications?: EmployeeIdentificationPayload[];
 
-  statutory?: EmployeeCreatePayload["statutory"];
-};
+  statutory?: Partial<
+    EmployeeStatutoryPayload & {
+      other_statutory?: string | null;
+    }
+  >;
+}
