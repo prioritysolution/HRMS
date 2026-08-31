@@ -39,7 +39,7 @@ export const ORG_SCOPED_MODULE_IDS = new Set([
   "shifts",
 ]);
 
-export const GRADE_SCOPED_MODULE_IDS = new Set(["salary-grades"]);
+export const GRADE_SCOPED_MODULE_IDS = new Set(["salary-grades", "employees"]);
 
 async function buildOrgNameMap(): Promise<Map<number, string>> {
   const organizations = await organizationService.list();
