@@ -136,9 +136,10 @@ export const navigation: NavSection[] = [
       },
       {
         label: "Employee Reports",
-        icon: "reports", // or any available icon key, fallback is used if not found
+        icon: "reports",
         children: [
           { label: "Employee Register", href: "/reports/employee/register" },
+          { label: "Service History", href: "/reports/employee/history" },
         ],
       },
     ],

@@ -79,3 +79,66 @@ export const MOCK_EMPLOYEES = [
 ];
 
 export type EmployeeRegisterType = typeof MOCK_EMPLOYEES[0];
+
+export const MOCK_SERVICE_HISTORY = [
+  {
+    id: 1,
+    Employee_code: "EMP-001",
+    Display_name: "John Doe",
+    Event_type: "Joining",
+    Effective_date: "2022-01-15",
+    Old_value: "—",
+    New_value: "Engineering",
+    Remarks: "New Joining",
+  },
+  {
+    id: 2,
+    Employee_code: "EMP-001",
+    Display_name: "John Doe",
+    Event_type: "Promotion",
+    Effective_date: "2023-01-15",
+    Old_value: "Junior Developer",
+    New_value: "Senior Developer",
+    Remarks: "Annual Performance Review",
+  },
+  {
+    id: 3,
+    Employee_code: "EMP-002",
+    Display_name: "Jane Smith",
+    Event_type: "Joining",
+    Effective_date: "2021-11-01",
+    Old_value: "—",
+    New_value: "Human Resources",
+    Remarks: "New Joining",
+  },
+  {
+    id: 4,
+    Employee_code: "EMP-002",
+    Display_name: "Jane Smith",
+    Event_type: "Branch Transfer",
+    Effective_date: "2022-06-01",
+    Old_value: "HQ - New York",
+    New_value: "London Office",
+    Remarks: "Relocated to London",
+  },
+  {
+    id: 5,
+    Employee_code: "EMP-005",
+    Display_name: "Michael Wilson",
+    Event_type: "Joining",
+    Effective_date: "2024-01-05",
+    Old_value: "—",
+    New_value: "QA Engineer",
+    Remarks: "Probationary Period",
+  },
+  {
+    id: 6,
+    Employee_code: "EMP-005",
+    Display_name: "Michael Wilson",
+    Event_type: "Confirmation",
+    Effective_date: "2024-07-05",
+    Old_value: "Probationary",
+    New_value: "Permanent",
+    Remarks: "Completed Probation",
+  },
+];

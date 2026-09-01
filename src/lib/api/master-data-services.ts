@@ -180,6 +180,15 @@ export const MASTER_DATA_API_SERVICES: Record<string, MasterDataApiService> = {
     update: async (id: any, row: any) => row,
     remove: async () => ({}),
   },
+  "employee-service-history-report": {
+    list: async () => {
+      const { MOCK_SERVICE_HISTORY } = await import("@/data/reports-mock");
+      return MOCK_SERVICE_HISTORY as any[];
+    },
+    create: async (row: any) => row,
+    update: async (id: any, row: any) => row,
+    remove: async () => ({}),
+  },
   "employee-status": {
     list: employmentStatusService.list,
     create: employmentStatusService.create,
