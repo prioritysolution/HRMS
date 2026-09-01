@@ -135,6 +135,13 @@ export const navigation: NavSection[] = [
         ],
       },
       {
+        label: "Attendance Reports",
+        icon: "attendance",
+        children: [
+          { label: "Employee-wise Attendance", href: "/reports/attendance/employee" },
+        ],
+      },
+      {
         label: "Employee Reports",
         icon: "reports",
         children: [

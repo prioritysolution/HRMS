@@ -13,6 +13,7 @@ import { gradeService } from "@/lib/api/services/grade.service";
 import { organizationService } from "@/lib/api/services/organization.service";
 import { workShiftService } from "@/lib/api/services/work-shift.service";
 import { employeeService } from "@/lib/api/services/employee.service";
+import { MOCK_EMPLOYEES, MOCK_SERVICE_HISTORY, MOCK_EMPLOYEE_ATTENDANCE } from "@/data/reports-mock";
 
 
 
@@ -172,19 +173,19 @@ export const MASTER_DATA_API_SERVICES: Record<string, MasterDataApiService> = {
     getDetails: getEmployeeDetails,
   },
   "employee-register": {
-    list: async () => {
-      const { MOCK_EMPLOYEES } = await import("@/data/reports-mock");
-      return MOCK_EMPLOYEES as any[];
-    },
+    list: async () => MOCK_EMPLOYEES as any[],
     create: async (row: any) => row,
     update: async (id: any, row: any) => row,
     remove: async () => ({}),
   },
   "employee-service-history-report": {
-    list: async () => {
-      const { MOCK_SERVICE_HISTORY } = await import("@/data/reports-mock");
-      return MOCK_SERVICE_HISTORY as any[];
-    },
+    list: async () => MOCK_SERVICE_HISTORY as any[],
+    create: async (row: any) => row,
+    update: async (id: any, row: any) => row,
+    remove: async () => ({}),
+  },
+  "employee-attendance-report": {
+    list: async () => MOCK_EMPLOYEE_ATTENDANCE as any[],
     create: async (row: any) => row,
     update: async (id: any, row: any) => row,
     remove: async () => ({}),

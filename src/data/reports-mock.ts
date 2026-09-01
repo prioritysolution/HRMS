@@ -142,3 +142,46 @@ export const MOCK_SERVICE_HISTORY = [
     Remarks: "Completed Probation",
   },
 ];
+
+export const MOCK_EMPLOYEE_ATTENDANCE = [
+  {
+    id: 1,
+    Employee_code: "EMP-001",
+    Display_name: "John Doe",
+    Date: "2023-10-01",
+    In_time: "09:00 AM",
+    Out_time: "06:00 PM",
+    Total_hours: "9h 0m",
+    Status: 1, // Present
+  },
+  {
+    id: 2,
+    Employee_code: "EMP-001",
+    Display_name: "John Doe",
+    Date: "2023-10-02",
+    In_time: "09:15 AM",
+    Out_time: "06:00 PM",
+    Total_hours: "8h 45m",
+    Status: 1,
+  },
+  {
+    id: 3,
+    Employee_code: "EMP-002",
+    Display_name: "Jane Smith",
+    Date: "2023-10-01",
+    In_time: "-",
+    Out_time: "-",
+    Total_hours: "-",
+    Status: 0, // Absent or Leave
+  },
+  {
+    id: 4,
+    Employee_code: "EMP-003",
+    Display_name: "Robert Johnson",
+    Date: "2023-10-01",
+    In_time: "08:50 AM",
+    Out_time: "05:30 PM",
+    Total_hours: "8h 40m",
+    Status: 1,
+  },
+];
