@@ -848,12 +848,10 @@ textarea {
 }
 
 .btn-soft-primary {
-  background: linear-gradient(
-    to right,
-    rgba(var(--primary-rgb), 0.15) 1%,
-    transparent 50%,
-    rgba(var(--primary-rgb), 0.15) 100%
-  );
+  background: linear-gradient(to right,
+      rgba(var(--primary-rgb), 0.15) 1%,
+      transparent 50%,
+      rgba(var(--primary-rgb), 0.15) 100%);
   border-color: rgba(var(--primary-rgb), 0.3);
   color: var(--primary);
   transition: all 0.2s ease-in-out;
@@ -867,13 +865,11 @@ textarea {
   height: 100%;
   top: 0;
   transition: transform 0.4s ease-in-out;
-  background: linear-gradient(
-    to right,
-    transparent 1%,
-    rgba(var(--primary-rgb), 0.15) 40%,
-    rgba(var(--primary-rgb), 0.15) 60%,
-    transparent 100%
-  );
+  background: linear-gradient(to right,
+      transparent 1%,
+      rgba(var(--primary-rgb), 0.15) 40%,
+      rgba(var(--primary-rgb), 0.15) 60%,
+      transparent 100%);
 }
 
 .btn-soft-primary:hover {
@@ -886,12 +882,10 @@ textarea {
 }
 
 .btn-soft-success {
-  background: linear-gradient(
-    to right,
-    rgba(var(--success-rgb), 0.15) 1%,
-    transparent 50%,
-    rgba(var(--success-rgb), 0.15) 100%
-  );
+  background: linear-gradient(to right,
+      rgba(var(--success-rgb), 0.15) 1%,
+      transparent 50%,
+      rgba(var(--success-rgb), 0.15) 100%);
   border-color: rgba(var(--success-rgb), 0.3);
   color: var(--success);
 }
@@ -904,12 +898,10 @@ textarea {
   height: 100%;
   top: 0;
   transition: transform 0.4s ease-in-out;
-  background: linear-gradient(
-    to right,
-    transparent,
-    rgba(var(--success-rgb), 0.18),
-    transparent
-  );
+  background: linear-gradient(to right,
+      transparent,
+      rgba(var(--success-rgb), 0.18),
+      transparent);
 }
 
 .btn-soft-success:hover::before {
@@ -917,12 +909,10 @@ textarea {
 }
 
 .btn-soft-danger {
-  background: linear-gradient(
-    to right,
-    rgba(var(--danger-rgb), 0.15) 1%,
-    transparent 50%,
-    rgba(var(--danger-rgb), 0.15) 100%
-  );
+  background: linear-gradient(to right,
+      rgba(var(--danger-rgb), 0.15) 1%,
+      transparent 50%,
+      rgba(var(--danger-rgb), 0.15) 100%);
   border-color: rgba(var(--danger-rgb), 0.3);
   color: var(--danger);
 }
@@ -1611,10 +1601,12 @@ textarea {
 }
 
 @keyframes authOrbFloat {
+
   0%,
   100% {
     transform: translate3d(0, 0, 0) scale(1);
   }
+
   50% {
     transform: translate3d(0, -18px, 0) scale(1.05);
   }
@@ -1842,6 +1834,7 @@ textarea {
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: none;
@@ -2255,8 +2248,8 @@ textarea {
   font-size: 0.92rem;
 }
 
-.auth-control-floating:focus + label,
-.auth-control-floating:not(:placeholder-shown) + label {
+.auth-control-floating:focus+label,
+.auth-control-floating:not(:placeholder-shown)+label {
   top: 0.55rem;
   transform: none;
   font-size: 0.72rem;
@@ -2511,13 +2504,11 @@ textarea {
   border-radius: 0.75rem;
   background:
     linear-gradient(180deg, rgba(70, 102, 225, 0.12), transparent),
-    repeating-linear-gradient(
-      90deg,
+    repeating-linear-gradient(90deg,
       transparent,
       transparent 28px,
       rgba(70, 102, 225, 0.05) 28px,
-      rgba(70, 102, 225, 0.05) 29px
-    );
+      rgba(70, 102, 225, 0.05) 29px);
   position: relative;
   overflow: hidden;
 }
@@ -2556,6 +2547,7 @@ textarea {
 }
 
 @media (max-width: 991px) {
+
   .grid-2,
   .grid-3 {
     grid-template-columns: 1fr;
@@ -2609,6 +2601,7 @@ textarea {
     opacity: 0;
     transform: translateY(-28px) scale(0.98);
   }
+
   to {
     opacity: 1;
     transform: none;
@@ -3422,7 +3415,7 @@ textarea {
   color: var(--title);
 }
 
-.employee-profile-field + .employee-profile-field,
+.employee-profile-field+.employee-profile-field,
 .employee-profile-roles {
   margin-top: 0.85rem;
   padding-top: 0.85rem;
@@ -3536,18 +3529,18 @@ textarea {
   gap: 1rem;
 }
 
-.dash-stat-grid > * {
+.dash-stat-grid>* {
   grid-column: span 12;
 }
 
 @media (min-width: 576px) {
-  .dash-stat-grid > * {
+  .dash-stat-grid>* {
     grid-column: span 6;
   }
 }
 
 @media (min-width: 992px) {
-  .dash-stat-grid > * {
+  .dash-stat-grid>* {
     grid-column: span 4;
   }
 }
@@ -3989,6 +3982,7 @@ textarea {
     opacity: 0;
     transform: translateX(16px) scale(0.98);
   }
+
   to {
     opacity: 1;
     transform: none;
@@ -3999,6 +3993,7 @@ textarea {
   from {
     transform: scaleX(1);
   }
+
   to {
     transform: scaleX(0);
   }
@@ -4062,7 +4057,7 @@ textarea {
   text-align: center;
 }
 
-.confirm-dialog-message-line + .confirm-dialog-message-line {
+.confirm-dialog-message-line+.confirm-dialog-message-line {
   margin-top: 0.35rem;
 }
 
@@ -4282,6 +4277,7 @@ textarea {
 }
 
 @media (max-width: 575px) {
+
   .ess-stat-grid,
   .ess-stat-grid--two {
     grid-template-columns: 1fr;
@@ -4755,3 +4751,12 @@ textarea {
   }
 }
 
+
+
+/* Fix Chrome/Webkit autofill styling issue */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  transition: background-color 5000s ease-in-out 0s, color 5000s ease-in-out 0s;
+}

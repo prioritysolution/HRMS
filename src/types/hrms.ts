@@ -48,6 +48,17 @@ export type TableColumn = {
   filterable?: boolean;
 };
 
+export type StatCardConfig = {
+  title: string;
+  value: (rows: HrmsRow[]) => string;
+  change: (rows: HrmsRow[]) => string;
+  hint: string;
+  description: string;
+  tone: "primary" | "info" | "success" | "warning" | "danger" | "orange";
+  icon: "users" | "userPlus" | "clock" | "calendar" | "briefcase" | "trendingDown";
+  positive?: boolean;
+};
+
 export type HrmsModuleConfig = {
   id: string;
   title: string;
@@ -63,4 +74,5 @@ export type HrmsModuleConfig = {
   usesApi?: boolean;
   statusToggle?: boolean;
   disableEditSubmit?: boolean;
+  stats?: StatCardConfig[];
 };

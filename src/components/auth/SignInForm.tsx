@@ -113,7 +113,7 @@ export function SignInForm() {
         placeholder="Enter your password"
         name="password"
         autoComplete="current-password"
-        helpText={!errors.password ? "Must be at least 8 characters" : undefined}
+        helpText={undefined}
         value={values.password}
         onChange={(event) => setFieldValue("password", event.target.value)}
         onBlur={() => handleBlur("password")}

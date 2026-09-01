@@ -66,20 +66,7 @@ export default function ResetPasswordPage() {
                 defaultValue="Joyce#012"
               />
 
-              <h5 className="psw-rules-title">Your password must contains:</h5>
-              <div className="psw-rules">
-                {[
-                  "A minimum of 8 characters.",
-                  "At least 1 number.",
-                  "At least 1 special character.",
-                  "At least 1 uppercase letter.",
-                ].map((rule) => (
-                  <div key={rule} className="psw-rule">
-                    <CheckCircle2 size={16} />
-                    <span>{rule}</span>
-                  </div>
-                ))}
-              </div>
+
 
               <button type="submit" className="btn btn-primary w-full">
                 Update Password

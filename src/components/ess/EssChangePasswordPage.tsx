@@ -17,10 +17,7 @@ export function EssChangePasswordPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (newPassword.length < 8) {
-      toast.error("New password must be at least 8 characters.");
-      return;
-    }
+
     if (newPassword !== confirmPassword) {
       toast.error("Passwords do not match.");
       return;
@@ -42,7 +39,7 @@ export function EssChangePasswordPage() {
         <div className="row justify-content-center">
           <div className="col-lg-6 col-md-8">
             <div className="card">
-              <div className="card-body ess-password-card">
+              <div className="card-body ess-password-card m-3">
                 <div className="ess-password-header">
                   <div className="avatar avatar-xxl avatar-soft-primary">
                     <Lock size={28} />
@@ -50,7 +47,7 @@ export function EssChangePasswordPage() {
                   <div>
                     <h5 className="mb-1">Update your password</h5>
                     <p className="text-muted mb-0">
-                      Use a strong password with at least 8 characters, including numbers and symbols.
+                      Use a strong password including numbers and symbols.
                     </p>
                   </div>
                 </div>
@@ -89,7 +86,6 @@ export function EssChangePasswordPage() {
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
                         required
-                        minLength={8}
                         autoComplete="new-password"
                       />
                       <button
