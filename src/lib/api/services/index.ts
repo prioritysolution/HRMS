@@ -1,8 +1,11 @@
 export { applOptionService, applOptionsToSelectOptions } from "@/lib/api/services/appl-options.service";
+export { auditLogService } from "@/lib/api/services/audit-log.service";
 export { authService } from "@/lib/api/services/auth.service";
 export { menuService } from "@/lib/api/services/menu.service";
 export { branchService } from "@/lib/api/services/branch.service";
 export { assetService } from "@/lib/api/services/asset.service";
+export { employeeAssetService } from "@/lib/api/services/employee-asset.service";
+export { employeeServiceHistoryService } from "@/lib/api/services/employee-service-history.service";
 export { departmentService } from "@/lib/api/services/department.service";
 export { designationService } from "@/lib/api/services/designation.service";
 export { gradeService } from "@/lib/api/services/grade.service";
@@ -13,6 +16,14 @@ export { employmentTypeService } from "@/lib/api/services/employment-type.servic
 export { employmentStatusService } from "@/lib/api/services/employment-status.service";
 export { organizationService } from "@/lib/api/services/organization.service";
 export { holidayService } from "@/lib/api/services/holiday.service";
+export {
+  attendanceToRow,
+  punchToRow,
+  rowToAttendancePayload,
+  rowToPunchPayload,
+  toFormRow,
+} from "@/lib/api/services/attendance.service";
+export { attendanceService } from "@/lib/api/services/attendance.service";
 
 
 import { apiClient } from "@/lib/api/client";

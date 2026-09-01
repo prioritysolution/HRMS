@@ -1,6 +1,7 @@
 import { apiClient } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/endpoints";
 import type { MenuListItem, MenuTreeItem, MenuTreeQuery } from "@/lib/api/types";
+import { normalizeMenuTree } from "@/lib/menu/normalize-menu-tree";
 
 function withQuery(basePath: string, query?: MenuTreeQuery & { menu_id?: number }) {
   const params = new URLSearchParams();
@@ -27,8 +28,9 @@ export const menuService = {
   tree: async (query?: MenuTreeQuery) => {
     const payload = await apiClient.get<unknown>(
       withQuery(API_ENDPOINTS.menu.tree, { status: query?.status ?? 1 }),
+      { unwrap: false },
     );
-    return asArray<MenuTreeItem>(payload);
+    return normalizeMenuTree(payload);
   },
 
   get: (id: string | number) => apiClient.get<MenuListItem>(API_ENDPOINTS.menu.get(id)),

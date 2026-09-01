@@ -13,6 +13,38 @@ export type AuthUser = {
   isAdmin?: boolean;
 };
 
+export type AuthMeRole = {
+  roleId: number;
+  roleName: string;
+  isAdmin: boolean;
+};
+
+export type AuthMeProfile = {
+  userId: number;
+  userName: string;
+  roleId: number;
+  roleName: string;
+  isAdmin: boolean;
+  roles: AuthMeRole[];
+  orgId: number;
+  orgCode: string;
+  orgName: string;
+  orgLogo: string | null;
+  orgSchema: string;
+  branchId: number;
+  branchCode: string;
+  branchName: string;
+  employeeId: number | null;
+  employeeCode: string | null;
+  displayName: string;
+  firstName: string | null;
+  lastName: string | null;
+  email: string | null;
+  mobile: string | null;
+  photoPath: string | null;
+  loginStatus: string;
+};
+
 export type AuthResponse = {
   token: string;
   tokenType?: string;
@@ -206,6 +238,7 @@ export type AssetRecord = {
 };
 
 export type AssetWritePayload = {
+  org_id?: number;
   asset_type: number;
   asset_code: string;
   serial_number?: string | null;
@@ -217,9 +250,125 @@ export type AssetWritePayload = {
 };
 
 export type AssetListQuery = {
+  org_id?: number;
   asset_id?: number;
   asset_code?: string;
   asset_type?: number;
+  asset_status?: AssetStatus;
+};
+
+export type EmployeeAssetStatus = 0 | 1;
+
+export type EmployeeAssetRecord = {
+  Assignment_id: number;
+  Employee_id: number;
+  Employee_code?: string | null;
+  Employee_name?: string | null;
+  Asset_id: number;
+  Asset_code?: string | null;
+  Asset_type?: number | null;
+  Asset_type_name?: string | null;
+  Asset_status?: number | null;
+  Serial_number?: string | null;
+  Issue_date?: string | null;
+  Return_date?: string | null;
+  Issue_condition?: string | null;
+  Return_condition?: string | null;
+  Status?: EmployeeAssetStatus | number | string;
+  Remarks?: string | null;
+};
+
+export type EmployeeAssetWritePayload = {
+  employee_id: number;
+  asset_id: number;
+  issue_date: string;
+  return_date?: string | null;
+  issue_condition?: string | null;
+  return_condition?: string | null;
+  status?: EmployeeAssetStatus;
+  remarks?: string | null;
+};
+
+export type EmployeeAssetListQuery = {
+  assignment_id?: number;
+  employee_id?: number;
+  asset_id?: number;
+  status?: EmployeeAssetStatus;
+};
+
+export type EmployeeServiceHistoryRecord = {
+  History_id: number;
+  Employee_id: number;
+  Employee_code?: string | null;
+  Employee_name?: string | null;
+  Event_type: number;
+  Event_type_code?: number | null;
+  Event_type_name?: string | null;
+  Effective_date?: string | null;
+  Old_Id?: number | null;
+  Old_Opt_Code?: number | null;
+  Old_Opt_Description?: string | null;
+  New_Id?: number | null;
+  New_Opt_Code?: number | null;
+  New_Opt_Description?: string | null;
+  Old_Amount?: number | string | null;
+  New_Amount?: number | string | null;
+  Remarks?: string | null;
+  Created_by?: number | null;
+  Created_at?: string | null;
+};
+
+export type EmployeeServiceHistoryWritePayload = {
+  employee_id: number;
+  event_type: number;
+  effective_date: string;
+  old_id?: number | null;
+  new_id?: number | null;
+  old_opt_code?: number | null;
+  new_opt_code?: number | null;
+  old_amount?: number | string | null;
+  new_amount?: number | string | null;
+  remarks?: string | null;
+};
+
+export type EmployeeServiceHistoryListQuery = {
+  history_id?: number;
+  employee_id?: number;
+  event_type?: number;
+  effective_date?: string;
+};
+
+export type DeviceStatus = OrganizationStatus;
+
+export type DeviceRecord = {
+  Device_id: number;
+  Device_name: string;
+  Ip_address: string;
+  Port?: number | null;
+  Location?: string | null;
+  Device_model?: string | null;
+  Serial_no?: string | null;
+  Status: DeviceStatus | number | string;
+  Last_sync_time?: string | null;
+  Created_at?: string | null;
+};
+
+export type DeviceWritePayload = {
+  device_name: string;
+  ip_address: string;
+  port?: number;
+  location?: string | null;
+  device_model?: string | null;
+  serial_no?: string | null;
+  status?: DeviceStatus;
+};
+
+export type DeviceListQuery = {
+  device_id?: number;
+  device_name?: string;
+  ip_address?: string;
+  serial_no?: string;
+  status?: DeviceStatus;
 };
 
 export type HolidayRecord = {
@@ -232,6 +381,7 @@ export type HolidayRecord = {
 };
 
 export type HolidayWritePayload = {
+  org_id?: number;
   holiday_date: string;
   holiday_name: string;
   holiday_type: string;
@@ -240,11 +390,111 @@ export type HolidayWritePayload = {
 };
 
 export type HolidayListQuery = {
+  org_id?: number;
   holiday_id?: number;
   month_sl?: number;
   year_sl?: number;
   holiday_type?: string;
   holiday_date?: string;
+};
+
+export type AttendanceRecord = {
+  Attendance_id: number;
+  Employee_id: number;
+  Employee_code?: string | null;
+  Employee_name?: string | null;
+  Branch_Id?: number | null;
+  Dept_Id?: number | null;
+  Dept_Name?: string | null;
+  Attendance_date?: string | null;
+  Shift_id?: number | null;
+  Shift_code?: string | null;
+  Shift_name?: string | null;
+  Shift_start?: string | null;
+  Shift_late_after?: string | null;
+  Shift_end?: string | null;
+  Check_in?: string | null;
+  Check_out?: string | null;
+  Working_minutes?: number | null;
+  Overtime_minutes?: number | null;
+  Attendance_status?: number | null;
+  Attendance_status_code?: number | null;
+  Attendance_status_name?: string | null;
+  Source?: number | null;
+  Source_code?: number | null;
+  Source_name?: string | null;
+  Late_minutes?: number | null;
+  Early_leave_minutes?: number | null;
+  Remarks?: string | null;
+  Created_by?: number | null;
+  Created_at?: string | null;
+  Updated_at?: string | null;
+};
+
+export type AttendanceWritePayload = {
+  employee_id: number;
+  attendance_date: string;
+  shift_id?: number;
+  check_in?: string | null;
+  check_out?: string | null;
+  attendance_status?: number;
+  source?: number;
+  remarks?: string | null;
+};
+
+export type AttendanceListQuery = {
+  attendance_id?: number;
+  employee_id?: number;
+  attendance_date?: string;
+  from_date?: string;
+  to_date?: string;
+  branch_id?: number;
+  dept_id?: number;
+  shift_id?: number;
+  attendance_status?: number;
+  source?: number;
+};
+
+export type AttendancePunchRecord = {
+  Punch_id: number;
+  Employee_id: number;
+  Employee_code?: string | null;
+  Employee_name?: string | null;
+  Device_id?: number | null;
+  Device_name?: string | null;
+  Punch_time?: string | null;
+  Punch_type?: number | null;
+  Punch_type_code?: number | null;
+  Punch_type_name?: string | null;
+  Source?: number | null;
+  Source_code?: number | null;
+  Source_name?: string | null;
+  Latitude?: number | null;
+  Longitude?: number | null;
+  Raw_data?: unknown;
+  Created_at?: string | null;
+};
+
+export type AttendancePunchWritePayload = {
+  employee_id: number;
+  punch_time?: string;
+  punch_type?: number;
+  source?: number;
+  device_id?: number;
+  latitude?: number;
+  longitude?: number;
+  raw_data?: unknown;
+};
+
+export type AttendancePunchListQuery = {
+  punch_id?: number;
+  employee_id?: number;
+  device_id?: number;
+  punch_date?: string;
+  from_date?: string;
+  to_date?: string;
+  punch_type?: number;
+  source?: number;
 };
 
 export type DepartmentStatus = OrganizationStatus;
@@ -359,12 +609,14 @@ export type EmploymentStatusRecord = {
 };
 
 export type EmploymentStatusWritePayload = {
+  org_id?: number;
   status_code: string;
   status_name: string;
   status: EmploymentStatus;
 };
 
 export type EmploymentStatusListQuery = {
+  org_id?: number;
   emp_status_id?: number;
   status_code?: string;
   status?: EmploymentStatus;
@@ -439,6 +691,54 @@ export type ApplOptionRecord = {
 export type ApplOptionListQuery = {
   opt_grp_id?: number;
   is_active?: ApplOptionActiveStatus;
+};
+
+/** Opt_Code from appl-options/list?opt_grp_id=15 */
+export type AuditLogActionCode = number;
+
+export type AuditLogJsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | AuditLogJsonValue[]
+  | { [key: string]: AuditLogJsonValue };
+
+export type AuditLogCreatePayload = {
+  action: AuditLogActionCode;
+  user_id?: number;
+  menu_name?: string;
+  table_name?: string;
+  record_id?: number;
+  old_values?: AuditLogJsonValue | string | null;
+  new_values?: AuditLogJsonValue | string | null;
+  ip_address?: string;
+  user_agent?: string;
+};
+
+export type AuditLogRecord = {
+  Audit_Id?: number;
+  audit_id?: number;
+  User_Id?: number;
+  user_id?: number;
+  Menu_Name?: string | null;
+  menu_name?: string | null;
+  Table_Name?: string | null;
+  table_name?: string | null;
+  Record_Id?: number | null;
+  record_id?: number | null;
+  Action?: number;
+  action?: number;
+  Old_Values?: AuditLogJsonValue | string | null;
+  old_values?: AuditLogJsonValue | string | null;
+  New_Values?: AuditLogJsonValue | string | null;
+  new_values?: AuditLogJsonValue | string | null;
+  Ip_Address?: string | null;
+  ip_address?: string | null;
+  User_Agent?: string | null;
+  user_agent?: string | null;
+  Created_At?: string | null;
+  created_at?: string | null;
 };
 
 export interface EmployeeRecord {

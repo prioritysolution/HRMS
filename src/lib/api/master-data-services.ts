@@ -2,6 +2,7 @@ import type { HrmsRow } from "@/types/hrms";
 import { branchService } from "@/lib/api/services/branch.service";
 import { departmentService } from "@/lib/api/services/department.service";
 import { assetService } from "@/lib/api/services/asset.service";
+import { deviceService } from "@/lib/api/services/device.service";
 import { designationService } from "@/lib/api/services/designation.service";
 import { employmentTypeService } from "@/lib/api/services/employment-type.service";
 import { employmentStatusService } from "@/lib/api/services/employment-status.service";
@@ -119,6 +120,12 @@ export const MASTER_DATA_API_SERVICES: Record<string, MasterDataApiService> = {
     create: assetService.create,
     update: assetService.update,
     remove: assetService.remove,
+  },
+  devices: {
+    list: deviceService.list,
+    create: deviceService.create,
+    update: deviceService.update,
+    remove: deviceService.remove,
   },
   branches: {
     list: listBranches,

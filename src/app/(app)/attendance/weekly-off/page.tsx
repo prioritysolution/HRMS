@@ -1,5 +1,12 @@
-import { MasterDataPage } from "@/components/ui/MasterDataPage";
+"use client";
+
+import { AttendanceModulePage } from "@/components/attendance/AttendanceModulePage";
 
 export default function WeeklyOffPage() {
-  return <MasterDataPage moduleId="weekly-off" />;
+  return (
+    <AttendanceModulePage
+      moduleId="weekly-off"
+      modalSubtitle="Configure weekly off days by branch and off type."
+    />
+  );
 }

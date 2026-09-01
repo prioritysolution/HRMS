@@ -178,6 +178,7 @@ export function Topbar() {
                 <Link
                   href="/employees/profile"
                   className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-[var(--card-soft)]"
+                  onClick={() => setOpenUser(false)}
                 >
                   <UserRound size={15} /> Profile
                 </Link>

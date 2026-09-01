@@ -1,7 +1,10 @@
+import { enrichAuthUserWithOrgId } from "@/lib/auth/org-context";
 import { ApiError, apiClient } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/endpoints";
 import type {
   ApiMessageResponse,
+  AuthMeProfile,
+  AuthMeRole,
   AuthResponse,
   AuthUser,
   ForgotPasswordRequest,
@@ -11,7 +14,7 @@ import type {
   VerifyOtpRequest,
 } from "@/lib/api/types";
 import { registerLocal } from "@/lib/auth/local-auth";
-import { clearAccessToken, getStoredUser, setSession, setStoredUser } from "@/lib/auth/session";
+import { clearAccessToken, getAccessToken, getStoredUser, setSession, setStoredUser } from "@/lib/auth/session";
 import { extractAccessToken, extractAuthUser } from "@/lib/auth/token";
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -38,6 +41,81 @@ function readBoolean(record: Record<string, unknown>, keys: string[]): boolean |
     if (value === 0 || value === "0") return false;
   }
   return undefined;
+}
+
+function readString(record: Record<string, unknown>, keys: string[]): string | null {
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === "string" && value.trim()) return value.trim();
+    if (typeof value === "number" && Number.isFinite(value)) return String(value);
+  }
+  return null;
+}
+
+function parseAuthMeRoles(value: unknown): AuthMeRole[] {
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .map((item) => {
+      const record = asRecord(item);
+      if (!record) return null;
+
+      const roleId = readNumber(record, ["role_id", "Role_Id", "roleId"]);
+      const roleName = readString(record, ["role_name", "Role_Name", "roleName"]);
+      if (roleId === undefined || !roleName) return null;
+
+      return {
+        roleId,
+        roleName,
+        isAdmin: readBoolean(record, ["is_admin", "Is_Admin", "isAdmin"]) ?? false,
+      };
+    })
+    .filter((role): role is AuthMeRole => role !== null);
+}
+
+export function parseAuthMeProfile(payload: unknown): AuthMeProfile | null {
+  const record = asRecord(payload);
+  if (!record) return null;
+
+  const data = asRecord(record.data) ?? record;
+  const userId = readNumber(data, ["user_id", "User_Id", "userId", "id"]);
+  const userName = readString(data, ["user_name", "User_Name", "userName"]);
+  if (userId === undefined || !userName) return null;
+
+  const roleId = readNumber(data, ["role_id", "Role_Id", "roleId"]) ?? 0;
+  const roleName =
+    readString(data, ["role_name", "Role_Name", "roleName"]) ?? "User";
+  const orgId = readNumber(data, ["org_id", "Org_Id", "orgId"]) ?? 0;
+  const branchId = readNumber(data, ["branch_id", "Branch_Id", "branchId"]) ?? 0;
+  const employeeId = readNumber(data, ["employee_id", "Employee_Id", "employeeId"]);
+
+  return {
+    userId,
+    userName,
+    roleId,
+    roleName,
+    isAdmin: readBoolean(data, ["is_admin", "Is_Admin", "isAdmin"]) ?? false,
+    roles: parseAuthMeRoles(data.roles),
+    orgId,
+    orgCode: readString(data, ["org_code", "Org_Code", "orgCode"]) ?? "",
+    orgName: readString(data, ["org_name", "Org_Name", "orgName"]) ?? "",
+    orgLogo: readString(data, ["org_logo", "Org_Logo", "orgLogo"]),
+    orgSchema: readString(data, ["org_schema", "Org_Schema", "orgSchema"]) ?? "",
+    branchId,
+    branchCode: readString(data, ["branch_code", "Branch_Code", "branchCode"]) ?? "",
+    branchName: readString(data, ["branch_name", "Branch_Name", "branchName"]) ?? "",
+    employeeId: employeeId ?? null,
+    employeeCode: readString(data, ["employee_code", "Employee_Code", "employeeCode"]),
+    displayName:
+      readString(data, ["display_name", "Display_Name", "displayName"]) ?? userName,
+    firstName: readString(data, ["first_name", "First_Name", "firstName"]),
+    lastName: readString(data, ["last_name", "Last_Name", "lastName"]),
+    email: readString(data, ["email", "Email"]),
+    mobile: readString(data, ["mobile", "Mobile", "contact", "Contact"]),
+    photoPath: readString(data, ["photo_path", "Photo_Path", "photoPath"]),
+    loginStatus:
+      readString(data, ["login_status", "Login_Status", "loginStatus"]) ?? "",
+  };
 }
 
 function enrichAuthUser(
@@ -101,8 +179,9 @@ function normalizeAuthPayload(payload: unknown, fallbackUserName = ""): AuthResp
 }
 
 function persistAuth(response: AuthResponse): AuthResponse {
-  setSession(response.token, response.user);
-  return response;
+  const user = enrichAuthUserWithOrgId(response.user, response.token);
+  setSession(response.token, user);
+  return { ...response, user };
 }
 
 export const authService = {
@@ -137,15 +216,27 @@ export const authService = {
       const user = extractAuthUser(raw, stored?.email ?? stored?.userName ?? "");
       if (!user) return stored;
 
-      const enriched = enrichAuthUser(
-        { ...stored, ...user },
-        raw,
-        stored?.userName ?? "",
+      const enriched = enrichAuthUserWithOrgId(
+        enrichAuthUser(
+          { ...stored, ...user },
+          raw,
+          stored?.userName ?? "",
+        ),
+        getAccessToken(),
       );
       setStoredUser(enriched);
       return enriched;
     } catch {
       return stored;
+    }
+  },
+
+  getMeProfile: async (): Promise<AuthMeProfile | null> => {
+    try {
+      const raw = await apiClient.get<unknown>(API_ENDPOINTS.auth.me, { unwrap: false });
+      return parseAuthMeProfile(raw);
+    } catch {
+      return null;
     }
   },
 

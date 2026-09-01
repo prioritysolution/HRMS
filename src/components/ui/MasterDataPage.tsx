@@ -30,6 +30,7 @@ import { MasterDataModal } from "@/components/modals/MasterDataModal";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { DataTable, PersonCell, SoftStatus, type Column } from "@/components/ui/DataTable";
 import { useToast } from "@/components/ui/ToastProvider";
+import { queueAuditLog, resolveAuditRecordId } from "@/lib/audit-log";
 import { getModuleEmptyIcon } from "@/lib/module-icons";
 import { getRowLabel } from "@/lib/row-label";
 import type { FormField, HrmsRow, TableColumn } from "@/types/hrms";
@@ -131,6 +132,23 @@ function enrichEmployeeRow(
     Blood_group: bloodGroupCode,
     Marital_status: maritalStatusCode,
   };
+}
+
+function resolveSaveLabel(
+  saved: HrmsRow,
+  fallback: HrmsRow,
+  nameKey: string,
+): string {
+  const primary = String(saved[nameKey] ?? "").trim();
+  if (primary) return primary;
+
+  const savedLabel = getRowLabel(saved);
+  if (savedLabel !== "this record") return savedLabel;
+
+  const fallbackPrimary = String(fallback[nameKey] ?? "").trim();
+  if (fallbackPrimary) return fallbackPrimary;
+
+  return getRowLabel(fallback);
 }
 
 export function MasterDataPage({ moduleId, onRowEdit }: MasterDataPageProps) {
@@ -591,6 +609,12 @@ export function MasterDataPage({ moduleId, onRowEdit }: MasterDataPageProps) {
   const handleDelete = async (row: HrmsRow) => {
     if (usesApi && apiService) {
       await apiService.remove(row.id);
+      queueAuditLog({
+        moduleId,
+        action: "delete",
+        recordId: resolveAuditRecordId(row as Record<string, unknown>),
+        oldValues: row,
+      });
       await loadRows();
       return;
     }
@@ -616,10 +640,19 @@ export function MasterDataPage({ moduleId, onRowEdit }: MasterDataPageProps) {
         }
 
         try {
-          await apiService.update(Number(employeeId), {
+          const activated = {
             ...row,
             Employee_id: Number(employeeId),
             Status: 1,
+          };
+          await apiService.update(Number(employeeId), activated);
+
+          queueAuditLog({
+            moduleId,
+            action: "update",
+            recordId: Number(employeeId),
+            oldValues: row,
+            newValues: activated,
           });
 
           await loadRows();
@@ -643,6 +676,13 @@ export function MasterDataPage({ moduleId, onRowEdit }: MasterDataPageProps) {
       };
 
       await apiService.update(row.id, activated);
+      queueAuditLog({
+        moduleId,
+        action: "update",
+        recordId: resolveAuditRecordId(row as Record<string, unknown>),
+        oldValues: row,
+        newValues: activated,
+      });
       await loadRows();
       return;
     }
@@ -666,19 +706,36 @@ export function MasterDataPage({ moduleId, onRowEdit }: MasterDataPageProps) {
   ) => {
     try {
       let saved: HrmsRow;
+      const payload =
+        isEmployeeModule
+          ? enrichEmployeeRow(values, organizationOptions, {
+              gender: genderOptions,
+              bloodGroup: bloodGroupOptions,
+              maritalStatus: maritalStatusOptions,
+            })
+          : values;
 
       if (usesApi && apiService) {
+        const previous = mode === "edit" ? editRow ?? payload : undefined;
         saved =
           mode === "edit"
             ? await apiService.update(
-              values.id,
-              values,
+              payload.id,
+              payload,
             )
-            : await apiService.create(values);
+            : await apiService.create(payload);
+
+        queueAuditLog({
+          moduleId,
+          action: mode === "edit" ? "update" : "create",
+          recordId: resolveAuditRecordId(saved as Record<string, unknown>),
+          oldValues: mode === "edit" ? previous : undefined,
+          newValues: saved,
+        });
 
         await loadRows();
       } else {
-        saved = values;
+        saved = payload;
 
         setRows((prev) => {
           const exists = prev.some(
@@ -697,10 +754,7 @@ export function MasterDataPage({ moduleId, onRowEdit }: MasterDataPageProps) {
         });
       }
 
-      const label = String(
-        saved[config.nameKey] ??
-        getRowLabel(saved),
-      );
+      const label = resolveSaveLabel(saved, payload, config.nameKey);
 
       toast.success({
         title:

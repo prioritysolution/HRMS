@@ -1,3 +1,4 @@
+import { appendOrgIdQuery, getCurrentOrgId, resolveOrgId } from "@/lib/auth/org-context";
 import { apiClient } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/endpoints";
 import type {
@@ -134,17 +135,27 @@ export function employmentStatusToRow(
   };
 }
 
+function deriveStatusCode(statusName: string, existing?: unknown): string {
+  const fromExisting = optionalText(existing);
+  if (fromExisting) return fromExisting;
+
+  const name = statusName.trim();
+  if (!name) return "";
+
+  const slug = name.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 20);
+  return slug || name.toUpperCase().slice(0, 20);
+}
+
 export function rowToEmploymentStatusPayload(
   row: HrmsRow,
 ): EmploymentStatusWritePayload {
-  return {
-    status_code: String(
-      row.Status_code ?? "",
-    ).trim(),
+  const statusName = String(row.Status_name ?? "").trim();
 
-    status_name: String(
-      row.Status_name ?? "",
-    ).trim(),
+  return {
+    org_id: resolveOrgId(row.Org_Id),
+    status_code: deriveStatusCode(statusName, row.Status_code),
+
+    status_name: statusName,
 
     status: toEmploymentStatus(
       row.status ?? row.Status,
@@ -156,27 +167,28 @@ function withListQuery(
   basePath: string,
   query?: EmploymentStatusListQuery,
 ): string {
-  if (!query) {
-    return basePath;
-  }
-
   const params = new URLSearchParams();
 
-  if (query.status !== undefined) {
+  const orgId = query?.org_id ?? getCurrentOrgId();
+  if (orgId !== undefined) {
+    params.set("org_id", String(orgId));
+  }
+
+  if (query?.status !== undefined) {
     params.set(
       "status",
       String(query.status),
     );
   }
 
-  if (query.emp_status_id !== undefined) {
+  if (query?.emp_status_id !== undefined) {
     params.set(
       "emp_status_id",
       String(query.emp_status_id),
     );
   }
 
-  if (query.status_code !== undefined) {
+  if (query?.status_code !== undefined) {
     params.set(
       "status_code",
       String(query.status_code),
@@ -259,7 +271,7 @@ export const employmentStatusService = {
       message?: string;
       data?: null;
     }>(
-      API_ENDPOINTS.employmentStatus.delete(id),
+      appendOrgIdQuery(API_ENDPOINTS.employmentStatus.delete(id)),
       {
         unwrap: false,
       },

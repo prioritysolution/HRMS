@@ -1,3 +1,4 @@
+import { appendOrgIdQuery, getCurrentOrgId, resolveOrgId } from "@/lib/auth/org-context";
 import { apiClient } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/endpoints";
 import type {
@@ -44,29 +45,30 @@ function getSingle(payload: unknown): HolidayRecord {
 }
 
 function buildListUrl(query?: HolidayListQuery): string {
-    if (!query) {
-        return API_ENDPOINTS.holiday.list;
-    }
-
     const params = new URLSearchParams();
 
-    if (query.holiday_id !== undefined) {
+    const orgId = query?.org_id ?? getCurrentOrgId();
+    if (orgId !== undefined) {
+        params.set("org_id", String(orgId));
+    }
+
+    if (query?.holiday_id !== undefined) {
         params.set("holiday_id", String(query.holiday_id));
     }
 
-    if (query.month_sl !== undefined) {
+    if (query?.month_sl !== undefined) {
         params.set("month_sl", String(query.month_sl));
     }
 
-    if (query.year_sl !== undefined) {
+    if (query?.year_sl !== undefined) {
         params.set("year_sl", String(query.year_sl));
     }
 
-    if (query.holiday_type) {
+    if (query?.holiday_type) {
         params.set("holiday_type", query.holiday_type);
     }
 
-    if (query.holiday_date) {
+    if (query?.holiday_date) {
         params.set("holiday_date", query.holiday_date);
     }
 
@@ -116,6 +118,7 @@ function rowToPayload(
     ).trim();
 
     const payload: HolidayWritePayload = {
+        org_id: resolveOrgId(row.Org_Id),
         holiday_date: holidayDate,
 
         holiday_name: String(
@@ -200,7 +203,7 @@ export const holidayService = {
             message?: string;
             data?: null;
         }>(
-            API_ENDPOINTS.holiday.delete(id),
+            appendOrgIdQuery(API_ENDPOINTS.holiday.delete(id)),
             {
                 unwrap: false,
             },

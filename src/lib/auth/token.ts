@@ -88,7 +88,7 @@ export function extractAuthUser(payload: unknown, fallbackEmail = ""): AuthUser 
     const lastName = readString(userRecord, ["last_name", "lastName", "Last_Name"]);
     const combinedName = [firstName, lastName].filter(Boolean).join(" ").trim();
     const name =
-      readString(userRecord, ["name", "full_name", "Full_Name", "Emp_Name", "emp_name"]) ||
+      readString(userRecord, ["display_name", "Display_Name", "displayName", "name", "full_name", "Full_Name", "Emp_Name", "emp_name"]) ||
       combinedName ||
       userName ||
       (email.includes("@") ? email.split("@")[0] : email) ||

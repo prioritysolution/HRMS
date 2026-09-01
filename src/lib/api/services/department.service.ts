@@ -1,3 +1,4 @@
+import { appendOrgIdQuery, getCurrentOrgId, resolveOrgId } from "@/lib/auth/org-context";
 import { apiClient } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/endpoints";
 import type {
@@ -61,7 +62,7 @@ export function departmentToRow(record: DepartmentRecord, orgName = ""): HrmsRow
 
 export function rowToDepartmentPayload(row: HrmsRow): DepartmentWritePayload {
   return {
-    org_id: Number(row.Org_Id ?? 0),
+    org_id: resolveOrgId(row.Org_Id),
     dept_cd: String(row.Dept_Cd ?? "").trim(),
     dept_name: String(row.Dept_Name ?? "").trim(),
     status: toOrganizationStatus(row.Status),
@@ -70,7 +71,8 @@ export function rowToDepartmentPayload(row: HrmsRow): DepartmentWritePayload {
 
 function withListQuery(basePath: string, query?: DepartmentListQuery) {
   const params = new URLSearchParams();
-  if (query?.org_id !== undefined) params.set("org_id", String(query.org_id));
+  const orgId = query?.org_id ?? getCurrentOrgId();
+  if (orgId !== undefined) params.set("org_id", String(orgId));
   if (query?.status !== undefined) params.set("status", String(query.status));
   const suffix = params.toString();
   return suffix ? `${basePath}?${suffix}` : basePath;
@@ -114,7 +116,7 @@ export const departmentService = {
 
   remove: (id: string | number) =>
     apiClient.delete<{ success?: boolean; message?: string; data?: null }>(
-      API_ENDPOINTS.department.delete(id),
+      appendOrgIdQuery(API_ENDPOINTS.department.delete(id)),
       { unwrap: false },
     ),
 };

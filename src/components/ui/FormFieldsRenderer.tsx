@@ -4,6 +4,7 @@ import { DatePicker } from "@/components/ui/DatePicker";
 import { FileUploadField } from "@/components/ui/FileUploadField";
 import { FormFieldLabel } from "@/components/ui/FormFieldLabel";
 import { SearchableSelect } from "@/components/ui/SearchableSelect";
+import { resolvePublicFileUrl } from "@/lib/env";
 import { cn } from "@/lib/utils";
 import type { FormValue } from "@/lib/form-validation";
 import type { FormField, HrmsRow } from "@/types/hrms";
@@ -24,6 +25,14 @@ function asText(value: FormValue): string {
     return "";
   }
   return String(value);
+}
+
+function resolveExistingFileUrl(field: FormField, url: string): string {
+  if (!url || /^(https?:|blob:|data:)/i.test(url)) return url;
+  if (field.name === "Photo") {
+    return resolvePublicFileUrl(url, "storage/employees/photos");
+  }
+  return resolvePublicFileUrl(url);
 }
 
 export function FormFieldsRenderer({
@@ -74,7 +83,10 @@ export function FormFieldsRenderer({
               existingUrl={
                 values[field.name] instanceof File
                   ? ""
-                  : asText(field.previewKey ? values[field.previewKey] : values[field.name])
+                  : resolveExistingFileUrl(
+                      field,
+                      asText(field.previewKey ? values[field.previewKey] : values[field.name]),
+                    )
               }
               existingName={
                 values[field.name] instanceof File

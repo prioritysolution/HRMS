@@ -1,3 +1,4 @@
+import { appendOrgIdQuery, getCurrentOrgId, resolveOrgId } from "@/lib/auth/org-context";
 import { apiClient } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/endpoints";
 import type {
@@ -189,6 +190,7 @@ export function rowToAssetPayload(
       : Number(row.Purchase_cost);
 
   return {
+    org_id: resolveOrgId(row.Org_Id),
     asset_type: Number(row.Asset_type ?? 0),
     asset_code: String(row.Asset_code ?? "").trim(),
     serial_number: optionalText(row.Serial_number),
@@ -214,6 +216,11 @@ function withListQuery(
 ) {
   const params = new URLSearchParams();
 
+  const orgId = query?.org_id ?? getCurrentOrgId();
+  if (orgId !== undefined) {
+    params.set("org_id", String(orgId));
+  }
+
   if (query?.asset_id !== undefined) {
     params.set("asset_id", String(query.asset_id));
   }
@@ -224,6 +231,10 @@ function withListQuery(
 
   if (query?.asset_type !== undefined) {
     params.set("asset_type", String(query.asset_type));
+  }
+
+  if (query?.asset_status !== undefined) {
+    params.set("asset_status", String(query.asset_status));
   }
 
   const suffix = params.toString();
@@ -263,7 +274,7 @@ export const assetService = {
       success?: boolean;
       message?: string;
       data?: null;
-    }>(API_ENDPOINTS.asset.delete(id), {
+    }>(appendOrgIdQuery(API_ENDPOINTS.asset.delete(id)), {
       unwrap: false,
     }),
 };

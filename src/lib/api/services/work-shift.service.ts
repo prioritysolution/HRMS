@@ -1,3 +1,4 @@
+import { appendOrgIdQuery, getCurrentOrgId, resolveOrgId } from "@/lib/auth/org-context";
 import { apiClient } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/endpoints";
 import type {
@@ -94,7 +95,7 @@ export function rowToWorkShiftPayload(row: HrmsRow): WorkShiftWritePayload {
       : toDecimalNumber(overtime);
 
   return {
-    org_id: Number(row.Org_Id ?? 0),
+    org_id: resolveOrgId(row.Org_Id),
     shift_code: String(row.Shift_code ?? "").trim(),
     shift_name: String(row.Shift_name ?? "").trim(),
     start_time: formatTimeForApi(row.Start_time),
@@ -106,7 +107,8 @@ export function rowToWorkShiftPayload(row: HrmsRow): WorkShiftWritePayload {
 
 function withListQuery(basePath: string, query?: WorkShiftListQuery) {
   const params = new URLSearchParams();
-  if (query?.org_id !== undefined) params.set("org_id", String(query.org_id));
+  const orgId = query?.org_id ?? getCurrentOrgId();
+  if (orgId !== undefined) params.set("org_id", String(orgId));
   if (query?.status !== undefined) params.set("status", String(query.status));
   const suffix = params.toString();
   return suffix ? `${basePath}?${suffix}` : basePath;
@@ -150,7 +152,7 @@ export const workShiftService = {
 
   remove: (id: string | number) =>
     apiClient.delete<{ success?: boolean; message?: string; data?: null }>(
-      API_ENDPOINTS.workShift.delete(id),
+      appendOrgIdQuery(API_ENDPOINTS.workShift.delete(id)),
       { unwrap: false },
     ),
 };

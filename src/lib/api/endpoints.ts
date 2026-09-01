@@ -98,11 +98,34 @@ export const API_ENDPOINTS = {
     update: (id: string | number) => `/api/v1/asset/update/${id}`,
     delete: (id: string | number) => `/api/v1/asset/delete/${id}`,
   },
+  employeeAsset: {
+    list: "/api/v1/employee-asset/list",
+    create: "/api/v1/employee-asset/create",
+    update: (id: string | number) => `/api/v1/employee-asset/update/${id}`,
+    delete: (id: string | number) => `/api/v1/employee-asset/delete/${id}`,
+  },
+  employeeServiceHistory: {
+    list: "/api/v1/employee-service-history/list",
+    create: "/api/v1/employee-service-history/create",
+    update: (id: string | number) => `/api/v1/employee-service-history/update/${id}`,
+    delete: (id: string | number) => `/api/v1/employee-service-history/delete/${id}`,
+  },
+  device: {
+    list: "/api/v1/device/list",
+    get: (id: string | number) =>
+      `/api/v1/device/list?device_id=${encodeURIComponent(String(id))}`,
+    create: "/api/v1/device/create",
+    update: (id: string | number) => `/api/v1/device/update/${id}`,
+    delete: (id: string | number) => `/api/v1/device/delete/${id}`,
+  },
   applOptions: {
     list: "/api/v1/appl-options/list",
     gender: "/api/v1/appl-options/gender",
     bloodGroup: "/api/v1/appl-options/blood-group",
     maritalStatus: "/api/v1/appl-options/marital-status",
+  },
+  auditLog: {
+    create: "/api/v1/audit-log/create",
   },
   auth: {
     login: "/api/v1/auth/login",
@@ -134,6 +157,14 @@ export const API_ENDPOINTS = {
     create: "/api/v1/employee/create",
     update: (id: number | string) => `/api/v1/employee/update/${id}`,
     remove: (id: number | string) => `/api/v1/employee/delete/${id}`,
+  },
+  attendance: {
+    list: "/api/v1/attendance/list",
+    create: "/api/v1/attendance/create",
+    update: (id: string | number) => `/api/v1/attendance/update/${id}`,
+    delete: (id: string | number) => `/api/v1/attendance/delete/${id}`,
+    punchList: "/api/v1/attendance/punch/list",
+    punchCreate: "/api/v1/attendance/punch/create",
   },
   clients: {
     leads: "/clients/leads",

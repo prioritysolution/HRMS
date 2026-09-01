@@ -1,4 +1,5 @@
 import { isAuthPublicPath, SIGN_IN_PATH } from "@/lib/auth/constants";
+import { applyOrgIdToRequestBody } from "@/lib/auth/org-context";
 import { clearAccessToken, getAccessToken } from "@/lib/auth/session";
 import { env, getApiUrl } from "@/lib/env";
 
@@ -108,9 +109,11 @@ async function sendRequest<T>(
 ): Promise<T> {
   const { auth = true, unwrap = true, headers, signal } = options;
   const isFormData = typeof FormData !== "undefined" && body instanceof FormData;
+  const requestBody =
+    body === undefined ? undefined : isFormData ? body : applyOrgIdToRequestBody(body);
   const requestHeaders: Record<string, string> = {
     Accept: "application/json",
-    ...(body !== undefined && !isFormData ? { "Content-Type": "application/json" } : {}),
+    ...(requestBody !== undefined && !isFormData ? { "Content-Type": "application/json" } : {}),
     ...(headers as Record<string, string>),
   };
 
@@ -128,7 +131,11 @@ async function sendRequest<T>(
       method,
       headers: requestHeaders,
       body:
-        body === undefined ? undefined : isFormData ? (body as FormData) : JSON.stringify(body),
+        requestBody === undefined
+          ? undefined
+          : isFormData
+            ? (requestBody as FormData)
+            : JSON.stringify(requestBody),
       signal: abortSignal,
     });
 

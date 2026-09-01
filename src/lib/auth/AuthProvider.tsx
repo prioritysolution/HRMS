@@ -4,7 +4,8 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import type { AuthUser } from "@/lib/api/types";
 import { authService } from "@/lib/api/services/auth.service";
 import { SIGN_IN_PATH } from "@/lib/auth/constants";
-import { isAuthenticated } from "@/lib/auth/session";
+import { enrichAuthUserWithOrgId } from "@/lib/auth/org-context";
+import { getAccessToken, getStoredUser, isAuthenticated, setStoredUser } from "@/lib/auth/session";
 
 type AuthContextValue = {
   user: AuthUser | null;
@@ -29,6 +30,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setReady(true);
         }
         return;
+      }
+
+      const cached = getStoredUser();
+      if (cached) {
+        const withOrg = enrichAuthUserWithOrgId(cached, getAccessToken());
+        if (withOrg.orgId !== cached.orgId) {
+          setStoredUser(withOrg);
+          if (!cancelled) setUser(withOrg);
+        }
       }
 
       const stored = await authService.me();

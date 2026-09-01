@@ -1,3 +1,4 @@
+import { appendOrgIdQuery } from "@/lib/auth/org-context";
 import { apiClient } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/endpoints";
 import type {
@@ -180,7 +181,7 @@ export const organizationService = {
 
   remove: (id: string | number) =>
     apiClient.delete<{ success?: boolean; message?: string; data?: null }>(
-      API_ENDPOINTS.organization.delete(id),
+      appendOrgIdQuery(API_ENDPOINTS.organization.delete(id)),
       { unwrap: false },
     ),
 };

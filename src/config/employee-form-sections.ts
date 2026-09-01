@@ -120,7 +120,7 @@ export const EMPLOYEE_FORM_SECTIONS: FormSection[] = [
   {
     id: "bank",
     title: "Bank Details",
-    description: "Salary account information from mst_employee_bank.",
+    description: "Salary account information for payroll processing.",
     fields: [
       { name: "Bank_name", label: "Bank Name" },
       { name: "Account_number", label: "Account Number" },

@@ -1,5 +1,6 @@
 import { apiClient } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/endpoints";
+import { resolvePublicFileUrl } from "@/lib/env";
 import type { HrmsRow } from "@/types/hrms";
 import type {
   EmployeeDetail,
@@ -7,6 +8,46 @@ import type {
   EmployeeCreatePayload,
   EmployeeUpdatePayload,
 } from "@/lib/api/types";
+
+const EMPLOYEE_PHOTO_FOLDER = "storage/employees/photos";
+
+function getEmployeePhotoFile(row: HrmsRow): File | null {
+  return row.Photo instanceof File ? row.Photo : null;
+}
+
+function normalizeStoredPhotoPath(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+  if (!/^https?:\/\//i.test(trimmed)) return trimmed;
+
+  try {
+    const pathname = new URL(trimmed).pathname.replace(/^\/+/, "");
+    const storageIndex = pathname.indexOf("storage/");
+    return storageIndex >= 0 ? pathname.slice(storageIndex) : trimmed;
+  } catch {
+    return trimmed;
+  }
+}
+
+function applyEmployeePhotoFields(
+  row: HrmsRow,
+  payload: EmployeeCreatePayload | EmployeeUpdatePayload,
+): void {
+  const photoFile = getEmployeePhotoFile(row);
+
+  if (photoFile) {
+    payload.photo = photoFile;
+    delete payload.photo_path;
+    return;
+  }
+
+  if (row.Photo_path !== undefined) {
+    const photoPath = normalizeStoredPhotoPath(optionalText(row.Photo_path));
+    if (photoPath) {
+      payload.photo_path = photoPath;
+    }
+  }
+}
 
 /**
  * Convert unknown value to a plain object.
@@ -60,6 +101,27 @@ function optionalText(
   }
 
   return String(value).trim();
+}
+
+/**
+ * Build the employee name shown in lists and sent as display_name.
+ * Prefer first/middle/last so list updates when legal name changes.
+ */
+function composeEmployeeDisplayName(parts: {
+  firstName?: unknown;
+  middleName?: unknown;
+  lastName?: unknown;
+  displayName?: unknown;
+}): string {
+  const composed = [
+    optionalText(parts.firstName),
+    optionalText(parts.middleName),
+    optionalText(parts.lastName),
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  return composed || optionalText(parts.displayName);
 }
 
 /**
@@ -133,6 +195,75 @@ function asEmployeeList(
   }
 
   return [];
+}
+
+/**
+ * Parse a single employee from create/update/detail envelopes.
+ */
+function asSingleEmployeeRecord(
+  payload: unknown,
+): EmployeeRecord | null {
+  const records = asEmployeeList(payload);
+  if (records.length > 0) {
+    return records[0];
+  }
+
+  const record = asRecord(payload);
+  if (!record) {
+    return null;
+  }
+
+  const data = asRecord(record.data) ?? record;
+  const nestedEmployee = asRecord(data.employee);
+
+  if (nestedEmployee) {
+    return nestedEmployee as unknown as EmployeeRecord;
+  }
+
+  if (
+    readValue(data, ["Employee_id", "employee_id", "id"]) !==
+    undefined
+  ) {
+    return data as unknown as EmployeeRecord;
+  }
+
+  if (
+    readValue(record, ["Employee_id", "employee_id", "id"]) !==
+    undefined
+  ) {
+    return record as unknown as EmployeeRecord;
+  }
+
+  return null;
+}
+
+function employeeRowFromSaveResponse(
+  payload: unknown,
+  fallbackRow: HrmsRow,
+  employeeId?: number,
+): HrmsRow {
+  const parsed = asSingleEmployeeRecord(payload);
+
+  if (parsed) {
+    return employeeToRow(parsed);
+  }
+
+  const resolvedId =
+    employeeId ??
+    Number(fallbackRow.Employee_id ?? fallbackRow.id ?? 0);
+
+  return {
+    ...fallbackRow,
+    id: String(resolvedId || fallbackRow.id || ""),
+    Employee_id: resolvedId || Number(fallbackRow.Employee_id ?? 0),
+    Display_name:
+      composeEmployeeDisplayName({
+        firstName: fallbackRow.First_name,
+        middleName: fallbackRow.Middle_name,
+        lastName: fallbackRow.Last_name,
+        displayName: fallbackRow.Display_name,
+      }) || String(fallbackRow.Employee_code ?? "Employee"),
+  };
 }
 
 /**
@@ -309,13 +440,12 @@ export function employeeToRow(
         ]),
       ),
 
-    Display_name:
-      optionalText(
-        readValue(source, [
-          "Display_name",
-          "display_name",
-        ]),
-      ),
+    Display_name: composeEmployeeDisplayName({
+      firstName: readValue(source, ["First_name", "first_name"]),
+      middleName: readValue(source, ["Middle_name", "middle_name"]),
+      lastName: readValue(source, ["Last_name", "last_name"]),
+      displayName: readValue(source, ["Display_name", "display_name"]),
+    }),
 
     Email:
       optionalText(
@@ -414,13 +544,17 @@ export function employeeToRow(
       ]) ?? 0,
     ),
 
-    Photo_path:
-      optionalText(
+    Photo_path: (() => {
+      const photoPath = optionalText(
         readValue(source, [
           "Photo_path",
           "photo_path",
         ]),
-      ),
+      );
+      return photoPath
+        ? resolvePublicFileUrl(photoPath, EMPLOYEE_PHOTO_FOLDER)
+        : "";
+    })(),
 
     Branch_Id:
       nullableNumber(
@@ -502,16 +636,12 @@ export function rowToEmployeeCreatePayload(
     ).trim();
 
   const displayName =
-    optionalText(
-      row.Display_name,
-    ) ||
-    [
+    composeEmployeeDisplayName({
       firstName,
       middleName,
       lastName,
-    ]
-      .filter(Boolean)
-      .join(" ");
+      displayName: row.Display_name,
+    });
 
   const payload: EmployeeCreatePayload = {
     employee_code:
@@ -610,9 +740,7 @@ export function rowToEmployeeCreatePayload(
       Number(row.Status ?? 1),
   };
 
-  if (row.Photo !== undefined) {
-    payload.photo = row.Photo as File | string;
-  }
+  applyEmployeePhotoFields(row, payload);
 
 
   const bankName =
@@ -1289,6 +1417,18 @@ export function rowToEmployeeUpdatePayload(
   }
 
   if (
+    row.First_name !== undefined ||
+    row.Middle_name !== undefined ||
+    row.Last_name !== undefined
+  ) {
+    payload.display_name =
+      composeEmployeeDisplayName({
+        firstName: row.First_name,
+        middleName: row.Middle_name,
+        lastName: row.Last_name,
+        displayName: row.Display_name,
+      }) || null;
+  } else if (
     row.Display_name !== undefined
   ) {
     payload.display_name =
@@ -1565,22 +1705,8 @@ export function rowToEmployeeUpdatePayload(
    * =========================================================
    * PHOTO
    * =========================================================
-   *
-   * Only send Photo_path if the UI actually contains
-   * an existing API path.
    */
-  if (
-    row.Photo_path !== undefined
-  ) {
-    payload.photo_path =
-      text(row.Photo_path);
-  }
-
-  if (
-    row.Photo !== undefined
-  ) {
-    payload.photo = row.Photo as File | string;
-  }
+  applyEmployeePhotoFields(row, payload);
 
 
   /**
@@ -1805,8 +1931,12 @@ export function employeeDetailToForm(
     Last_name:
       employee.Last_name ?? "",
 
-    Display_name:
-      employee.Display_name ?? "",
+    Display_name: composeEmployeeDisplayName({
+      firstName: employee.First_name,
+      middleName: employee.Middle_name,
+      lastName: employee.Last_name,
+      displayName: employee.Display_name,
+    }),
 
     Gender:
       employee.Gender ?? null,
@@ -2039,8 +2169,21 @@ function buildFormData(formData: FormData, data: any, parentKey?: string) {
 
 function toEmployeeFormData(payload: EmployeeUpdatePayload | EmployeeCreatePayload): FormData {
   const formData = new FormData();
-  buildFormData(formData, payload);
+  const { photo, ...rest } = payload;
+  buildFormData(formData, rest);
+
+  if (photo instanceof File) {
+    formData.append("photo", photo, photo.name);
+  }
+
   return formData;
+}
+
+function shouldUseEmployeeMultipart(
+  row: HrmsRow,
+  payload: EmployeeCreatePayload | EmployeeUpdatePayload,
+): boolean {
+  return getEmployeePhotoFile(row) !== null || payload.photo instanceof File;
 }
 
 export const employeeService = {
@@ -2170,7 +2313,8 @@ export const employeeService = {
         row,
       );
 
-    const body = payload.photo instanceof File ? toEmployeeFormData(payload) : payload;
+    const useMultipart = shouldUseEmployeeMultipart(row, payload);
+    const body = useMultipart ? toEmployeeFormData(payload) : payload;
 
     const response =
       await apiClient.post<unknown>(
@@ -2178,48 +2322,7 @@ export const employeeService = {
         body,
       );
 
-    /**
-     * Create API may return an envelope,
-     * a single employee, or no employee body.
-     */
-    const records =
-      asEmployeeList(response);
-
-    if (records.length > 0) {
-      return employeeToRow(
-        records[0],
-      );
-    }
-
-    const record =
-      asRecord(response);
-
-    if (record) {
-      const nested =
-        asRecord(record.data);
-
-      if (
-        nested &&
-        !Array.isArray(nested)
-      ) {
-        return employeeToRow(
-          nested as unknown as EmployeeRecord,
-        );
-      }
-
-      return employeeToRow(
-        record as unknown as EmployeeRecord,
-      );
-    }
-
-    return {
-      ...row,
-      id: String(
-        row.Employee_id ??
-        row.Employee_code ??
-        "",
-      ),
-    };
+    return employeeRowFromSaveResponse(response, row);
   },
 
   /**
@@ -2243,66 +2346,31 @@ export const employeeService = {
       );
     }
 
-    console.log("HrmsRow=", row);
-
-
     const payload =
       rowToEmployeeUpdatePayload(
         row,
       );
 
-    console.log("payload=", payload);
+    const useMultipart = shouldUseEmployeeMultipart(row, payload);
+    const body = useMultipart ? toEmployeeFormData(payload) : payload;
 
-    const isFormData = payload.photo instanceof File;
-    const body = isFormData ? toEmployeeFormData(payload) : payload;
-
-    if (isFormData) {
+    if (useMultipart) {
       (body as FormData).append("_method", "PUT");
     }
 
     const response =
-      await (isFormData ? apiClient.post<unknown> : apiClient.put<unknown>)(
+      await (useMultipart ? apiClient.post<unknown> : apiClient.put<unknown>)(
         API_ENDPOINTS.employee.update(
           employeeId,
         ),
         body,
       );
 
-    const records =
-      asEmployeeList(response);
-
-    if (records.length > 0) {
-      return employeeToRow(
-        records[0],
-      );
-    }
-
-    const record =
-      asRecord(response);
-
-    if (record) {
-      const nested =
-        asRecord(record.data);
-
-      if (
-        nested &&
-        !Array.isArray(nested)
-      ) {
-        return employeeToRow(
-          nested as unknown as EmployeeRecord,
-        );
-      }
-
-      return employeeToRow(
-        record as unknown as EmployeeRecord,
-      );
-    }
-
-    return {
-      ...row,
-      id: String(employeeId),
-      Employee_id: employeeId,
-    };
+    return employeeRowFromSaveResponse(
+      response,
+      row,
+      employeeId,
+    );
   },
 
   /**

@@ -1,3 +1,4 @@
+import { appendOrgIdQuery, getCurrentOrgId, resolveOrgId } from "@/lib/auth/org-context";
 import { apiClient } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/endpoints";
 import type { BranchListQuery, BranchRecord, BranchWritePayload } from "@/lib/api/types";
@@ -78,7 +79,7 @@ export function rowToBranchPayload(row: HrmsRow): BranchWritePayload {
   const isoOpenDate = openDate ? parseDateToIso(openDate) || openDate : null;
 
   return {
-    org_id: Number(row.Org_Id ?? 0),
+    org_id: resolveOrgId(row.Org_Id),
     branch_code: String(row.Branch_Code ?? "").trim(),
     branch_name: String(row.Branch_Name ?? "").trim(),
     open_date: isoOpenDate,
@@ -97,7 +98,8 @@ export function rowToBranchPayload(row: HrmsRow): BranchWritePayload {
 
 function withListQuery(basePath: string, query?: BranchListQuery) {
   const params = new URLSearchParams();
-  if (query?.org_id !== undefined) params.set("org_id", String(query.org_id));
+  const orgId = query?.org_id ?? getCurrentOrgId();
+  if (orgId !== undefined) params.set("org_id", String(orgId));
   if (query?.status !== undefined) params.set("status", String(query.status));
   const suffix = params.toString();
   return suffix ? `${basePath}?${suffix}` : basePath;
@@ -138,7 +140,7 @@ export const branchService = {
 
   remove: (id: string | number) =>
     apiClient.delete<{ success?: boolean; message?: string; data?: null }>(
-      API_ENDPOINTS.branch.delete(id),
+      appendOrgIdQuery(API_ENDPOINTS.branch.delete(id)),
       { unwrap: false },
     ),
 };
