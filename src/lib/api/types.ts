@@ -937,6 +937,7 @@ export interface EmployeeCreatePayload {
   identifications?: EmployeeIdentificationPayload[];
   statutory?: EmployeeStatutoryPayload;
   photo?: File | string | null;
+  photo_path?: string | null;
 }
 
 // export interface EmployeeUpdatePayload {

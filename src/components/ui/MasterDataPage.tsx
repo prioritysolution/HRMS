@@ -23,6 +23,7 @@ import {
   moduleUsesOrganizationSelect,
   getEmployeeDetails,
 } from "@/lib/api/master-data-services";
+import { assetTypeService } from "@/lib/api/services/asset-type.service";
 import { DEACTIVATE_CONFIRM_MESSAGE, ACTIVATE_CONFIRM_MESSAGE } from "@/lib/confirm-messages";
 import { formatDateDisplay } from "@/lib/date-utils";
 import { formatRowStatus, getRowStatusKey } from "@/lib/row-status";
@@ -38,6 +39,7 @@ import type { FormField, HrmsRow, TableColumn } from "@/types/hrms";
 type MasterDataPageProps = {
   moduleId: string;
   onRowEdit?: (row: HrmsRow) => void;
+  titleRender?: React.ReactNode;
 };
 
 function formatCellValue(value: HrmsRow[string], type?: TableColumn["type"]): string {
@@ -151,8 +153,12 @@ function resolveSaveLabel(
   return getRowLabel(fallback);
 }
 
-export function MasterDataPage({ moduleId, onRowEdit }: MasterDataPageProps) {
-  const config = getHrmsModule(moduleId);
+export function MasterDataPage({
+  moduleId,
+  onRowEdit,
+  titleRender,
+}: MasterDataPageProps) {
+  const config = useMemo(() => getHrmsModule(moduleId), [moduleId]);
   const toast = useToast();
   const usesApi = Boolean(config.usesApi);
   const [rows, setRows] = useState<HrmsRow[]>([]);
@@ -169,6 +175,10 @@ export function MasterDataPage({ moduleId, onRowEdit }: MasterDataPageProps) {
   >([]);
 
   const [departmentOptions, setDepartmentOptions] = useState<
+    Array<{ value: string; label: string }>
+  >([]);
+
+  const [assetTypeOptions, setAssetTypeOptions] = useState<
     Array<{ value: string; label: string }>
   >([]);
 
@@ -238,6 +248,9 @@ export function MasterDataPage({ moduleId, onRowEdit }: MasterDataPageProps) {
       if (field.name === "Grade_Id" && usesGradeSelect) {
         return { ...field, options: gradeOptions };
       }
+      if (moduleId === "assets" && field.name === "Asset_type") {
+        return { ...field, options: assetTypeOptions };
+      }
       if (isEmployeeModule && field.name === "Gender") {
         return { ...field, options: genderOptions };
       }
@@ -264,6 +277,8 @@ export function MasterDataPage({ moduleId, onRowEdit }: MasterDataPageProps) {
       employmentTypeOptions,
       employmentStatusOptions,
       shiftOptions,
+      assetTypeOptions,
+      moduleId,
     ],
   );
 
@@ -493,6 +508,36 @@ export function MasterDataPage({ moduleId, onRowEdit }: MasterDataPageProps) {
       cancelled = true;
     };
   }, [moduleId, usesApi, usesGradeSelect]);
+
+  useEffect(() => {
+    if (moduleId !== "assets") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setAssetTypeOptions([]);
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadAssetTypes() {
+      try {
+        const types = await assetTypeService.list();
+        if (cancelled) return;
+        setAssetTypeOptions(
+          types.map((type) => ({
+            value: String(type.Type_id),
+            label: String(type.Type_name),
+          })),
+        );
+      } catch {
+        if (!cancelled) setAssetTypeOptions([]);
+      }
+    }
+
+    void loadAssetTypes();
+    return () => {
+      cancelled = true;
+    };
+  }, [moduleId]);
 
   const fetchModuleRows = useCallback(async (): Promise<HrmsRow[]> => {
     if (usesApi) {
@@ -794,7 +839,7 @@ export function MasterDataPage({ moduleId, onRowEdit }: MasterDataPageProps) {
       <PageHeader title={config.title} section={config.section} hideTitle />
       <div className="container-fluid">
         <DataTable
-          title={config.title}
+          title={titleRender ?? config.title}
           searchPlaceholder={`Search ${config.title.toLowerCase()}...`}
           actionLabel={config.actionLabel}
           onAction={() => setAddOpen(true)}

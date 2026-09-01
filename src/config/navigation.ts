@@ -122,7 +122,7 @@ export const navigation: NavSection[] = [
           { label: "My Attendance", href: "/ess/attendance" },
           { label: "My Leave", href: "/ess/leave" },
           { label: "Apply Leave", href: "/ess/leave/apply" },
-          { label: "Holiday Calendar", href: "/ess/holidays" },
+          { label: "Holiday Calendar", href: "/ess/holiday" },
           { label: "My Payslips", href: "/ess/payslips" },
           { label: "Tax / TDS Details", href: "/ess/tax" },
           { label: "My Assets", href: "/ess/assets" },
@@ -132,6 +132,13 @@ export const navigation: NavSection[] = [
           { label: "Submit Requests", href: "/ess/requests" },
           { label: "Service History", href: "/ess/service-history" },
           { label: "Change Password", href: "/ess/change-password" },
+        ],
+      },
+      {
+        label: "Employee Reports",
+        icon: "reports", // or any available icon key, fallback is used if not found
+        children: [
+          { label: "Employee Register", href: "/reports/employee/register" },
         ],
       },
     ],

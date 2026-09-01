@@ -429,6 +429,24 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
       },
     ],
   },
+  "asset-types": {
+    id: "asset-types",
+    title: "Asset Type Master",
+    section: "Organization Setup",
+    tableName: "mst_asset_type",
+    actionLabel: "Add Asset Type",
+    nameKey: "Type_name",
+    modalSize: "md",
+    usesApi: true,
+    searchKeys: ["Type_id", "Type_name"],
+    columns: [
+      { key: "Type_id", header: "Type ID" },
+      { key: "Type_name", header: "Asset Type" },
+    ],
+    formFields: [
+      { name: "Type_name", label: "Asset Type Name", required: true },
+    ],
+  },
   assets: {
     id: "assets",
     title: "Asset Master",
@@ -462,10 +480,10 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
     formFields: [
       {
         name: "Asset_type",
-        label: "Asset Type ID",
-        type: "number",
+        label: "Asset Type",
+        type: "select",
         required: true,
-        placeholder: "Enter asset type ID",
+        options: [], // Populated dynamically via MasterDataPage
       },
       {
         name: "Asset_code",
@@ -611,6 +629,31 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
       { key: "Employment_status", header: "Status", type: "status" },
     ],
     formSections: EMPLOYEE_FORM_SECTIONS,
+  },
+  "employee-register": {
+    id: "employee-register",
+    title: "Employee Register",
+    section: "Employee Reports",
+    tableName: "mst_employee",
+    actionLabel: "Add Employee",
+    nameKey: "Display_name",
+    usesApi: true,
+    modalSize: "xl",
+    searchKeys: ["Employee_code", "Display_name", "Branch", "Department", "Designation", "Category"],
+    columns: [
+      {
+        key: "Display_name",
+        header: "Employee",
+        type: "person",
+        subtitleKey: "Employee_code",
+      },
+      { key: "Branch", header: "Branch", filterable: true },
+      { key: "Department", header: "Department", filterable: true },
+      { key: "Designation", header: "Designation", filterable: true },
+      { key: "Category", header: "Category", filterable: true },
+      { key: "Date_of_joining", header: "Join Date", type: "date" },
+      { key: "Status", header: "Status", type: "status", filterable: true },
+    ],
   },
   "employee-profile": {
     id: "employee-profile",

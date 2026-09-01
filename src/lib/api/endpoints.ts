@@ -98,6 +98,12 @@ export const API_ENDPOINTS = {
     update: (id: string | number) => `/api/v1/asset/update/${id}`,
     delete: (id: string | number) => `/api/v1/asset/delete/${id}`,
   },
+  assetType: {
+    list: "/api/v1/asset-type/list",
+    create: "/api/v1/asset-type/create",
+    update: (id: string | number) => `/api/v1/asset-type/update/${id}`,
+    delete: (id: string | number) => `/api/v1/asset-type/delete/${id}`,
+  },
   employeeAsset: {
     list: "/api/v1/employee-asset/list",
     create: "/api/v1/employee-asset/create",

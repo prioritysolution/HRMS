@@ -47,10 +47,10 @@ export type Column<T> = {
   render: (row: T) => React.ReactNode;
 };
 
-type DataTableProps<T> = {
+type DataTableProps<T extends object> = {
   columns: Column<T>[];
   rows: T[];
-  title?: string;
+  title?: React.ReactNode;
   searchPlaceholder?: string;
   actionLabel?: string;
   onAction?: () => void;

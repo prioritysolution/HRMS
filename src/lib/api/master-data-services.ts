@@ -2,6 +2,7 @@ import type { HrmsRow } from "@/types/hrms";
 import { branchService } from "@/lib/api/services/branch.service";
 import { departmentService } from "@/lib/api/services/department.service";
 import { assetService } from "@/lib/api/services/asset.service";
+import { assetTypeService } from "@/lib/api/services/asset-type.service";
 import { deviceService } from "@/lib/api/services/device.service";
 import { designationService } from "@/lib/api/services/designation.service";
 import { employmentTypeService } from "@/lib/api/services/employment-type.service";
@@ -121,6 +122,12 @@ export const MASTER_DATA_API_SERVICES: Record<string, MasterDataApiService> = {
     update: assetService.update,
     remove: assetService.remove,
   },
+  "asset-types": {
+    list: assetTypeService.list,
+    create: assetTypeService.create,
+    update: assetTypeService.update,
+    remove: assetTypeService.remove,
+  },
   devices: {
     list: deviceService.list,
     create: deviceService.create,
@@ -163,6 +170,15 @@ export const MASTER_DATA_API_SERVICES: Record<string, MasterDataApiService> = {
     update: updateEmployee,
     remove: deleteEmployee,
     getDetails: getEmployeeDetails,
+  },
+  "employee-register": {
+    list: async () => {
+      const { MOCK_EMPLOYEES } = await import("@/data/reports-mock");
+      return MOCK_EMPLOYEES as any[];
+    },
+    create: async (row: any) => row,
+    update: async (id: any, row: any) => row,
+    remove: async () => ({}),
   },
   "employee-status": {
     list: employmentStatusService.list,
