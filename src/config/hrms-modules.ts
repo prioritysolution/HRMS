@@ -438,6 +438,7 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
     nameKey: "Type_name",
     modalSize: "md",
     usesApi: true,
+    statusToggle: false,
     searchKeys: ["Type_id", "Type_name"],
     columns: [
       { key: "Type_id", header: "Type ID" },

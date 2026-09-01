@@ -1,12 +1,12 @@
 "use client";
 
-import { AttendanceModulePage } from "@/components/attendance/AttendanceModulePage";
+import { MasterDataPage } from "@/components/ui/MasterDataPage";
 
 export default function AttendanceShiftsPage() {
   return (
-    <AttendanceModulePage
+    <MasterDataPage
       moduleId="attendance-shifts"
-      modalSubtitle="Assign shift timing to employees for attendance calculation."
+
     />
   );
 }

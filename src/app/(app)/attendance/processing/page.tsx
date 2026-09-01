@@ -1,16 +1,13 @@
 "use client";
 
-import { AttendanceModulePage } from "@/components/attendance/AttendanceModulePage";
-import { PROCESSING_STATS, enrichProcessingRow } from "@/lib/attendance-stats";
+import { MasterDataPage } from "@/components/ui/MasterDataPage";
+import { PROCESSING_STATS } from "@/lib/attendance-stats";
 
 export default function AttendanceProcessingPage() {
   return (
-    <AttendanceModulePage
+    <MasterDataPage
       moduleId="attendance-processing"
-      stats={PROCESSING_STATS}
-      enrichRow={(values) => enrichProcessingRow(values)}
-      modalSubtitle="Run attendance sync, monthly close, overtime, or regularization batches."
-      emptyStateMessage="Run a processing batch to sync punches, calculate overtime, or close monthly attendance."
+      stats={PROCESSING_STATS as any}
     />
   );
 }

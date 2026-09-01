@@ -1,12 +1,12 @@
 "use client";
 
-import { AttendanceModulePage } from "@/components/attendance/AttendanceModulePage";
+import { MasterDataPage } from "@/components/ui/MasterDataPage";
 
 export default function MissingPunchPage() {
   return (
-    <AttendanceModulePage
+    <MasterDataPage
       moduleId="missing-punch"
-      modalSubtitle="Track and resolve missing check-in or check-out punches."
+
     />
   );
 }

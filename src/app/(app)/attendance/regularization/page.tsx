@@ -1,12 +1,12 @@
 "use client";
 
-import { AttendanceModulePage } from "@/components/attendance/AttendanceModulePage";
+import { MasterDataPage } from "@/components/ui/MasterDataPage";
 
 export default function AttendanceRegularizationPage() {
   return (
-    <AttendanceModulePage
+    <MasterDataPage
       moduleId="regularization"
-      modalSubtitle="Request attendance corrections for missing or incorrect punches."
+
     />
   );
 }

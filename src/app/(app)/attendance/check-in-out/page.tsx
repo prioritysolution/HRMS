@@ -1,12 +1,12 @@
 "use client";
 
-import { AttendanceModulePage } from "@/components/attendance/AttendanceModulePage";
+import { MasterDataPage } from "@/components/ui/MasterDataPage";
 
 export default function CheckInOutPage() {
   return (
-    <AttendanceModulePage
+    <MasterDataPage
       moduleId="check-in-out"
-      modalSubtitle="Capture check-in and check-out punches from all attendance sources."
+
     />
   );
 }

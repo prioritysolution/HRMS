@@ -1,12 +1,12 @@
 "use client";
 
-import { AttendanceModulePage } from "@/components/attendance/AttendanceModulePage";
+import { MasterDataPage } from "@/components/ui/MasterDataPage";
 
 export default function OvertimePage() {
   return (
-    <AttendanceModulePage
+    <MasterDataPage
       moduleId="overtime"
-      modalSubtitle="Record and review overtime hours beyond configured rules."
+
     />
   );
 }

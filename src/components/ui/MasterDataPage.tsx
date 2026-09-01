@@ -29,6 +29,7 @@ import { formatDateDisplay } from "@/lib/date-utils";
 import { formatRowStatus, getRowStatusKey } from "@/lib/row-status";
 import { MasterDataModal } from "@/components/modals/MasterDataModal";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { StatCard } from "@/components/ui/StatCard";
 import { DataTable, PersonCell, SoftStatus, type Column } from "@/components/ui/DataTable";
 import { useToast } from "@/components/ui/ToastProvider";
 import { queueAuditLog, resolveAuditRecordId } from "@/lib/audit-log";
@@ -40,6 +41,8 @@ type MasterDataPageProps = {
   moduleId: string;
   onRowEdit?: (row: HrmsRow) => void;
   titleRender?: React.ReactNode;
+  topContent?: React.ReactNode;
+  stats?: any[];
 };
 
 function formatCellValue(value: HrmsRow[string], type?: TableColumn["type"]): string {
@@ -157,6 +160,8 @@ export function MasterDataPage({
   moduleId,
   onRowEdit,
   titleRender,
+  topContent,
+  stats,
 }: MasterDataPageProps) {
   const config = useMemo(() => getHrmsModule(moduleId), [moduleId]);
   const toast = useToast();
@@ -834,10 +839,30 @@ export function MasterDataPage({
     return getRowLabel(row);
   };
 
+  const activeStats = stats ?? config.stats;
+
   return (
     <>
       <PageHeader title={config.title} section={config.section} hideTitle />
       <div className="container-fluid">
+        {topContent}
+        {activeStats && activeStats.length > 0 ? (
+          <div className="stat-grid mb-4">
+            {activeStats.map((stat) => (
+              <StatCard
+                key={stat.title}
+                title={stat.title}
+                value={stat.value(rows)}
+                change={stat.change(rows)}
+                hint={stat.hint}
+                description={stat.description}
+                tone={stat.tone}
+                icon={stat.icon}
+                positive={stat.positive}
+              />
+            ))}
+          </div>
+        ) : null}
         <DataTable
           title={titleRender ?? config.title}
           searchPlaceholder={`Search ${config.title.toLowerCase()}...`}
@@ -849,9 +874,9 @@ export function MasterDataPage({
           onRowDelete={handleDelete}
           onRowActivate={handleActivate}
           deleteConfirmTitle={
-            usesApi ? `Deactivate ${config.title.toLowerCase()}?` : `Delete ${config.title.toLowerCase()}?`
+            (config.statusToggle ?? usesApi) ? `Deactivate ${config.title.toLowerCase()}?` : `Delete ${config.title.toLowerCase()}?`
           }
-          deleteConfirmMessage={usesApi ? DEACTIVATE_CONFIRM_MESSAGE : undefined}
+          deleteConfirmMessage={(config.statusToggle ?? usesApi) ? DEACTIVATE_CONFIRM_MESSAGE : undefined}
           activateConfirmTitle={`Activate ${config.title.toLowerCase()}?`}
           activateConfirmMessage={ACTIVATE_CONFIRM_MESSAGE}
           rows={rows}

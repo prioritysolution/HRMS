@@ -1,12 +1,12 @@
 "use client";
 
-import { AttendanceModulePage } from "@/components/attendance/AttendanceModulePage";
+import { MasterDataPage } from "@/components/ui/MasterDataPage";
 
 export default function AttendanceRegisterPage() {
   return (
-    <AttendanceModulePage
+    <MasterDataPage
       moduleId="attendance-register"
-      modalSubtitle="Record working hours, overtime, and attendance source in the register."
+
     />
   );
 }
