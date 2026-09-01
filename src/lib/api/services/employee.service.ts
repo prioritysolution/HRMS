@@ -37,7 +37,6 @@ function applyEmployeePhotoFields(
 
   if (photoFile) {
     payload.photo = photoFile;
-    delete payload.photo_path;
     return;
   }
 

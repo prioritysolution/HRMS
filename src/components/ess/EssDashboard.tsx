@@ -214,7 +214,7 @@ export function EssDashboard() {
                   <CalendarDays size={18} className="ess-card-header-icon" />
                   Upcoming Holidays
                 </h5>
-                <Link href="/ess/holidays" className="ess-link-sm">
+                <Link href="/ess/holiday" className="ess-link-sm">
                   Full calendar <ArrowRight size={14} />
                 </Link>
               </div>
