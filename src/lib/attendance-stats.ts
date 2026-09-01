@@ -1,8 +1,8 @@
-import type { AttendanceStatCard } from "@/components/attendance/AttendanceModulePage";
+import type { StatCardConfig } from "@/types/hrms";
 import { countByStatus, enrichEmployeeAttendanceRow } from "@/lib/attendance-module-utils";
 import type { HrmsRow } from "@/types/hrms";
 
-export const DASHBOARD_STATS: AttendanceStatCard[] = [
+export const DASHBOARD_STATS: StatCardConfig[] = [
   {
     title: "Present Today",
     value: (rows) => String(countByStatus(rows, "Present")),
@@ -38,7 +38,7 @@ export const DASHBOARD_STATS: AttendanceStatCard[] = [
   },
 ];
 
-export const DAILY_STATS: AttendanceStatCard[] = [
+export const DAILY_STATS: StatCardConfig[] = [
   {
     title: "Marked Today",
     value: (rows) => String(rows.length),
@@ -74,7 +74,7 @@ export const DAILY_STATS: AttendanceStatCard[] = [
   },
 ];
 
-export const MONTHLY_STATS: AttendanceStatCard[] = [
+export const MONTHLY_STATS: StatCardConfig[] = [
   {
     title: "Summaries",
     value: (rows) => String(rows.length),
@@ -110,7 +110,7 @@ export const MONTHLY_STATS: AttendanceStatCard[] = [
   },
 ];
 
-export const PROCESSING_STATS: AttendanceStatCard[] = [
+export const PROCESSING_STATS: StatCardConfig[] = [
   {
     title: "Completed",
     value: (rows) => String(countByStatus(rows, "Completed")),
@@ -143,7 +143,7 @@ export const PROCESSING_STATS: AttendanceStatCard[] = [
   },
 ];
 
-export const SOURCES_STATS: AttendanceStatCard[] = [
+export const SOURCES_STATS: StatCardConfig[] = [
   {
     title: "Active Sources",
     value: (rows) => String(countByStatus(rows, "Active")),

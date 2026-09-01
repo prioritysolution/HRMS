@@ -19,7 +19,7 @@ export const assetTypeService = {
 
   create: async (row: HrmsRow) => {
     const payload = {
-      Type_name: String(row.Type_name ?? "").trim(),
+      type_name: String(row.Type_name ?? "").trim(),
     };
     const response = await apiClient.post<Record<string, unknown>>(
       API_ENDPOINTS.assetType.create,
@@ -35,7 +35,7 @@ export const assetTypeService = {
 
   update: async (id: string | number, row: HrmsRow) => {
     const payload = {
-      Type_name: String(row.Type_name ?? "").trim(),
+      type_name: String(row.Type_name ?? "").trim(),
     };
     const response = await apiClient.put<Record<string, unknown>>(
       API_ENDPOINTS.assetType.update(id),
