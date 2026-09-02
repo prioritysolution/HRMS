@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { X } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import { DatePicker } from "@/components/ui/DatePicker";
 import { SearchableSelect } from "@/components/ui/SearchableSelect";
@@ -10,17 +11,52 @@ type AddEmployeeModalProps = {
   onClose: () => void;
 };
 
+const SHIFT_OPTIONS = [
+  { value: "morning", label: "Morning Shift" },
+  { value: "afternoon", label: "Afternoon Shift" },
+  { value: "evening", label: "Evening Shift" },
+  { value: "night", label: "Night Shift" },
+  { value: "general", label: "General Shift" },
+];
+
 export function AddEmployeeModal({ open, onClose }: AddEmployeeModalProps) {
   const [department, setDepartment] = useState("");
   const [employmentType, setEmploymentType] = useState("");
   const [joinDate, setJoinDate] = useState("");
+  
+  // Shift state
+  const [currentShift, setCurrentShift] = useState("");
+  const [selectedShifts, setSelectedShifts] = useState<{value: string, label: string}[]>([]);
 
   useEffect(() => {
     if (!open) return;
     setDepartment("");
     setEmploymentType("");
     setJoinDate("");
+    setCurrentShift("");
+    setSelectedShifts([]);
   }, [open]);
+
+  const handleAddShift = () => {
+    if (!currentShift) return;
+    
+    // Find label
+    const option = SHIFT_OPTIONS.find((o) => o.value === currentShift);
+    if (!option) return;
+
+    // Check if already added
+    if (selectedShifts.some((s) => s.value === currentShift)) {
+      setCurrentShift("");
+      return; // Already added
+    }
+
+    setSelectedShifts((prev) => [...prev, option]);
+    setCurrentShift("");
+  };
+
+  const handleRemoveShift = (val: string) => {
+    setSelectedShifts((prev) => prev.filter((s) => s.value !== val));
+  };
 
   return (
     <Modal
@@ -167,11 +203,52 @@ export function AddEmployeeModal({ open, onClose }: AddEmployeeModalProps) {
           </label>
           <input id="manager" className="form-control" />
         </div>
+        
+        {/* SHIFT SELECTION SECTION */}
         <div>
           <label className="form-field-label" htmlFor="shift">
             Shift Time
           </label>
-          <input id="shift" type="time" className="form-control" />
+          <div className="flex gap-2">
+            <div className="flex-1">
+              <SearchableSelect
+                id="shift"
+                name="shift"
+                value={currentShift}
+                onChange={setCurrentShift}
+                placeholder="Select Shift"
+                searchPlaceholder="Search shift..."
+                options={SHIFT_OPTIONS}
+              />
+            </div>
+            <button
+              type="button"
+              className="btn btn-primary px-4"
+              onClick={handleAddShift}
+              disabled={!currentShift}
+            >
+              Add
+            </button>
+          </div>
+          {selectedShifts.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-3">
+              {selectedShifts.map((shift) => (
+                <span
+                  key={shift.value}
+                  className="inline-flex items-center gap-1 px-3 py-1 bg-[var(--hrms-primary-50)] text-[var(--hrms-primary-700)] rounded-full text-sm font-medium border border-[var(--hrms-primary-200)]"
+                >
+                  {shift.label}
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveShift(shift.value)}
+                    className="hover:bg-[var(--hrms-primary-100)] rounded-full p-0.5 transition-colors text-[var(--hrms-primary-600)]"
+                  >
+                    <X size={14} />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         <div>

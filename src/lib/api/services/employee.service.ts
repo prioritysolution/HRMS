@@ -124,6 +124,21 @@ function composeEmployeeDisplayName(parts: {
 }
 
 /**
+ * Convert value to an array of numbers (handles comma-separated).
+ */
+function parseMultipleIds(value: unknown): number[] {
+  if (value === undefined || value === null) return [];
+  if (typeof value === "number") return Number.isFinite(value) ? [value] : [];
+  if (typeof value === "string") {
+    return value
+      .split(",")
+      .map((v) => Number(v.trim()))
+      .filter((n) => Number.isFinite(n) && n > 0);
+  }
+  return [];
+}
+
+/**
  * Convert value to nullable number.
  */
 function nullableNumber(
@@ -142,6 +157,24 @@ function nullableNumber(
   return Number.isFinite(numberValue)
     ? numberValue
     : null;
+}
+
+/**
+ * Safely extracts a numeric ID, preferring the UI field over the old backend field.
+ */
+function extractId(uiField: unknown, backendId: unknown): number | null {
+  const parsedUI = nullableNumber(uiField);
+  if (parsedUI !== null) return parsedUI;
+  return nullableNumber(backendId);
+}
+
+/**
+ * Safely extracts multiple IDs, preferring the UI field over the old backend field.
+ */
+function extractIds(uiField: unknown, backendId: unknown): number[] {
+  const parsedUI = parseMultipleIds(uiField);
+  if (parsedUI.length > 0) return parsedUI;
+  return parseMultipleIds(backendId);
 }
 
 /**
@@ -564,7 +597,9 @@ export function employeeToRow(
       ),
 
     Shift_id:
-      nullableNumber(shiftId),
+      Array.isArray(shiftId) 
+        ? shiftId.join(",") 
+        : nullableNumber(shiftId),
 
     Emp_type_id:
       nullableNumber(empTypeId),
@@ -577,42 +612,12 @@ export function employeeToRow(
 export function rowToEmployeeCreatePayload(
   row: HrmsRow,
 ): EmployeeCreatePayload {
-  const branchId =
-    nullableNumber(
-      row.Branch_Id ??
-      row.Branch,
-    );
-
-  const deptId =
-    nullableNumber(
-      row.Dept_Id ??
-      row.Department,
-    );
-
-  const desigId =
-    nullableNumber(
-      row.Desig_Id ??
-      row.Designation,
-    );
-
-  const gradeId =
-    nullableNumber(
-      row.Grade_Id ??
-      row.Grade,
-    );
-
-  const shiftId =
-    nullableNumber(
-      row.Shift_id ??
-      row.Shift_Id ??
-      row.Shift,
-    );
-
-  const empTypeId =
-    nullableNumber(
-      row.Emp_type_id ??
-      row.Employment_type,
-    );
+  const branchId = extractId(row.Branch, row.Branch_Id);
+  const deptId = extractId(row.Department, row.Dept_Id);
+  const desigId = extractId(row.Designation, row.Desig_Id);
+  const gradeId = extractId(row.Grade, row.Grade_Id);
+  const shiftIds = extractIds(row.Shift, row.Shift_id ?? row.Shift_Id);
+  const empTypeId = extractId(row.Employment_type, row.Emp_type_id);
 
   const employmentStatus =
     nullableNumber(
@@ -722,7 +727,7 @@ export function rowToEmployeeCreatePayload(
       gradeId ?? 0,
 
     shift_id:
-      shiftId ?? 0,
+      shiftIds,
 
     emp_type_id:
       empTypeId ?? 0,
@@ -1308,32 +1313,12 @@ export function rowToEmployeeUpdatePayload(
    *   emp_type_id
    * ---------------------------------------------------------
    */
-  const branchId = toId(
-    row.Branch_Id ?? row.Branch,
-  );
-
-  const deptId = toId(
-    row.Dept_Id ?? row.Department,
-  );
-
-  const desigId = toId(
-    row.Desig_Id ?? row.Designation,
-  );
-
-  const gradeId = toId(
-    row.Grade_Id ?? row.Grade,
-  );
-
-  const shiftId = toId(
-    row.Shift_id ??
-    row.Shift_Id ??
-    row.Shift,
-  );
-
-  const empTypeId = toId(
-    row.Emp_type_id ??
-    row.Employment_type,
-  );
+  const branchId = extractId(row.Branch, row.Branch_Id);
+  const deptId = extractId(row.Department, row.Dept_Id);
+  const desigId = extractId(row.Designation, row.Desig_Id);
+  const gradeId = extractId(row.Grade, row.Grade_Id);
+  const shiftIds = extractIds(row.Shift, row.Shift_id ?? row.Shift_Id);
+  const empTypeId = extractId(row.Employment_type, row.Emp_type_id);
 
   /**
    * Employment status.
@@ -1616,7 +1601,7 @@ export function rowToEmployeeUpdatePayload(
     row.Shift_id !== undefined
   ) {
     payload.shift_id =
-      shiftId;
+      shiftIds;
   }
 
   if (

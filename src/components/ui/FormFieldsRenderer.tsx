@@ -4,6 +4,7 @@ import { DatePicker } from "@/components/ui/DatePicker";
 import { FileUploadField } from "@/components/ui/FileUploadField";
 import { FormFieldLabel } from "@/components/ui/FormFieldLabel";
 import { SearchableSelect } from "@/components/ui/SearchableSelect";
+import { MultiSelect } from "@/components/ui/MultiSelect";
 import { resolvePublicFileUrl } from "@/lib/env";
 import { cn } from "@/lib/utils";
 import type { FormValue } from "@/lib/form-validation";
@@ -14,6 +15,7 @@ type FormFieldsRendererProps = {
   values: Record<string, FormValue>;
   errors: Record<string, string>;
   onChange: (name: string, value: FormValue) => void;
+  isEdit?: boolean;
 };
 
 function isCheckedValue(value: FormValue): boolean {
@@ -40,11 +42,16 @@ export function FormFieldsRenderer({
   values,
   errors,
   onChange,
+  isEdit = false,
 }: FormFieldsRendererProps) {
+  const visibleFields = fields.filter((field) => !(field.hideOnCreate && !isEdit));
+
   return (
     <>
-      {fields.map((field) => (
-        <div
+      {visibleFields.map((field) => {
+        const isDisabled = field.readOnlyOnEdit && isEdit;
+        return (
+          <div
           key={field.name}
           className={cn(
             "form-field",
@@ -60,6 +67,7 @@ export function FormFieldsRenderer({
                   name={field.name}
                   checked={isCheckedValue(values[field.name])}
                   onChange={(event) => onChange(field.name, event.target.checked)}
+                  disabled={isDisabled}
                 />
                 {field.label}
                 {field.required ? <span className="field-required">*</span> : null}
@@ -94,6 +102,7 @@ export function FormFieldsRenderer({
                   : asText(field.fileNameKey ? values[field.fileNameKey] : "")
               }
               error={errors[field.name]}
+              disabled={isDisabled}
               onChange={(file) => {
                 onChange(field.name, file);
                 if (file) return;
@@ -113,6 +122,7 @@ export function FormFieldsRenderer({
                   options={field.options ?? []}
                   placeholder={`Select ${field.label}`}
                   searchPlaceholder={`Search ${field.label.toLowerCase()}...`}
+                  disabled={isDisabled}
                 />
               ) : field.type === "date" ? (
                 <DatePicker
@@ -121,6 +131,7 @@ export function FormFieldsRenderer({
                   value={asText(values[field.name])}
                   onChange={(nextValue) => onChange(field.name, nextValue)}
                   placeholder="dd-mm-yyyy"
+                  disabled={isDisabled}
                 />
               ) : field.type === "textarea" ? (
                 <textarea
@@ -131,6 +142,18 @@ export function FormFieldsRenderer({
                   value={asText(values[field.name])}
                   placeholder={field.placeholder ?? `Enter ${field.label.toLowerCase()}`}
                   onChange={(event) => onChange(field.name, event.target.value)}
+                  disabled={isDisabled}
+                />
+            ) : field.type === "multi-select" ? (
+                <MultiSelect
+                  id={field.name}
+                  name={field.name}
+                  value={asText(values[field.name])}
+                  onChange={(nextValue) => onChange(field.name, nextValue)}
+                  options={field.options ?? []}
+                  placeholder={`Select ${field.label}`}
+                  searchPlaceholder={`Search ${field.label.toLowerCase()}...`}
+                  disabled={isDisabled}
                 />
               ) : (
                 <input
@@ -141,6 +164,7 @@ export function FormFieldsRenderer({
                   value={asText(values[field.name])}
                   placeholder={field.placeholder ?? `Enter ${field.label.toLowerCase()}`}
                   onChange={(event) => onChange(field.name, event.target.value)}
+                  disabled={isDisabled}
                 />
               )}
               {errors[field.name] ? (
@@ -151,7 +175,8 @@ export function FormFieldsRenderer({
             </>
           )}
         </div>
-      ))}
+        );
+      })}
     </>
   );
 }

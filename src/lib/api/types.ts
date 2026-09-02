@@ -926,7 +926,7 @@ export interface EmployeeCreatePayload {
   dept_id: number;
   desig_id: number;
   grade_id: number;
-  shift_id: number;
+  shift_id?: number[];
   emp_type_id: number;
 
   date_of_joining: string;
@@ -1019,7 +1019,7 @@ export interface EmployeeUpdatePayload {
   dept_id?: number | null;
   desig_id?: number | null;
   grade_id?: number | null;
-  shift_id?: number | null;
+  shift_id?: number[] | null;
   emp_type_id?: number | null;
 
   reporting_manager_id?: number | null;

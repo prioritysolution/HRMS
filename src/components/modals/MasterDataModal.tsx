@@ -48,6 +48,13 @@ export function MasterDataModal({
   disableSubmit = false,
 }: MasterDataModalProps) {
   const resolvedFields = useMemo(() => resolveFields(fields, sections), [fields, sections]);
+  const isEdit = !!initialValues;
+  
+  const activeFields = useMemo(
+    () => resolvedFields.filter((field) => !(field.hideOnCreate && !isEdit)),
+    [resolvedFields, isEdit]
+  );
+  
   const [values, setValues] = useState<Record<string, FormValue>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitError, setSubmitError] = useState("");
@@ -93,7 +100,7 @@ export function MasterDataModal({
       id: initialValues?.id ?? `new-${Date.now()}`,
     };
 
-    resolvedFields.forEach((field) => {
+    activeFields.forEach((field) => {
       payload[field.name] = values[field.name] as HrmsRow[string];
       if (field.previewKey && values[field.previewKey] !== undefined) {
         payload[field.previewKey] = values[field.previewKey] as HrmsRow[string];
@@ -108,7 +115,7 @@ export function MasterDataModal({
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const nextErrors = validateFormFields(resolvedFields, values);
+    const nextErrors = validateFormFields(activeFields, values);
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors);
       if (sections?.length) {
@@ -168,6 +175,7 @@ export function MasterDataModal({
                   values={values}
                   errors={errors}
                   onChange={handleFieldChange}
+                  isEdit={isEdit}
                 />
               </div>
             ) : null}
@@ -182,6 +190,7 @@ export function MasterDataModal({
         values={values}
         errors={errors}
         onChange={handleFieldChange}
+        isEdit={isEdit}
       />
     </div>
   );

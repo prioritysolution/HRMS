@@ -10,6 +10,7 @@ export type FormFieldType =
   | "time"
   | "number"
   | "select"
+  |  "multi-select"
   | "textarea"
   | "checkbox"
   | "file";
@@ -28,6 +29,8 @@ export type FormField = {
   hint?: string;
   previewKey?: string;
   fileNameKey?: string;
+  hideOnCreate?: boolean;
+  readOnlyOnEdit?: boolean;
 };
 
 export type FormSection = {

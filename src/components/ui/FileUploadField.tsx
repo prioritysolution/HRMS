@@ -19,6 +19,7 @@ type FileUploadFieldProps = {
   existingUrl?: string;
   existingName?: string;
   error?: string;
+  disabled?: boolean;
   onChange: (file: File | null) => void;
 };
 
@@ -34,6 +35,7 @@ export function FileUploadField({
   existingUrl,
   existingName,
   error,
+  disabled,
   onChange,
 }: FileUploadFieldProps) {
   const generatedId = useId();
@@ -89,7 +91,7 @@ export function FileUploadField({
               {file || existingUrl ? "Change file" : "Choose file"}
             </label>
             {file || existingUrl ? (
-              <button type="button" className="btn btn-outline-danger file-upload-clear" onClick={clear}>
+              <button type="button" className="btn btn-outline-danger file-upload-clear" onClick={clear} disabled={disabled}>
                 <X size={14} strokeWidth={2.25} />
                 Remove
               </button>
@@ -116,6 +118,7 @@ export function FileUploadField({
           accept={accept}
           className="file-upload-input"
           onChange={(event) => onChange(event.target.files?.[0] ?? null)}
+          disabled={disabled}
         />
       </div>
     </div>
