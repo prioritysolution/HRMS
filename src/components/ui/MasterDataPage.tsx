@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getHrmsModule, getModuleFilterFields, getModuleFormFields } from "@/config/hrms-modules";
+import { RefreshCw } from "lucide-react";
 import { getHrmsMockRows } from "@/data/hrms-mock";
 import {
   ApiError,
@@ -43,6 +44,7 @@ type MasterDataPageProps = {
   titleRender?: React.ReactNode;
   topContent?: React.ReactNode;
   stats?: any[];
+  extraActions?: React.ReactNode;
 };
 
 function formatCellValue(value: HrmsRow[string], type?: TableColumn["type"]): string {
@@ -162,6 +164,7 @@ export function MasterDataPage({
   titleRender,
   topContent,
   stats,
+  extraActions,
 }: MasterDataPageProps) {
   const config = useMemo(() => getHrmsModule(moduleId), [moduleId]);
   const toast = useToast();
@@ -170,6 +173,7 @@ export function MasterDataPage({
   const [loading, setLoading] = useState(true);
   const [addOpen, setAddOpen] = useState(false);
   const [editRow, setEditRow] = useState<HrmsRow | null>(null);
+  const [syncing, setSyncing] = useState(false);
   const [organizationOptions, setOrganizationOptions] = useState<Array<{ value: string; label: string }>>(
     [],
   );
@@ -208,7 +212,19 @@ export function MasterDataPage({
   const isEmployeeModule = moduleId === "employees";
 
   const columns = useMemo(() => buildColumns(config.columns), [config.columns]);
-  const filterFields = useMemo(() => getModuleFilterFields(config), [config]);
+  const filterFields = useMemo(() => {
+    const fields = getModuleFilterFields(config);
+    return fields.map((field) => {
+      if (isEmployeeModule) {
+        if (field.key === "Department") return { ...field, options: departmentOptions.map(o => ({ value: o.label, label: o.label })) };
+        if (field.key === "Designation") return { ...field, options: designationOptions.map(o => ({ value: o.label, label: o.label })) };
+        if (field.key === "Branch") return { ...field, options: branchOptions.map(o => ({ value: o.label, label: o.label })) };
+        if (field.key === "Employment_status_name") return { ...field, options: employmentStatusOptions.map(o => ({ value: o.label, label: o.label })) };
+        if (field.key === "Status") return { ...field, options: [{ value: "1", label: "Active" }, { value: "0", label: "Inactive" }] };
+      }
+      return field;
+    });
+  }, [config, isEmployeeModule, departmentOptions, designationOptions, branchOptions, employmentStatusOptions]);
   const apiService = useMemo(
     () => (usesApi ? getMasterDataApiService(moduleId) : undefined),
     [moduleId, usesApi],
@@ -672,6 +688,17 @@ export function MasterDataPage({
   };
 
   const handleActivate = async (row: HrmsRow) => {
+    if (moduleId === "devices") {
+      const existingActive = rows.find((r) => {
+        if (String(r.id) === String(row.id)) return false;
+        return String(r.Status).toLowerCase() === "active" || String(r.Status) === "1";
+      });
+
+      if (existingActive) {
+        throw new Error("Only one device can be active at a time. Please deactivate the existing active device first.");
+      }
+    }
+
     if (usesApi && apiService) {
       if (isEmployeeModule) {
         const employeeId = row.Employee_id;
@@ -754,6 +781,21 @@ export function MasterDataPage({
     values: HrmsRow,
     mode: "add" | "edit",
   ) => {
+    if (moduleId === "devices") {
+      const isStatusActive = String(values.Status).toLowerCase() === "active" || String(values.Status) === "1";
+      if (isStatusActive) {
+        const idToCheck = mode === "edit" ? String(editRow?.id ?? values.id) : null;
+        const existingActive = rows.find((r) => {
+          if (idToCheck && String(r.id) === idToCheck) return false;
+          return String(r.Status).toLowerCase() === "active" || String(r.Status) === "1";
+        });
+
+        if (existingActive) {
+          throw new Error("Only one device can be active at a time. Please deactivate the existing active device first, or add this device in Inactive mode.");
+        }
+      }
+    }
+
     try {
       let saved: HrmsRow;
       const payload =
@@ -839,6 +881,52 @@ export function MasterDataPage({
     return getRowLabel(row);
   };
 
+  const handleSyncDevices = async () => {
+    setSyncing(true);
+    try {
+      if (usesApi && apiService && apiService.sync) {
+        const response = await apiService.sync();
+        await loadRows({ showLoader: false });
+        toast.success({
+          title: "Sync Successful",
+          message: response.message || "Connected devices synced successfully.",
+        });
+      } else {
+        toast.error({
+          title: "Configuration Error",
+          message: "Sync API is not available.",
+        });
+      }
+    } catch (err) {
+      toast.error({
+        title: "Sync Failed",
+        message: err instanceof ApiError ? err.message : "Unable to sync devices.",
+      });
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  const resolvedExtraActions = useMemo(() => {
+    if (moduleId === "devices") {
+      return (
+        <div className="flex items-center gap-2">
+          {extraActions}
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={handleSyncDevices}
+            disabled={syncing || loading}
+          >
+            <RefreshCw size={16} strokeWidth={2} className={syncing ? "animate-spin" : ""} />
+            Sync Device
+          </button>
+        </div>
+      );
+    }
+    return extraActions;
+  }, [moduleId, extraActions, syncing, loading]);
+
   const activeStats = stats ?? config.stats;
 
   return (
@@ -886,6 +974,7 @@ export function MasterDataPage({
           getDeleteLabel={deleteName}
           emptyStateIcon={getModuleEmptyIcon(moduleId)}
           loading={loading || editLoading}
+          extraActions={resolvedExtraActions}
         />
       </div>
 

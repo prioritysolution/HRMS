@@ -123,6 +123,7 @@ export const API_ENDPOINTS = {
     create: "/api/v1/device/create",
     update: (id: string | number) => `/api/v1/device/update/${id}`,
     delete: (id: string | number) => `/api/v1/device/delete/${id}`,
+    sync: "/api/v1/device/sync",
   },
   applOptions: {
     list: "/api/v1/appl-options/list",
@@ -203,5 +204,10 @@ export const API_ENDPOINTS = {
     calendar: "/apps/calendar",
     teams: "/apps/teams",
   },
-
+  codeSeries: {
+    modules: "/api/v1/code-series/modules",
+    list: (module?: string) =>
+      module ? `/api/v1/code-series/list?module=${encodeURIComponent(module)}` : "/api/v1/code-series/list",
+    update: "/api/v1/code-series/update",
+  },
 } as const;

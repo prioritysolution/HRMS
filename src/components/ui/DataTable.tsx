@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 import {
   ChevronLeft,
   ChevronRight,
@@ -71,6 +72,7 @@ type DataTableProps<T extends object> = {
   loading?: boolean;
   emptyStateTitle?: string;
   emptyStateMessage?: string;
+  extraActions?: React.ReactNode;
 };
 
 export function RowActions<T extends object>({
@@ -248,9 +250,22 @@ export function DataTable<T extends object>({
   loading = false,
   emptyStateTitle,
   emptyStateMessage,
+  extraActions,
 }: DataTableProps<T>) {
-  const [search, setSearch] = useState("");
-  const [filters, setFilters] = useState<Record<string, string>>({});
+  const searchParams = useSearchParams();
+  const [search, setSearch] = useState(() => searchParams?.get("search") ?? "");
+  const [filters, setFilters] = useState<Record<string, string>>(() => {
+    const initial: Record<string, string> = {};
+    if (searchParams && filterFields.length > 0) {
+      filterFields.forEach((field) => {
+        const value = searchParams.get(field.key);
+        if (value) {
+          initial[field.key] = value;
+        }
+      });
+    }
+    return initial;
+  });
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(defaultPageSize);
 
@@ -302,30 +317,38 @@ export function DataTable<T extends object>({
           <TableSectionHeader
             title={title}
             action={
-              actionLabel ? (
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  onClick={onAction}
-                  disabled={loading}
-                >
-                  <PlusCircle size={16} strokeWidth={2} />
-                  {actionLabel}
-                </button>
+              (actionLabel || extraActions) ? (
+                <div className="flex items-center gap-2">
+                  {extraActions}
+                  {actionLabel ? (
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      onClick={onAction}
+                      disabled={loading}
+                    >
+                      <PlusCircle size={16} strokeWidth={2} />
+                      {actionLabel}
+                    </button>
+                  ) : null}
+                </div>
               ) : undefined
             }
           />
-        ) : actionLabel ? (
-          <div className="toolbar toolbar-end">
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={onAction}
-              disabled={loading}
-            >
-              <PlusCircle size={16} strokeWidth={2} />
-              {actionLabel}
-            </button>
+        ) : actionLabel || extraActions ? (
+          <div className="toolbar toolbar-end flex items-center gap-2">
+            {extraActions}
+            {actionLabel ? (
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={onAction}
+                disabled={loading}
+              >
+                <PlusCircle size={16} strokeWidth={2} />
+                {actionLabel}
+              </button>
+            ) : null}
           </div>
         ) : null}
 
@@ -361,7 +384,9 @@ export function DataTable<T extends object>({
               </div>
             </div>
             {filterFields.map((field) => {
-              const options = getFilterOptions(rows, field.key);
+              const options = field.options && field.options.length > 0
+                ? field.options
+                : getFilterOptions(rows, field.key);
               if (options.length === 0) return null;
               return (
                 <div className="table-filter-item" key={field.key}>

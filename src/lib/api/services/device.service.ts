@@ -126,4 +126,14 @@ export const deviceService = {
       API_ENDPOINTS.device.delete(id),
       { unwrap: false },
     ),
+
+  sync: async () => {
+    // The endpoint returns an envelope { success, message, data }
+    const response = await apiClient.post<{ message?: string; data?: any }>(
+      API_ENDPOINTS.device.sync,
+      {},
+      { unwrap: false }
+    );
+    return response as { message?: string; data?: any; success?: boolean };
+  },
 };

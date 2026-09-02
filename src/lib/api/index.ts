@@ -29,5 +29,6 @@ export {
   projectsService,
   reportsService,
   workShiftService,
+  codeSeriesService,
 } from "@/lib/api/services";
 export { env, getApiUrl } from "@/lib/env";

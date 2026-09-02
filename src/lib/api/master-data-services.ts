@@ -30,6 +30,7 @@ type MasterDataApiService = {
   getDetails?: (
     id: string | number,
   ) => Promise<HrmsRow>;
+  sync?: () => Promise<{ success?: boolean; message?: string; data?: any }>;
 };
 
 export const ORG_SCOPED_MODULE_IDS = new Set([
@@ -134,6 +135,7 @@ export const MASTER_DATA_API_SERVICES: Record<string, MasterDataApiService> = {
     create: deviceService.create,
     update: deviceService.update,
     remove: deviceService.remove,
+    sync: deviceService.sync,
   },
   branches: {
     list: listBranches,

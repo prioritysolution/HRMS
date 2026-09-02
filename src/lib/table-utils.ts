@@ -3,6 +3,7 @@ export const PAGE_SIZE_OPTIONS = [5, 10, 25, 50, 100] as const;
 export type TableFilterDef = {
   key: string;
   label: string;
+  options?: Array<string | { value: string; label: string }>;
 };
 
 // export function getFilterOptions<T extends object>(rows: T[], key: string): string[] {

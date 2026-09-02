@@ -562,12 +562,7 @@ export function employeeToRow(
       ),
 
     Employment_status:
-      employmentStatus ??
-        employmentStatus !== undefined
-        ? statusLabel(
-          employmentStatus,
-        )
-        : "",
+      employmentStatus ?? "",
 
     Status: Number(
       readValue(source, [

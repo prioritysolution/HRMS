@@ -11,6 +11,7 @@ import {
   Users,
   type LucideIcon,
 } from "lucide-react";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 const iconMap: LucideIcon[] = [Users, UserPlus, UserMinus, Smile, UserX, UserCheck];
@@ -33,6 +34,7 @@ type Props = {
   tone: keyof typeof tones;
   positive: boolean;
   iconIndex: number;
+  href?: string;
 };
 
 export function AnalyticsStatCard({
@@ -44,11 +46,12 @@ export function AnalyticsStatCard({
   tone,
   positive,
   iconIndex,
+  href,
 }: Props) {
   const Icon = iconMap[iconIndex] ?? Users;
 
-  return (
-    <div className="card h-full">
+  const content = (
+    <div className="card h-full transition-shadow hover:shadow-md">
       <div className="card-body">
         <div className="mb-4 flex items-start justify-between gap-2">
           <div className={cn("avatar avatar-xxxl custom-avatar", tones[tone])}>
@@ -73,4 +76,14 @@ export function AnalyticsStatCard({
       </div>
     </div>
   );
+
+  if (href) {
+    return (
+      <Link href={href} className="block h-full">
+        {content}
+      </Link>
+    );
+  }
+
+  return content;
 }

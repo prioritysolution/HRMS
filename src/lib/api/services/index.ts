@@ -24,7 +24,7 @@ export {
   toFormRow,
 } from "@/lib/api/services/attendance.service";
 export { attendanceService } from "@/lib/api/services/attendance.service";
-
+export { codeSeriesService } from "@/lib/api/services/code-series.service";
 
 import { apiClient } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/endpoints";
