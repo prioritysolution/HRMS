@@ -47,15 +47,23 @@ export default function DashboardPage() {
         </div>
 
         {/* Row 2: Branch Count + Department Count */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-          <BranchCountChart />
-          <DepartmentCountChart />
+        <div className="dash-row mb-4">
+          <div className="dash-satisfaction-col">
+            <BranchCountChart />
+          </div>
+          <div className="dash-table-col">
+            <DepartmentCountChart />
+          </div>
         </div>
 
         {/* Row 3: Leave Utilization + Payroll Summary */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <LeaveUtilizationChart />
-          <PayrollSummaryChart />
+        <div className="dash-row">
+          <div className="dash-main-col">
+            <LeaveUtilizationChart />
+          </div>
+          <div className="dash-side-col">
+            <PayrollSummaryChart />
+          </div>
         </div>
 
         {/* 
