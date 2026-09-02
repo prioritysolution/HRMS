@@ -1,8 +1,19 @@
 "use client";
 
-import { CalendarCheck, MoreHorizontal } from "lucide-react";
+// import { CalendarCheck, MoreHorizontal } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { AnalyticsStatCard } from "@/components/dashboard/AnalyticsStatCard";
+import { analyticsStats } from "@/data/dashboard";
+
+// New Charts
+import { BranchCountChart } from "@/components/dashboard/BranchCountChart";
+import { DepartmentCountChart } from "@/components/dashboard/DepartmentCountChart";
+import { AttendancePercentageChart } from "@/components/dashboard/AttendancePercentageChart";
+import { LeaveUtilizationChart } from "@/components/dashboard/LeaveUtilizationChart";
+import { PayrollSummaryChart } from "@/components/dashboard/PayrollSummaryChart";
+
+/*
+// Previous charts (Commented out for future use)
 import { PerformanceBarChart } from "@/components/dashboard/PerformanceBarChart";
 import { SatisfactionRadialChart } from "@/components/dashboard/SatisfactionRadialChart";
 import { GenderDonutChart } from "@/components/dashboard/GenderDonutChart";
@@ -11,17 +22,17 @@ import { EmploymentTypeCard } from "@/components/dashboard/EmploymentTypeCard";
 import { LocationCard } from "@/components/dashboard/LocationCard";
 import { ActiveEmployeesCard } from "@/components/dashboard/ActiveEmployeesCard";
 import {
-  analyticsStats,
   highPerformanceEmployees,
   lowPerformanceEmployees,
 } from "@/data/dashboard";
+*/
 
 export default function DashboardPage() {
   return (
     <>
       <PageHeader title="Employee Analytics" section="Dashboard" />
       <div className="container-fluid">
-        {/* Row 1: stats + performance chart */}
+        {/* Row 1: stats + Attendance Percentage */}
         <div className="dash-row mb-4">
           <div className="dash-stats-col">
             <div className="dash-stat-grid">
@@ -31,37 +42,38 @@ export default function DashboardPage() {
             </div>
           </div>
           <div className="dash-chart-col">
+            <AttendancePercentageChart />
+          </div>
+        </div>
+
+        {/* Row 2: Branch Count + Department Count */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+          <BranchCountChart />
+          <DepartmentCountChart />
+        </div>
+
+        {/* Row 3: Leave Utilization + Payroll Summary */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <LeaveUtilizationChart />
+          <PayrollSummaryChart />
+        </div>
+
+        {/* 
+        // Previous layout structure (Commented out)
+        <div className="dash-row mb-4">
+          <div className="dash-chart-col w-full">
             <div className="card h-full">
               <div className="card-body pb-0">
-                <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-                  <h5 className="card-title mb-0">Employee Performance</h5>
-                  <div className="input-select-icon">
-                    <CalendarCheck size={15} className="input-select-icon-svg" />
-                    <select className="form-select-sm" defaultValue="Last Year">
-                      <option>Last Year</option>
-                      <option>This Month</option>
-                      <option>Last Month</option>
-                      <option>Last 6 Month</option>
-                    </select>
-                  </div>
-                </div>
                 <PerformanceBarChart />
               </div>
             </div>
           </div>
         </div>
 
-        {/* Row 2: satisfaction + high performance table */}
         <div className="dash-row mb-4">
           <div className="dash-satisfaction-col">
             <div className="card">
               <div className="card-body">
-                <div className="mb-3 flex items-center justify-between">
-                  <h5 className="card-title mb-0">Employee Satisfaction</h5>
-                  <button type="button" className="card-drop-icon" aria-label="Menu">
-                    <MoreHorizontal size={20} />
-                  </button>
-                </div>
                 <SatisfactionRadialChart />
               </div>
             </div>
@@ -74,7 +86,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Row 3: left wide + right sidebar */}
         <div className="dash-row">
           <div className="dash-main-col">
             <div className="dash-inner-row mb-4">
@@ -94,12 +105,6 @@ export default function DashboardPage() {
             <div className="mb-4">
               <div className="card">
                 <div className="card-body">
-                  <div className="mb-3 flex items-center justify-between">
-                    <h5 className="card-title mb-0">Employee Gender Ratio</h5>
-                    <button type="button" className="card-drop-icon" aria-label="Menu">
-                      <MoreHorizontal size={20} />
-                    </button>
-                  </div>
                   <GenderDonutChart />
                 </div>
               </div>
@@ -107,6 +112,7 @@ export default function DashboardPage() {
             <ActiveEmployeesCard />
           </div>
         </div>
+        */}
       </div>
     </>
   );

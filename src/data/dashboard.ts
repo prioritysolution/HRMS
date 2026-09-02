@@ -258,3 +258,20 @@ export const genderRatio = {
   series: [25, 75],
   labels: ["Women", "Men"],
 };
+
+// --- New Graphical Reports Mock Data ---
+
+export const branchCountCategories = ["Head Office", "North Branch", "South Branch", "West Branch", "East Branch"];
+export const branchCountData = [125, 45, 60, 30, 20];
+
+export const departmentCountCategories = ["Operations", "Sales", "IT", "HR", "Finance", "Marketing"];
+export const departmentCountData = [80, 65, 45, 25, 35, 30];
+
+export const attendancePercentageCategories = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+export const attendancePercentageData = [98, 96, 97, 95, 92, 45, 10];
+
+export const leaveUtilizationLabels = ["Sick Leave", "Casual Leave", "Earned Leave", "Maternity Leave"];
+export const leaveUtilizationData = [35, 45, 15, 5];
+
+export const payrollSummaryCategories = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"];
+export const payrollSummaryData = [120000, 122000, 125000, 125500, 128000, 130000, 131500];
