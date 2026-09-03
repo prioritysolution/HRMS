@@ -167,6 +167,7 @@ export const API_ENDPOINTS = {
   },
   attendance: {
     list: "/api/v1/attendance/list",
+    daily: "/api/v1/attendance/daily",
     create: "/api/v1/attendance/create",
     update: (id: string | number) => `/api/v1/attendance/update/${id}`,
     delete: (id: string | number) => `/api/v1/attendance/delete/${id}`,

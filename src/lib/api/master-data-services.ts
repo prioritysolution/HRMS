@@ -13,12 +13,13 @@ import { gradeService } from "@/lib/api/services/grade.service";
 import { organizationService } from "@/lib/api/services/organization.service";
 import { workShiftService } from "@/lib/api/services/work-shift.service";
 import { employeeService } from "@/lib/api/services/employee.service";
-import { MOCK_EMPLOYEES, MOCK_SERVICE_HISTORY, MOCK_EMPLOYEE_ATTENDANCE } from "@/data/reports-mock";
+import { attendanceService } from "@/lib/api/services/attendance.service";
+import { MOCK_EMPLOYEES, MOCK_SERVICE_HISTORY, MOCK_EMPLOYEE_ATTENDANCE, MOCK_LATE_COMING, MOCK_EARLY_LEAVING, MOCK_ATTENDANCE_SUMMARY, MOCK_LEAVE_REGISTER, MOCK_EMPLOYEE_LEAVE } from "@/data/reports-mock";
 
 
 
 type MasterDataApiService = {
-  list: () => Promise<HrmsRow[]>;
+  list: (params?: Record<string, any>) => Promise<HrmsRow[]>;
   create: (row: HrmsRow) => Promise<HrmsRow>;
   update: (
     id: string | number,
@@ -188,6 +189,42 @@ export const MASTER_DATA_API_SERVICES: Record<string, MasterDataApiService> = {
   },
   "employee-attendance-report": {
     list: async () => MOCK_EMPLOYEE_ATTENDANCE as any[],
+    create: async (row: any) => row,
+    update: async (id: any, row: any) => row,
+    remove: async () => ({}),
+  },
+  "late-coming-report": {
+    list: async () => MOCK_LATE_COMING as any[],
+    create: async (row: any) => row,
+    update: async (id: any, row: any) => row,
+    remove: async () => ({}),
+  },
+  "early-leaving-report": {
+    list: async () => MOCK_EARLY_LEAVING as any[],
+    create: async (row: any) => row,
+    update: async (id: any, row: any) => row,
+    remove: async () => ({}),
+  },
+  "attendance-summary-report": {
+    list: async () => MOCK_ATTENDANCE_SUMMARY as any[],
+    create: async (row: any) => row,
+    update: async (id: any, row: any) => row,
+    remove: async () => ({}),
+  },
+  "leave-register-report": {
+    list: async () => MOCK_LEAVE_REGISTER as any[],
+    create: async (row: any) => row,
+    update: async (id: any, row: any) => row,
+    remove: async () => ({}),
+  },
+  "employee-leave-report": {
+    list: async () => MOCK_EMPLOYEE_LEAVE as any[],
+    create: async (row: any) => row,
+    update: async (id: any, row: any) => row,
+    remove: async () => ({}),
+  },
+  "daily-attendance": {
+    list: attendanceService.dailyList,
     create: async (row: any) => row,
     update: async (id: any, row: any) => row,
     remove: async () => ({}),

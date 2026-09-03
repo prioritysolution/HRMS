@@ -45,6 +45,7 @@ type MasterDataPageProps = {
   topContent?: React.ReactNode;
   stats?: any[];
   extraActions?: React.ReactNode;
+  fetchParams?: Record<string, any>;
 };
 
 function formatCellValue(value: HrmsRow[string], type?: TableColumn["type"]): string {
@@ -52,6 +53,16 @@ function formatCellValue(value: HrmsRow[string], type?: TableColumn["type"]): st
   if (type === "boolean") return value === true || value === "true" || value === 1 ? "Yes" : "No";
   if (type === "currency") return `₹${Number(value).toLocaleString("en-IN")}`;
   if (type === "date") return formatDateDisplay(String(value));
+  if (type === "duration") {
+    const num = Number(value);
+    if (isNaN(num)) return String(value);
+    if (num === 0) return "0";
+    const h = Math.floor(num / 60);
+    const m = num % 60;
+    if (h > 0 && m > 0) return `${h}h ${m}m`;
+    if (h > 0) return `${h}h`;
+    return `${m}m`;
+  }
   return String(value);
 }
 
@@ -165,6 +176,7 @@ export function MasterDataPage({
   topContent,
   stats,
   extraActions,
+  fetchParams,
 }: MasterDataPageProps) {
   const config = useMemo(() => getHrmsModule(moduleId), [moduleId]);
   const toast = useToast();
@@ -562,11 +574,11 @@ export function MasterDataPage({
 
   const fetchModuleRows = useCallback(async (): Promise<HrmsRow[]> => {
     if (usesApi) {
-      if (apiService) return apiService.list();
+      if (apiService) return apiService.list(fetchParams);
       return [];
     }
     return getHrmsMockRows(moduleId);
-  }, [apiService, moduleId, usesApi]);
+  }, [apiService, moduleId, usesApi, fetchParams]);
 
   const loadRows = useCallback(
     async (options?: { showLoader?: boolean }) => {
@@ -614,7 +626,7 @@ export function MasterDataPage({
     };
     // Load once when the route/module changes — not when toast identity updates.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [moduleId, usesApi]);
+  }, [moduleId, usesApi, fetchParams]);
 
   // const handleEdit = (row: HrmsRow) => {
   //   if (onRowEdit) {

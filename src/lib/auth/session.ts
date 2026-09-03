@@ -1,6 +1,7 @@
 import type { AuthUser } from "@/lib/api/types";
 import { AUTH_SESSION_MAX_AGE } from "@/lib/auth/constants";
 import { env, getAuthTokenKey, getAuthUserStorageKey } from "@/lib/env";
+import { clearMenuCache } from "@/lib/menu/menu-cache";
 
 function cookieName(): string {
   return getAuthTokenKey() || env.authTokenKey;
@@ -71,6 +72,7 @@ export function clearAccessToken(): void {
   localStorage.removeItem(cookieName());
   localStorage.removeItem(userStorageKey());
   clearCookie(cookieName());
+  clearMenuCache();
 }
 
 export function isAuthenticated(): boolean {

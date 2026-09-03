@@ -453,6 +453,7 @@ export type AttendanceListQuery = {
   shift_id?: number;
   attendance_status?: number;
   source?: number;
+  with_punches?: boolean | number;
 };
 
 export type AttendancePunchRecord = {

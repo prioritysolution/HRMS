@@ -178,10 +178,150 @@ export const MOCK_EMPLOYEE_ATTENDANCE = [
     id: 4,
     Employee_code: "EMP-003",
     Display_name: "Robert Johnson",
-    Date: "2023-10-01",
+    Date: "2023-10-02",
     In_time: "08:50 AM",
     Out_time: "05:30 PM",
     Total_hours: "8h 40m",
     Status: 1,
+  },
+];
+
+export const MOCK_LATE_COMING = [
+  {
+    id: 1,
+    Employee_code: "EMP-001",
+    Display_name: "John Doe",
+    Date: "2023-10-02",
+    In_time: "09:15 AM",
+    Late_minutes: 15,
+    Status: 1,
+  },
+  {
+    id: 2,
+    Employee_code: "EMP-003",
+    Display_name: "Robert Johnson",
+    Date: "2023-10-02",
+    In_time: "09:45 AM",
+    Late_minutes: 45,
+    Status: 1,
+  },
+];
+
+export const MOCK_EARLY_LEAVING = [
+  {
+    id: 1,
+    Employee_code: "EMP-001",
+    Display_name: "John Doe",
+    Attendance_date: "2023-10-02",
+    Shift_name: "General Shift",
+    Check_out: "04:30 PM",
+    Early_departure_minutes: 90,
+    Attendance_status: "Present",
+  },
+  {
+    id: 2,
+    Employee_code: "EMP-004",
+    Display_name: "Emily Davis",
+    Attendance_date: "2023-10-02",
+    Shift_name: "General Shift",
+    Check_out: "05:15 PM",
+    Early_departure_minutes: 45,
+    Attendance_status: "Present",
+  },
+];
+
+export const MOCK_ATTENDANCE_SUMMARY = [
+  {
+    id: 1,
+    Employee_code: "EMP-001",
+    Display_name: "John Doe",
+    Total_Present: 22,
+    Total_Absent: 1,
+    Total_Late: 3,
+    Total_Leave: 2,
+    Month: "October 2023",
+  },
+  {
+    id: 2,
+    Employee_code: "EMP-002",
+    Display_name: "Jane Smith",
+    Total_Present: 25,
+    Total_Absent: 0,
+    Total_Late: 1,
+    Total_Leave: 0,
+    Month: "October 2023",
+  },
+  {
+    id: 3,
+    Employee_code: "EMP-003",
+    Display_name: "Robert Johnson",
+    Total_Present: 20,
+    Total_Absent: 3,
+    Total_Late: 5,
+    Total_Leave: 2,
+    Month: "October 2023",
+  },
+];
+
+export const MOCK_LEAVE_REGISTER = [
+  {
+    id: 1,
+    Employee_code: "EMP-001",
+    Display_name: "John Doe",
+    Leave_type: "Casual Leave",
+    From_date: "2023-10-15",
+    To_date: "2023-10-16",
+    Total_days: 2,
+    Status: "Approved",
+  },
+  {
+    id: 2,
+    Employee_code: "EMP-002",
+    Display_name: "Jane Smith",
+    Leave_type: "Sick Leave",
+    From_date: "2023-10-20",
+    To_date: "2023-10-20",
+    Total_days: 1,
+    Status: "Pending",
+  },
+  {
+    id: 3,
+    Employee_code: "EMP-003",
+    Display_name: "Robert Johnson",
+    Leave_type: "Earned Leave",
+    From_date: "2023-11-01",
+    To_date: "2023-11-05",
+    Total_days: 5,
+    Status: "Approved",
+  },
+];
+
+export const MOCK_EMPLOYEE_LEAVE = [
+  {
+    id: 1,
+    Employee_code: "EMP-001",
+    Display_name: "John Doe",
+    Leave_type: "Casual Leave",
+    Total_Allocated: 12,
+    Total_Used: 4,
+    Total_Balance: 8,
+  },
+  {
+    id: 2,
+    Employee_code: "EMP-001",
+    Display_name: "John Doe",
+    Leave_type: "Sick Leave",
+    Total_Allocated: 6,
+    Total_Used: 1,
+    Total_Balance: 5,
+  },
+  {
+    id: 3,
+    Employee_code: "EMP-002",
+    Display_name: "Jane Smith",
+    Leave_type: "Casual Leave",
+    Total_Allocated: 12,
+    Total_Used: 6,
+    Total_Balance: 6,
   },
 ];

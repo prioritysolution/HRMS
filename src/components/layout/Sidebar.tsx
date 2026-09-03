@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useState } from "react";
 import {
   Building2,
   ChevronDown,
@@ -21,6 +21,7 @@ import { LogoutButton } from "@/components/layout/LogoutButton";
 import { useUIStore } from "@/components/layout/UIProvider";
 import { menuService } from "@/lib/api/services/menu.service";
 import { menuTreeToNavigation } from "@/lib/menu/map-menu-tree";
+import { readMenuCache, writeMenuCache } from "@/lib/menu/menu-cache";
 import { cn } from "@/lib/utils";
 
 const sectionIcons: Record<string, LucideIcon> = {
@@ -51,31 +52,66 @@ function hasActiveChild(pathname: string, item: NavItem) {
   );
 }
 
+function sameSections(a: NavSection[], b: NavSection[]) {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
 export function Sidebar() {
   const pathname = usePathname();
   const { closeMobile } = useUIStore();
-  const [sections, setSections] = useState<NavSection[]>([]);
-  const [menuReady, setMenuReady] = useState(false);
+  const [sections, setSections] = useState<NavSection[]>(navigation);
+  const [menuReady, setMenuReady] = useState(true);
+  const [showLoading, setShowLoading] = useState(false);
 
-  useEffect(() => {
-    let cancelled = false;
+  useLayoutEffect(() => {
+    let active = true;
+
+    const cached = readMenuCache();
+    if (cached?.length) {
+      setSections(cached);
+    }
 
     async function loadMenu() {
       try {
         const tree = await menuService.tree({ status: 1 });
-        if (cancelled) return;
         const mapped = menuTreeToNavigation(tree);
-        setSections(mapped.length && mapped[0].items.length > 0 ? mapped : navigation);
+        const fromApi =
+          mapped.length && mapped[0].items.length > 0 ? mapped : null;
+
+        // Prefer API tree; if empty/unavailable keep cache; else static fallback.
+        const existing = readMenuCache();
+        const next = fromApi ?? (existing?.length ? existing : navigation);
+
+        // Always persist — do not skip because of Strict Mode remount/cancel.
+        if (!existing?.length || !sameSections(existing, next)) {
+          writeMenuCache(next);
+        }
+
+        if (!active) return;
+        setSections((prev) => (sameSections(prev, next) ? prev : next));
+        setMenuReady(true);
+        setShowLoading(false);
       } catch {
-        if (!cancelled) setSections(navigation);
-      } finally {
-        if (!cancelled) setMenuReady(true);
+        const existing = readMenuCache();
+        if (existing?.length) {
+          if (active) {
+            setSections(existing);
+            setMenuReady(true);
+            setShowLoading(false);
+          }
+          return;
+        }
+        writeMenuCache(navigation);
+        if (!active) return;
+        setSections(navigation);
+        setMenuReady(true);
+        setShowLoading(false);
       }
     }
 
     void loadMenu();
     return () => {
-      cancelled = true;
+      active = false;
     };
   }, []);
 
@@ -111,9 +147,11 @@ export function Sidebar() {
     <aside className="left-sidebar">
       <div className="leftbar-menu">
         {!menuReady ? (
-          <div className="menu-title">
-            <p className="fw-semibold mb-0 d-inline-block opacity-60">Loading menu...</p>
-          </div>
+          showLoading ? (
+            <div className="menu-title">
+              <p className="fw-semibold mb-0 d-inline-block opacity-60">Loading menu...</p>
+            </div>
+          ) : null
         ) : (
           sections.map((section) => {
           const SectionIcon = sectionIcons[section.icon];

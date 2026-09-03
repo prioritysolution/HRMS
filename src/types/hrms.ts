@@ -40,7 +40,7 @@ export type FormSection = {
   fields: FormField[];
 };
 
-export type TableColumnType = "text" | "status" | "person" | "date" | "time" | "currency" | "boolean";
+export type TableColumnType = "text" | "status" | "person" | "date" | "time" | "currency" | "boolean" | "duration";
 
 export type TableColumn = {
   key: string;

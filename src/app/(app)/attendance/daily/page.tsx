@@ -36,6 +36,7 @@ export default function DailyAttendancePage() {
       moduleId="daily-attendance"
       stats={DAILY_STATS as any}
       topContent={topContent}
+      fetchParams={{ attendance_date: selectedDate, with_punches: 1 }}
     />
   );
 }

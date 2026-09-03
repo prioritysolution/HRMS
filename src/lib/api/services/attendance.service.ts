@@ -130,6 +130,9 @@ function withListQuery(basePath: string, query?: AttendanceListQuery): string {
   if (query?.source !== undefined) {
     params.set("source", String(query.source));
   }
+  if (query?.with_punches !== undefined) {
+    params.set("with_punches", String(query.with_punches));
+  }
 
   const suffix = params.toString();
   return suffix ? `${basePath}?${suffix}` : basePath;
@@ -367,6 +370,13 @@ export const attendanceService = {
   list: async (query?: AttendanceListQuery): Promise<HrmsRow[]> => {
     const payload = await apiClient.get<unknown>(
       withListQuery(API_ENDPOINTS.attendance.list, query),
+    );
+    return asAttendanceList(payload).map(attendanceToRow);
+  },
+
+  dailyList: async (query?: AttendanceListQuery): Promise<HrmsRow[]> => {
+    const payload = await apiClient.get<unknown>(
+      withListQuery(API_ENDPOINTS.attendance.daily, query),
     );
     return asAttendanceList(payload).map(attendanceToRow);
   },
