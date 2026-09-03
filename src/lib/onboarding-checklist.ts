@@ -12,10 +12,8 @@ export const ONBOARDING_CHECKLIST_STEPS: OnboardingChecklistStep[] = [
   { id: "verification", title: "Document Verification", doneField: "Step_verification_done" },
   { id: "statutory", title: "Statutory Details", doneField: "Step_statutory_done" },
   { id: "agreement", title: "Employment Agreement", doneField: "Step_agreement_done" },
-  { id: "policy", title: "Policy Acceptance", doneField: "Step_policy_done" },
-  { id: "assets", title: "Asset Allocation", doneField: "Step_assets_done" },
   { id: "idcard", title: "ID Card Generation", doneField: "Step_idcard_done" },
-  { id: "account", title: "Email / User Account Creation", doneField: "Step_account_done" },
+  { id: "account", title: "Email / User Account Creation", doneField: "Create_user_account" },
 ];
 
 function isStepDone(row: HrmsRow, doneField: string): boolean {

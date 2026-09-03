@@ -167,47 +167,6 @@ export const ONBOARDING_FORM_SECTIONS: FormSection[] = [
     ],
   },
   {
-    id: "policy",
-    title: "Policy Acceptance",
-    description: "Employee acknowledgement of company policies.",
-    fields: [
-      { name: "Policy_hr_handbook", label: "HR Handbook accepted", type: "checkbox" },
-      { name: "Policy_code_of_conduct", label: "Code of Conduct accepted", type: "checkbox" },
-      { name: "Policy_it_security", label: "IT Security Policy accepted", type: "checkbox" },
-      { name: "Policy_data_privacy", label: "Data Privacy Policy accepted", type: "checkbox" },
-      {
-        name: "Step_policy_done",
-        label: "Mark Policy Acceptance as complete",
-        type: "checkbox",
-        span: "full",
-      },
-    ],
-  },
-  {
-    id: "assets",
-    title: "Asset Allocation",
-    description: "Assign company assets to the new employee.",
-    fields: [
-      { name: "Asset_laptop", label: "Laptop", type: "checkbox" },
-      { name: "Asset_mouse", label: "Mouse", type: "checkbox" },
-      { name: "Asset_headset", label: "Headset", type: "checkbox" },
-      { name: "Asset_id_badge", label: "ID Badge Holder", type: "checkbox" },
-      {
-        name: "Asset_other",
-        label: "Other Assets",
-        type: "textarea",
-        span: "full",
-        placeholder: "Monitor, keyboard, or other allocated items",
-      },
-      {
-        name: "Step_assets_done",
-        label: "Mark Asset Allocation as complete",
-        type: "checkbox",
-        span: "full",
-      },
-    ],
-  },
-  {
     id: "idcard",
     title: "ID Card Generation",
     description: "Generate employee ID card with photograph.",
@@ -241,12 +200,6 @@ export const ONBOARDING_FORM_SECTIONS: FormSection[] = [
       { name: "Username", label: "System Username", placeholder: "firstname.lastname" },
       { name: "Create_user_account", label: "Create user account", type: "checkbox" },
       { name: "Send_welcome_email", label: "Send welcome email with login credentials", type: "checkbox" },
-      {
-        name: "Step_account_done",
-        label: "Mark Email / User Account Creation as complete",
-        type: "checkbox",
-        span: "full",
-      },
     ],
   },
 ];

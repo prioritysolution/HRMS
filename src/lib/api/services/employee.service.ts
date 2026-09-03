@@ -607,18 +607,6 @@ export function employeeToRow(
 export function rowToEmployeeCreatePayload(
   row: HrmsRow,
 ): EmployeeCreatePayload {
-  const branchId = extractId(row.Branch, row.Branch_Id);
-  const deptId = extractId(row.Department, row.Dept_Id);
-  const desigId = extractId(row.Designation, row.Desig_Id);
-  const gradeId = extractId(row.Grade, row.Grade_Id);
-  const shiftIds = extractIds(row.Shift, row.Shift_id ?? row.Shift_Id);
-  const empTypeId = extractId(row.Employment_type, row.Emp_type_id);
-
-  const employmentStatus =
-    nullableNumber(
-      row.Employment_status,
-    );
-
   const firstName =
     String(
       row.First_name ?? "",
@@ -709,32 +697,6 @@ export function rowToEmployeeCreatePayload(
         row.Pincode,
       ) || null,
 
-    branch_id:
-      branchId ?? 0,
-
-    dept_id:
-      deptId ?? 0,
-
-    desig_id:
-      desigId ?? 0,
-
-    grade_id:
-      gradeId ?? 0,
-
-    shift_id:
-      shiftIds,
-
-    emp_type_id:
-      empTypeId ?? 0,
-
-    date_of_joining:
-      String(
-        row.Date_of_joining ?? "",
-      ).trim(),
-
-    employment_status:
-      employmentStatus ?? 0,
-
     status:
       Number(row.Status ?? 1),
   };
@@ -792,88 +754,6 @@ export function rowToEmployeeCreatePayload(
         optionalText(
           row.Account_type,
         ) || null,
-    };
-  }
-
-  const identifications = [
-    {
-      id_type: 1,
-      id_number: optionalText(
-        row.PAN,
-      ),
-    },
-    {
-      id_type: 2,
-      id_number: optionalText(
-        row.Aadhaar_no,
-      ),
-    },
-    {
-      id_type: 3,
-      id_number: optionalText(
-        row.Passport_no,
-      ),
-    },
-    {
-      id_type: 4,
-      id_number: optionalText(
-        row.Driving_licence,
-      ),
-    },
-  ]
-    .filter(
-      (item) => item.id_number,
-    )
-    .map((item) => ({
-      id_type:
-        item.id_type,
-      id_number:
-        item.id_number,
-      issue_date: null,
-      expiry_date: null,
-    }));
-
-  if (
-    identifications.length > 0
-  ) {
-    payload.identifications =
-      identifications;
-  }
-
-  const hasStatutory =
-    row.PF_number !==
-    undefined ||
-    row.UAN !== undefined ||
-    row.ESI_number !==
-    undefined ||
-    row.Professional_tax !==
-    undefined ||
-    row.TDS !== undefined;
-
-  if (hasStatutory) {
-    payload.statutory = {
-      pf_no:
-        optionalText(
-          row.PF_number,
-        ) || null,
-
-      uan_no:
-        optionalText(
-          row.UAN,
-        ) || null,
-
-      esi_no:
-        optionalText(
-          row.ESI_number,
-        ) || null,
-
-      ptax_no:
-        optionalText(
-          row.Professional_tax,
-        ) || null,
-
-      tds_applicable:
-        Number(row.TDS ?? 0),
     };
   }
 
@@ -1554,121 +1434,6 @@ export function rowToEmployeeUpdatePayload(
 
   /**
    * =========================================================
-   * EMPLOYMENT INFORMATION
-   * =========================================================
-   */
-
-  if (
-    row.Branch !== undefined ||
-    row.Branch_Id !== undefined
-  ) {
-    payload.branch_id =
-      branchId;
-  }
-
-  if (
-    row.Department !== undefined ||
-    row.Dept_Id !== undefined
-  ) {
-    payload.dept_id =
-      deptId;
-  }
-
-  if (
-    row.Designation !== undefined ||
-    row.Desig_Id !== undefined
-  ) {
-    payload.desig_id =
-      desigId;
-  }
-
-  if (
-    row.Grade !== undefined ||
-    row.Grade_Id !== undefined
-  ) {
-    payload.grade_id =
-      gradeId;
-  }
-
-  if (
-    row.Shift !== undefined ||
-    row.Shift_Id !== undefined ||
-    row.Shift_id !== undefined
-  ) {
-    payload.shift_id =
-      shiftIds;
-  }
-
-  if (
-    row.Employment_type !== undefined ||
-    row.Emp_type_id !== undefined
-  ) {
-    payload.emp_type_id =
-      empTypeId;
-  }
-
-  if (
-    row.Reporting_manager_id !==
-    undefined
-  ) {
-    payload.reporting_manager_id =
-      toId(
-        row.Reporting_manager_id,
-      );
-  }
-
-  if (
-    row.Reporting_manager !==
-    undefined
-  ) {
-    payload.reporting_manager =
-      text(row.Reporting_manager);
-  }
-
-  if (
-    row.Date_of_joining !== undefined
-  ) {
-    payload.date_of_joining =
-      text(row.Date_of_joining);
-  }
-
-  if (
-    row.Confirmation_date !== undefined
-  ) {
-    payload.confirmation_date =
-      text(row.Confirmation_date);
-  }
-
-  if (
-    row.Probation_end_date !== undefined
-  ) {
-    payload.probation_end_date =
-      text(row.Probation_end_date);
-  }
-
-  if (
-    row.Probation_period !== undefined
-  ) {
-    payload.probation_period =
-      toId(row.Probation_period);
-  }
-
-  if (
-    row.Employment_status !== undefined
-  ) {
-    payload.employment_status =
-      employmentStatus;
-  }
-
-  if (
-    row.Work_location !== undefined
-  ) {
-    payload.work_location =
-      text(row.Work_location);
-  }
-
-  /**
-   * =========================================================
    * STATUS
    * =========================================================
    */
@@ -1686,53 +1451,6 @@ export function rowToEmployeeUpdatePayload(
    * =========================================================
    */
   applyEmployeePhotoFields(row, payload);
-
-
-  /**
-   * =========================================================
-   * STATUTORY
-   * =========================================================
-   */
-
-  const hasStatutoryData =
-    row.PF_number !== undefined ||
-    row.UAN !== undefined ||
-    row.ESI_number !== undefined ||
-    row.Professional_tax !== undefined ||
-    row.TDS !== undefined ||
-    row.Other_statutory !== undefined;
-
-  if (hasStatutoryData) {
-    payload.statutory = {
-      pf_no:
-        text(row.PF_number),
-
-      uan_no:
-        text(row.UAN),
-
-      esi_no:
-        text(row.ESI_number),
-
-      ptax_no:
-        text(row.Professional_tax),
-
-      tds_applicable:
-        Number(row.TDS ?? 0),
-    };
-
-    /**
-     * Keep Other_statutory separate only if your
-     * backend update DTO supports it.
-     */
-    if (
-      row.Other_statutory !== undefined
-    ) {
-      payload.statutory.other_statutory =
-        text(
-          row.Other_statutory,
-        );
-    }
-  }
 
   /**
    * =========================================================
@@ -1776,68 +1494,6 @@ export function rowToEmployeeUpdatePayload(
       account_type:
         text(row.Account_type),
     };
-  }
-
-  /**
-   * =========================================================
-   * IDENTIFICATIONS
-   * =========================================================
-   */
-
-  const identificationInputs = [
-    {
-      id_type: 1,
-      id_number: text(row.PAN),
-    },
-    {
-      id_type: 2,
-      id_number: text(
-        row.Aadhaar_no,
-      ),
-    },
-    {
-      id_type: 3,
-      id_number: text(
-        row.Passport_no,
-      ),
-    },
-    {
-      id_type: 4,
-      id_number: text(
-        row.Driving_licence,
-      ),
-    },
-  ];
-
-  const hasIdentificationFields =
-    row.PAN !== undefined ||
-    row.Aadhaar_no !== undefined ||
-    row.Passport_no !== undefined ||
-    row.Driving_licence !== undefined ||
-    row.Other_identification !==
-    undefined;
-
-  if (hasIdentificationFields) {
-    payload.identifications =
-      identificationInputs
-        .filter(
-          (item) =>
-            item.id_number !== null,
-        )
-        .map((item) => ({
-          id_type: item.id_type,
-          id_number:
-            item.id_number ?? "",
-          issue_date: null,
-          expiry_date: null,
-        }));
-
-    /**
-     * Other_identification is not part of the
-     * documented identification DTO.
-     *
-     * Do not invent an ID type for it.
-     */
   }
 
   return payload;

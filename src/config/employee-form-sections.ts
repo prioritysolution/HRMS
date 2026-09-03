@@ -68,56 +68,6 @@ export const EMPLOYEE_FORM_SECTIONS: FormSection[] = [
     ],
   },
   {
-    id: "employment",
-    title: "Employment Information",
-    description: "Job role, reporting structure, and work assignment details.",
-    fields: [
-      { name: "Date_of_joining", label: "Date of Joining", type: "date", required: true },
-      { name: "Confirmation_date", label: "Confirmation Date", type: "date" },
-      {
-        name: "Employment_type",
-        label: "Employee Type",
-        type: "select",
-        options: employmentTypeOptions,
-        required: true,
-      },
-      { name: "Department", label: "Department", type: "select", options: departmentOptions, required: true },
-      { name: "Branch", label: "Branch", type: "select", options: branchOptions, required: true },
-      { name: "Designation", label: "Designation", type: "select", options: designationOptions, required: true },
-      { name: "Grade", label: "Grade", type: "select", options: gradeOptions, required: true },
-      { name: "Reporting_manager", label: "Reporting Manager", placeholder: "Manager name" },
-      {
-        name: "Employment_status",
-        label: "Employment Status",
-        type: "select",
-        options: employmentStatusOptions,
-        defaultValue: "Active",
-        required: true,
-      },
-      { name: "Probation_period", label: "Probation Period", placeholder: "e.g. 6 months" },
-      { name: "Work_location", label: "Work Location", placeholder: "Office / city" },
-      { name: "Shift", label: "Shift", type: "multi-select", options: shiftOptions, required: true },
-    ],
-  },
-  {
-    id: "identification",
-    title: "Identification Details",
-    description: "Government and other identity documents.",
-    fields: [
-      { name: "PAN", label: "PAN", placeholder: "ABCDE1234F" },
-      { name: "Aadhaar_no", label: "Aadhaar / Other ID", placeholder: "XXXX XXXX XXXX" },
-      { name: "Passport_no", label: "Passport" },
-      { name: "Driving_licence", label: "Driving Licence" },
-      {
-        name: "Other_identification",
-        label: "Other Identification Documents",
-        type: "textarea",
-        span: "full",
-        placeholder: "Voter ID, ration card, or other document details",
-      },
-    ],
-  },
-  {
     id: "bank",
     title: "Bank Details",
     description: "Salary account information for payroll processing.",
@@ -133,25 +83,6 @@ export const EMPLOYEE_FORM_SECTIONS: FormSection[] = [
       options: ["Savings", "Current", "Salary"] 
     }, // <-- Added field
       { name: "Account_holder_name", label: "Account Holder Name", span: "full" },
-    ],
-  },
-  {
-    id: "statutory",
-    title: "Statutory Information",
-    description: "PF, ESI, tax, and other compliance details as per organization requirements.",
-    fields: [
-      { name: "PF_number", label: "PF" },
-      { name: "UAN", label: "UAN" },
-      { name: "ESI_number", label: "ESI" },
-      { name: "Professional_tax", label: "Professional Tax" },
-      { name: "TDS", label: "TDS" },
-      {
-        name: "Other_statutory",
-        label: "Other Statutory Information",
-        type: "textarea",
-        span: "full",
-        placeholder: "Any additional statutory or compliance notes",
-      },
     ],
   },
 ];
