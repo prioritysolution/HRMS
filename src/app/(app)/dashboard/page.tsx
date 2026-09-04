@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { RefreshCw } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { AnalyticsStatCard } from "@/components/dashboard/AnalyticsStatCard";
 import { AttendancePercentageChart } from "@/components/dashboard/AttendancePercentageChart";
@@ -136,22 +137,32 @@ export default function DashboardPage() {
   const toast = useToast();
   const [overview, setOverview] = useState<DashboardOverview | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const loadOverview = useCallback(async () => {
-    setLoading(true);
-    try {
-      const data = await dashboardService.overview({ limit: 50 });
-      setOverview(data);
-    } catch {
-      setOverview(null);
-      toast.error({ title: "Error", message: "Failed to load dashboard overview." });
-    } finally {
-      setLoading(false);
-    }
-  }, [toast]);
+  const loadOverview = useCallback(
+    async (mode: "initial" | "refresh" = "initial") => {
+      if (mode === "refresh") {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
+
+      try {
+        const data = await dashboardService.overview({ limit: 50 });
+        setOverview(data);
+      } catch {
+        if (mode === "initial") setOverview(null);
+        toast.error({ title: "Error", message: "Failed to load dashboard overview." });
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [toast],
+  );
 
   useEffect(() => {
-    void loadOverview();
+    void loadOverview("initial");
   }, [loadOverview]);
 
   const emptySummary = {
@@ -170,10 +181,23 @@ export default function DashboardPage() {
   const departmentData =
     overview?.department_distribution.map((row) => row.Employee_count) ?? [];
 
-  if (loading) {
+  const refreshAction = (
+    <button
+      type="button"
+      className="btn btn-primary btn-sm rounded-md inline-flex items-center gap-2"
+      onClick={() => void loadOverview("refresh")}
+      disabled={loading || refreshing}
+      aria-label="Refresh dashboard"
+    >
+      <RefreshCw size={16} strokeWidth={2} className={refreshing ? "animate-spin" : ""} />
+      Refresh
+    </button>
+  );
+
+  if (loading && !overview) {
     return (
       <>
-        <PageHeader title="Employee Analytics" section="Dashboard" />
+        <PageHeader title="Employee Analytics" section="Dashboard" action={refreshAction} />
         <div className="container-fluid">
           <div className="employee-profile-loading">
             <RoundLoader />
@@ -186,7 +210,7 @@ export default function DashboardPage() {
 
   return (
     <>
-      <PageHeader title="Employee Analytics" section="Dashboard" />
+      <PageHeader title="Employee Analytics" section="Dashboard" action={refreshAction} />
       <div className="container-fluid">
         {/* Row 1: stats + Attendance Percentage (matched height) */}
         <div className="dash-row mb-4">
