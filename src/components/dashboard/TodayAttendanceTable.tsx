@@ -20,16 +20,21 @@ export function TodayAttendanceTable({
   viewMoreHref?: string;
 }) {
   return (
-    <div className="card h-full">
+    <div className="card">
       <div className="card-body">
         <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
-          <h5 className="card-title mb-0">Today&apos;s Attendance</h5>
+          <div>
+            <h5 className="card-title mb-1">Today&apos;s Attendance</h5>
+            <small className="text-muted">
+              {rows.length} employee{rows.length === 1 ? "" : "s"} marked today
+            </small>
+          </div>
           <Link href={viewMoreHref} className="btn btn-sm btn-outline rounded-md">
             View More
           </Link>
         </div>
-        <div className="table-wrap">
-          <table className="data-table perform-table">
+        <div className="table-wrap overflow-x-auto">
+          <table className="data-table perform-table w-full">
             <thead className="table-light">
               <tr>
                 <th className="si-col">SI NO</th>

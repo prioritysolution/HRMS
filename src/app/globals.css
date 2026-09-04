@@ -3596,32 +3596,31 @@ textarea {
 .dash-satisfaction-col,
 .dash-table-col,
 .dash-main-col,
-.dash-side-col {
+.dash-side-col,
+.dash-full-col {
   grid-column: 1 / -1;
 }
 
 @media (min-width: 992px) {
-  .dash-row:nth-of-type(2) {
+  .dash-row.dash-row-split {
     grid-template-columns: 5fr 7fr;
     align-items: stretch;
   }
 
-  .dash-satisfaction-col {
-    grid-column: auto;
-  }
-
-  .dash-table-col {
+  .dash-row.dash-row-split .dash-satisfaction-col,
+  .dash-row.dash-row-split .dash-table-col {
     grid-column: auto;
   }
 }
 
 @media (min-width: 1200px) {
-  .dash-row:nth-of-type(3) {
+  .dash-row:nth-of-type(3).dash-row-split,
+  .dash-row.dash-row-split-wide {
     grid-template-columns: 8fr 4fr;
   }
 
-  .dash-main-col,
-  .dash-side-col {
+  .dash-row.dash-row-split-wide .dash-main-col,
+  .dash-row.dash-row-split-wide .dash-side-col {
     grid-column: auto;
   }
 }

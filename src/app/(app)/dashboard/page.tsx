@@ -205,15 +205,19 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Row 2: Department distribution + Today's attendance */}
-        <div className="dash-row">
-          <div className="dash-satisfaction-col">
+        {/* Row 2: Department distribution */}
+        <div className="dash-row mb-4">
+          <div className="dash-full-col">
             <DepartmentCountChart
               categories={departmentCategories}
               data={departmentData}
             />
           </div>
-          <div className="dash-table-col">
+        </div>
+
+        {/* Row 3: Today's attendance under the department graph */}
+        <div className="dash-row">
+          <div className="dash-full-col">
             <TodayAttendanceTable rows={overview?.today_attendance ?? []} />
           </div>
         </div>
