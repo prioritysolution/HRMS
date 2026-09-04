@@ -25,6 +25,11 @@ export {
 } from "@/lib/api/services/attendance.service";
 export { attendanceService } from "@/lib/api/services/attendance.service";
 export { codeSeriesService } from "@/lib/api/services/code-series.service";
+export { employeeOnboardingService } from "@/lib/api/services/employee-onboarding.service";
+export {
+  attendanceTrendToPercentages,
+  dashboardService,
+} from "@/lib/api/services/dashboard.service";
 
 import { apiClient } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/endpoints";
@@ -40,13 +45,6 @@ function withQuery(basePath: string, query?: ListQuery) {
   const suffix = params.toString() ? `?${params.toString()}` : "";
   return `${basePath}${suffix}`;
 }
-
-export const dashboardService = {
-  analytics: () => apiClient.get<Record<string, unknown>>(API_ENDPOINTS.dashboard.analytics),
-  sales: () => apiClient.get<Record<string, unknown>>(API_ENDPOINTS.dashboard.sales),
-  attendance: () => apiClient.get<Record<string, unknown>>(API_ENDPOINTS.dashboard.attendance),
-  performance: () => apiClient.get<Record<string, unknown>>(API_ENDPOINTS.dashboard.performance),
-};
 
 export const clientsService = {
   leads: (query?: ListQuery) =>

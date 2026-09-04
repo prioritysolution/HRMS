@@ -2,6 +2,7 @@
 
 import {
   ArrowDownRight,
+  ArrowRight,
   ArrowUpRight,
   Smile,
   UserCheck,
@@ -13,6 +14,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import type { DashboardTrend } from "@/lib/api/types";
 
 const iconMap: LucideIcon[] = [Users, UserPlus, UserMinus, Smile, UserX, UserCheck];
 
@@ -33,6 +35,7 @@ type Props = {
   description: string;
   tone: keyof typeof tones;
   positive: boolean;
+  trend?: DashboardTrend;
   iconIndex: number;
   href?: string;
 };
@@ -45,10 +48,14 @@ export function AnalyticsStatCard({
   description,
   tone,
   positive,
+  trend = "flat",
   iconIndex,
   href,
 }: Props) {
   const Icon = iconMap[iconIndex] ?? Users;
+  const badgeTone =
+    trend === "flat" ? "bg-soft-info" : positive ? "bg-soft-success" : "bg-soft-danger";
+  const TrendIcon = trend === "up" ? ArrowUpRight : trend === "down" ? ArrowDownRight : ArrowRight;
 
   const content = (
     <div className="card h-full transition-shadow hover:shadow-md">
@@ -60,8 +67,8 @@ export function AnalyticsStatCard({
           <div className="text-right">
             <h3 className="m-0 text-[1.65rem] font-extrabold text-[var(--title)]">{value}</h3>
             <div className="mt-1 flex items-center justify-end gap-1">
-              <span className={cn("badge", positive ? "bg-soft-success" : "bg-soft-danger")}>
-                {positive ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+              <span className={cn("badge", badgeTone)}>
+                <TrendIcon size={12} />
                 {change}
               </span>
               <small className="text-muted">{hint}</small>

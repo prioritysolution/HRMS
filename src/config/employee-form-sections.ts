@@ -32,9 +32,9 @@ export const EMPLOYEE_FORM_SECTIONS: FormSection[] = [
       //   required: true,
       // },
       { name: "Employee_code", label: "Employee ID", required: true, placeholder: "EMP-1001", hideOnCreate: true, readOnlyOnEdit: true },
-      { name: "First_name", label: "First Name", required: true },
-      { name: "Middle_name", label: "Middle Name" },
-      { name: "Last_name", label: "Last Name", required: true },
+      { name: "First_name", label: "First Name", required: true, minLength: 2, maxLength: 50, pattern: /^[A-Za-z\s]+$/, patternMessage: "Only letters and spaces are allowed." },
+      { name: "Middle_name", label: "Middle Name", maxLength: 50, pattern: /^[A-Za-z\s]*$/, patternMessage: "Only letters and spaces are allowed." },
+      { name: "Last_name", label: "Last Name", required: true, minLength: 1, maxLength: 50, pattern: /^[A-Za-z\s]+$/, patternMessage: "Only letters and spaces are allowed." },
       {
         name: "Photo",
         label: "Photograph",
@@ -57,14 +57,14 @@ export const EMPLOYEE_FORM_SECTIONS: FormSection[] = [
       { name: "Father_name", label: "Father's Name" },
       { name: "Mother_name", label: "Mother's Name" },
       { name: "Spouse_name", label: "Spouse's Name" },
-      { name: "Mobile", label: "Mobile Number", type: "tel", required: true },
+      { name: "Mobile", label: "Mobile Number", type: "tel", required: true, pattern: /^\d{10}$/, patternMessage: "Mobile number must be exactly 10 digits." },
       { name: "Email", label: "Email", type: "email", required: true },
       { name: "Address_line1", label: "Address Line 1", span: "full" },
       { name: "Address_line2", label: "Address Line 2", span: "full" },
       { name: "City", label: "City" },
       { name: "State", label: "State" },
-      { name: "Pincode", label: "Pincode" },
-      { name: "Emergency_contact", label: "Emergency Contact", type: "tel" },
+      { name: "Pincode", label: "Pincode", pattern: /^\d{6}$/, patternMessage: "Pincode must be exactly 6 digits." },
+      { name: "Emergency_contact", label: "Emergency Contact", type: "tel", pattern: /^\d{10}$/, patternMessage: "Emergency contact must be exactly 10 digits." },
     ],
   },
   {
@@ -73,15 +73,15 @@ export const EMPLOYEE_FORM_SECTIONS: FormSection[] = [
     description: "Salary account information for payroll processing.",
     fields: [
       { name: "Bank_name", label: "Bank Name" },
-      { name: "Account_number", label: "Account Number" },
-      { name: "IFSC_code", label: "IFSC" },
+      { name: "Account_number", label: "Account Number", pattern: /^\d{9,18}$/, patternMessage: "Account number must be between 9 and 18 digits." },
+      { name: "IFSC_code", label: "IFSC", pattern: /^[A-Z]{4}0[A-Z0-9]{6}$/, patternMessage: "Invalid IFSC code format." },
       { name: "Bank_branch", label: "Branch" },
-      { 
-      name: "Account_type", 
-      label: "Account Type", 
-      type: "select", 
-      options: ["Savings", "Current", "Salary"] 
-    }, // <-- Added field
+      {
+        name: "Account_type",
+        label: "Account Type",
+        type: "select",
+        options: ["Savings", "Current", "Salary"]
+      }, // <-- Added field
       { name: "Account_holder_name", label: "Account Holder Name", span: "full" },
     ],
   },

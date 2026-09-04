@@ -30,7 +30,14 @@ export type FormField = {
   previewKey?: string;
   fileNameKey?: string;
   hideOnCreate?: boolean;
+  hideOnEdit?: boolean;
   readOnlyOnEdit?: boolean;
+  minLength?: number;
+  maxLength?: number;
+  min?: number;
+  max?: number;
+  pattern?: RegExp;
+  patternMessage?: string;
 };
 
 export type FormSection = {

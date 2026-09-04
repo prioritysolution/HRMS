@@ -51,7 +51,11 @@ export function MasterDataModal({
   const isEdit = !!initialValues;
   
   const activeFields = useMemo(
-    () => resolvedFields.filter((field) => !(field.hideOnCreate && !isEdit)),
+    () => resolvedFields.filter((field) => {
+      if (!isEdit && field.hideOnCreate) return false;
+      if (isEdit && field.hideOnEdit) return false;
+      return true;
+    }),
     [resolvedFields, isEdit]
   );
   

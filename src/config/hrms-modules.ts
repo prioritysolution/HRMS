@@ -170,7 +170,7 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
     columns: [
       { key: "Desig_Code", header: "Designation Code" },
       { key: "Desig_Name", header: "Designation Name" },
-      { key: "Org_Name", header: "Organization" },
+      // { key: "Org_Name", header: "Organization" },
       { key: "Level_No", header: "Level" },
       { key: "Status", header: "Status", type: "status" },
     ],
@@ -208,7 +208,7 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
     columns: [
       { key: "Grade_Code", header: "Grade Code" },
       { key: "Grade_Name", header: "Grade Name" },
-      { key: "Org_Name", header: "Organization" },
+      // { key: "Org_Name", header: "Organization" },
       { key: "Min_salary", header: "Min Salary", type: "currency" },
       { key: "Max_salary", header: "Max Salary", type: "currency" },
       { key: "Pay_Band", header: "Pay Band" },
@@ -299,7 +299,7 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
     columns: [
       { key: "Type_code", header: "Type Code" },
       { key: "Type_name", header: "Type Name" },
-      { key: "Org_Name", header: "Organization" },
+      // { key: "Org_Name", header: "Organization" },
       { key: "Is_payroll_applicable", header: "Payroll", type: "boolean" },
       { key: "Status", header: "Status", type: "status" },
     ],
@@ -361,7 +361,7 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
     columns: [
       { key: "Shift_code", header: "Shift Code" },
       { key: "Shift_name", header: "Shift Name" },
-      { key: "Org_Name", header: "Organization" },
+      // { key: "Org_Name", header: "Organization" },
       { key: "Start_time", header: "Start Time", type: "time" },
       { key: "End_time", header: "End Time", type: "time" },
       { key: "Overtime_hr", header: "OT Hours" },

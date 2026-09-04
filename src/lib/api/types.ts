@@ -1052,3 +1052,62 @@ export interface EmployeeUpdatePayload {
     }
   >;
 }
+
+export type DashboardTrend = "up" | "down" | "flat";
+
+export type DashboardSummaryMetric = {
+  value: number;
+  change_percent: number;
+  trend: DashboardTrend;
+  compare_label: string;
+  active?: number;
+  new?: number;
+};
+
+export type DashboardSummary = {
+  total_employees: DashboardSummaryMetric;
+  on_leave: DashboardSummaryMetric;
+  absent_today: DashboardSummaryMetric;
+  present_today: DashboardSummaryMetric;
+  late_today: DashboardSummaryMetric;
+  on_probation: DashboardSummaryMetric;
+};
+
+export type DashboardTodayAttendance = {
+  Employee_id: number;
+  Employee_code: string;
+  Employee_name: string;
+  In_time: string | null;
+  Out_time: string | null;
+  Attendance_status: number;
+  Attendance_status_name: string;
+};
+
+export type DashboardAttendanceTrend = {
+  Attendance_date: string;
+  Day_label: string;
+  Present_count: number;
+  Absent_count: number;
+  Late_count: number;
+};
+
+export type DashboardDepartmentDistribution = {
+  Dept_Id: number;
+  Dept_Name: string;
+  Employee_count: number;
+};
+
+export type DashboardOverview = {
+  as_of_date: string;
+  summary: DashboardSummary;
+  today_attendance: DashboardTodayAttendance[];
+  attendance_trend: DashboardAttendanceTrend[];
+  department_distribution: DashboardDepartmentDistribution[];
+};
+
+export type DashboardOverviewQuery = {
+  as_of_date?: string;
+  branch_id?: number;
+  dept_id?: number;
+  limit?: number;
+};

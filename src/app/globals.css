@@ -3527,10 +3527,26 @@ textarea {
   display: grid;
   grid-template-columns: repeat(12, 1fr);
   gap: 1rem;
+  height: 100%;
 }
 
 .dash-stat-grid>* {
   grid-column: span 12;
+}
+
+.dash-attendance-card {
+  min-height: 320px;
+}
+
+.dash-attendance-body {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.dash-attendance-chart {
+  flex: 1;
+  min-height: 260px;
 }
 
 @media (min-width: 576px) {
@@ -3548,14 +3564,32 @@ textarea {
 @media (min-width: 1400px) {
   .dash-row:first-of-type {
     grid-template-columns: 7fr 5fr;
+    align-items: stretch;
   }
 
   .dash-stats-col {
     grid-column: auto;
+    display: flex;
+    flex-direction: column;
   }
 
   .dash-chart-col {
     grid-column: auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+  }
+
+  .dash-stats-col .dash-stat-grid {
+    flex: 1;
+  }
+
+  .dash-chart-col > * {
+    flex: 1;
+  }
+
+  .dash-attendance-card {
+    min-height: 100%;
   }
 }
 
@@ -3569,6 +3603,7 @@ textarea {
 @media (min-width: 992px) {
   .dash-row:nth-of-type(2) {
     grid-template-columns: 5fr 7fr;
+    align-items: stretch;
   }
 
   .dash-satisfaction-col {

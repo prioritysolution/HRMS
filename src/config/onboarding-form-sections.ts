@@ -10,33 +10,16 @@ export const ONBOARDING_FORM_SECTIONS: FormSection[] = [
     title: "Employee Registration",
     description: "Register the new employee with basic profile and employment details.",
     fields: [
-      { name: "Employee_code", label: "Employee Code", required: true, placeholder: "EMP-1045" },
-      { name: "First_name", label: "First Name", required: true },
-      { name: "Last_name", label: "Last Name", required: true },
-      { name: "Email", label: "Personal Email", type: "email", required: true },
-      { name: "Mobile", label: "Mobile Number", type: "tel", required: true },
+      { name: "Employee_id", label: "Employee", type: "select", required: true },
+      { name: "Device_user_id", label: "Device ID (Biometric)", type: "number", min: 1 },
       { name: "Date_of_joining", label: "Date of Joining", type: "date", required: true },
-      {
-        name: "Department",
-        label: "Department",
-        type: "select",
-        options: departmentOptions,
-        required: true,
-      },
-      {
-        name: "Designation",
-        label: "Designation",
-        type: "select",
-        options: designationOptions,
-        required: true,
-      },
-      {
-        name: "Employment_type",
-        label: "Employment Type",
-        type: "select",
-        options: employmentTypeOptions,
-        required: true,
-      },
+      { name: "Department", label: "Department", type: "select" },
+      { name: "Designation", label: "Designation", type: "select" },
+      { name: "Employment_type", label: "Employment Type", type: "select" },
+      { name: "Branch", label: "Branch", type: "select" },
+      { name: "Grade", label: "Grade", type: "select" },
+      { name: "Shift", label: "Shift", type: "multi-select" },
+      { name: "Employment_status", label: "Employment Status", type: "select" },
       {
         name: "Step_registration_done",
         label: "Mark Employee Registration as complete",
@@ -50,7 +33,7 @@ export const ONBOARDING_FORM_SECTIONS: FormSection[] = [
     title: "Document Submission",
     description: "Upload mandatory identity and qualification documents.",
     fields: [
-      { name: "Aadhaar_no", label: "Aadhaar Number", placeholder: "XXXX XXXX XXXX" },
+      { name: "Aadhaar_no", label: "Aadhaar Number", placeholder: "XXXX XXXX XXXX", pattern: /^\d{12}$/, patternMessage: "Aadhaar must be exactly 12 digits." },
       {
         name: "Aadhaar_doc",
         label: "Aadhaar ID",
@@ -58,7 +41,7 @@ export const ONBOARDING_FORM_SECTIONS: FormSection[] = [
         accept: "application/pdf,image/jpeg,image/png,.pdf,.jpg,.jpeg,.png",
         hint: "PDF, JPG, PNG",
       },
-      { name: "PAN", label: "PAN Number", placeholder: "ABCDE1234F" },
+      { name: "PAN", label: "PAN Number", placeholder: "ABCDE1234F", pattern: /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, patternMessage: "PAN must be a valid format (e.g. ABCDE1234F)." },
       {
         name: "PAN_doc",
         label: "PAN Card",
@@ -119,9 +102,9 @@ export const ONBOARDING_FORM_SECTIONS: FormSection[] = [
     title: "Statutory Details",
     description: "PF, ESI, tax, and other compliance information.",
     fields: [
-      { name: "PF_number", label: "PF Number" },
-      { name: "UAN", label: "UAN" },
-      { name: "ESI_number", label: "ESI Number" },
+      { name: "PF_number", label: "PF Number", pattern: /^[A-Z0-9]+$/, patternMessage: "PF Number must be valid alphanumeric." },
+      { name: "UAN", label: "UAN", pattern: /^\d{12}$/, patternMessage: "UAN must be exactly 12 digits." },
+      { name: "ESI_number", label: "ESI Number", pattern: /^\d{17}$/, patternMessage: "ESI number must be exactly 17 digits." },
       { name: "Professional_tax", label: "Professional Tax" },
       { name: "TDS", label: "TDS" },
       {

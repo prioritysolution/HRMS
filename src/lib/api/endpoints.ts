@@ -154,6 +154,7 @@ export const API_ENDPOINTS = {
         : `/api/v1/menu/get-by-menu/${menuId}/${subMenuId}`,
   },
   dashboard: {
+    overview: "/api/v1/dashboard/overview",
     analytics: "/dashboard/analytics",
     sales: "/dashboard/sales",
     attendance: "/dashboard/attendance",

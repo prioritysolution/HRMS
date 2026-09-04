@@ -27,16 +27,37 @@ export function validateFormField(field: FormField, value: FormValue): string | 
 
   if (!text) return undefined;
 
+  if (field.minLength !== undefined && text.length < field.minLength) {
+    return `${field.label} must be at least ${field.minLength} characters.`;
+  }
+
+  if (field.maxLength !== undefined && text.length > field.maxLength) {
+    return `${field.label} must be at most ${field.maxLength} characters.`;
+  }
+
+  if (field.pattern && !field.pattern.test(text)) {
+    return field.patternMessage || `${field.label} format is invalid.`;
+  }
+
   if (field.type === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text)) {
     return "Please enter a valid email address.";
   }
 
   if (field.type === "tel" && text.replace(/\D/g, "").length < 10) {
-    return "Please enter a valid phone number.";
+    return "Please enter a valid phone number (min 10 digits).";
   }
 
-  if (field.type === "number" && Number.isNaN(Number(text))) {
-    return "Please enter a valid number.";
+  if (field.type === "number") {
+    const num = Number(text);
+    if (Number.isNaN(num)) {
+      return "Please enter a valid number.";
+    }
+    if (field.min !== undefined && num < field.min) {
+      return `${field.label} must be at least ${field.min}.`;
+    }
+    if (field.max !== undefined && num > field.max) {
+      return `${field.label} must be at most ${field.max}.`;
+    }
   }
 
   if (field.type === "date" && !isValidDateValue(text)) {
