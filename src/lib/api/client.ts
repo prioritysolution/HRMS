@@ -22,7 +22,24 @@ type RequestOptions = {
   unwrap?: boolean;
   headers?: HeadersInit;
   signal?: AbortSignal;
+  /** When false, failed requests return a SoftApiError instead of throwing. */
+  throwOnError?: boolean;
 };
+
+export type SoftApiError = {
+  __apiError: true;
+  status: number;
+  message: string;
+  data?: unknown;
+};
+
+export function isSoftApiError(value: unknown): value is SoftApiError {
+  return Boolean(value && typeof value === "object" && (value as SoftApiError).__apiError === true);
+}
+
+function asSoftApiError(message: string, status: number, data?: unknown): SoftApiError {
+  return { __apiError: true, status, message, data };
+}
 
 type ApiEnvelope<T> = {
   data?: T;
@@ -72,8 +89,14 @@ function unwrapResponse<T>(payload: unknown): T {
 
 const inflightGets = new Map<string, Promise<unknown>>();
 
-function getRequestKey(method: string, path: string, auth: boolean, unwrap: boolean): string {
-  return `${method}:${auth ? "auth" : "public"}:${unwrap ? "unwrap" : "raw"}:${getApiUrl(path)}`;
+function getRequestKey(
+  method: string,
+  path: string,
+  auth: boolean,
+  unwrap: boolean,
+  throwOnError: boolean,
+): string {
+  return `${method}:${auth ? "auth" : "public"}:${unwrap ? "unwrap" : "raw"}:${throwOnError ? "throw" : "soft"}:${getApiUrl(path)}`;
 }
 
 /** Shared refresh so concurrent 401s only hit the refresh endpoint once. */
@@ -136,9 +159,9 @@ async function request<T>(
   body?: unknown,
   options: RequestOptions = {},
 ): Promise<T> {
-  const { auth = true, unwrap = true, signal } = options;
+  const { auth = true, unwrap = true, signal, throwOnError = true } = options;
   const canDedupe = method === "GET" && !signal;
-  const requestKey = canDedupe ? getRequestKey(method, path, auth, unwrap) : null;
+  const requestKey = canDedupe ? getRequestKey(method, path, auth, unwrap, throwOnError) : null;
 
   if (requestKey) {
     const existing = inflightGets.get(requestKey);
@@ -163,7 +186,7 @@ async function sendRequest<T>(
   body: unknown,
   options: RequestOptions,
 ): Promise<T> {
-  const { auth = true, unwrap = true, headers, signal } = options;
+  const { auth = true, unwrap = true, headers, signal, throwOnError = true } = options;
   const isFormData = typeof FormData !== "undefined" && body instanceof FormData;
   const requestBody =
     body === undefined ? undefined : isFormData ? body : applyOrgIdToRequestBody(body);
@@ -240,15 +263,31 @@ async function sendRequest<T>(
           payload,
         );
       }
-      throw new ApiError(
-        extractErrorMessage(payload, `Request failed with status ${response.status}`),
-        response.status,
+      const errorMessage = extractErrorMessage(
         payload,
+        `Request failed with status ${response.status}`,
       );
+      if (!throwOnError) {
+        return asSoftApiError(errorMessage, response.status, payload) as T;
+      }
+      throw new ApiError(errorMessage, response.status, payload);
     }
 
     return unwrap ? unwrapResponse<T>(payload) : (payload as T);
   } catch (error) {
+    if (!throwOnError && !(error instanceof ApiError && error.status === 401)) {
+      if (isSoftApiError(error)) return error as T;
+      if (error instanceof ApiError) {
+        return asSoftApiError(error.message, error.status, error.data) as T;
+      }
+      if (error instanceof DOMException && error.name === "AbortError") {
+        return asSoftApiError("Request timed out. Please try again.", 408) as T;
+      }
+      return asSoftApiError(
+        error instanceof Error ? error.message : "Network error. Check your API connection.",
+        0,
+      ) as T;
+    }
     if (error instanceof ApiError) throw error;
     if (error instanceof DOMException && error.name === "AbortError") {
       throw new ApiError("Request timed out. Please try again.", 408);

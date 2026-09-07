@@ -13,6 +13,7 @@ import {
   Settings,
   Sun,
   UserRound,
+  X,
 } from "lucide-react";
 import { notifications } from "@/data/mock";
 import { LogoutButton } from "@/components/layout/LogoutButton";
@@ -21,7 +22,7 @@ import { useUIStore } from "@/components/layout/UIProvider";
 import { BrandLogo } from "@/components/ui/BrandLogo";
 
 export function Topbar() {
-  const { theme, toggleTheme, toggleSidebar } = useUIStore();
+  const { theme, toggleTheme, toggleSidebar, mobileOpen } = useUIStore();
   const { user } = useAuth();
   const [openNoti, setOpenNoti] = useState(false);
   const [openUser, setOpenUser] = useState(false);
@@ -55,17 +56,22 @@ export function Topbar() {
     <header className="topbar">
       <div className="topbar-content">
         <div className="top-left-content">
-          <div className="main-logo mr-1">
-            <BrandLogo size="lg" />
-          </div>
           <button
             type="button"
             className="sidebar-toggle"
-            onClick={toggleSidebar}
-            aria-label="Toggle sidebar"
+            onClick={(event) => {
+              event.stopPropagation();
+              toggleSidebar();
+            }}
+            aria-label={mobileOpen ? "Close sidebar" : "Open sidebar"}
+            aria-expanded={mobileOpen}
+            aria-controls="app-sidebar"
           >
-            <Menu size={18} />
+            {mobileOpen ? <X size={18} /> : <Menu size={18} />}
           </button>
+          <div className="main-logo">
+            <BrandLogo size="lg" />
+          </div>
         </div>
 
         <div className="top-right-content">
@@ -85,14 +91,18 @@ export function Topbar() {
 
           <button
             type="button"
-            className="topbar-icon hidden sm:inline-flex"
+            className="topbar-icon topbar-icon-desktop"
             onClick={toggleFullscreen}
             aria-label="Toggle fullscreen"
           >
             {fullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
           </button>
 
-          <button type="button" className="topbar-icon" aria-label="Settings">
+          <button
+            type="button"
+            className="topbar-icon topbar-icon-desktop"
+            aria-label="Settings"
+          >
             <Settings size={16} />
           </button>
 
@@ -147,7 +157,7 @@ export function Topbar() {
                 height={36}
                 className="rounded-full object-cover"
               />
-              <div className="hidden text-left sm:block">
+              <div className="topbar-user-meta">
                 <div className="text-sm font-bold leading-none">{displayName}</div>
                 <div className="mt-1 text-xs text-muted">{displayRole}</div>
               </div>

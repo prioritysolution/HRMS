@@ -219,4 +219,13 @@ export const API_ENDPOINTS = {
       module ? `/api/v1/code-series/list?module=${encodeURIComponent(module)}` : "/api/v1/code-series/list",
     update: "/api/v1/code-series/update",
   },
+  emailConfig: {
+    get: "/api/v1/email-config",
+    update: "/api/v1/email-config",
+    test: "/api/v1/email-config/test",
+  },
+  notificationSettings: {
+    get: "/api/v1/notification-settings",
+    update: "/api/v1/notification-settings",
+  },
 } as const;

@@ -1122,3 +1122,40 @@ export type DashboardOverviewQuery = {
   dept_id?: number;
   limit?: number;
 };
+
+export type EmailConfigRecord = {
+  mailer: string;
+  host: string;
+  port: number | string;
+  username: string;
+  password?: string;
+  encryption: string;
+  from_address: string;
+  from_name: string;
+};
+
+export type EmailConfigWritePayload = {
+  mailer: string;
+  host: string;
+  port: number;
+  username: string;
+  password: string;
+  encryption: string;
+  from_address: string;
+  from_name: string;
+};
+
+export type EmailConfigTestPayload = EmailConfigWritePayload & {
+  to_email: string;
+  subject: string;
+  message: string;
+};
+
+export type NotificationChannelStatus = 0 | 1;
+
+export type NotificationSettingsRecord = {
+  email_notification: NotificationChannelStatus;
+  inapp_notification: NotificationChannelStatus;
+};
+
+export type NotificationSettingsWritePayload = NotificationSettingsRecord;

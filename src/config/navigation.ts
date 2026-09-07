@@ -149,6 +149,15 @@ export const navigation: NavSection[] = [
           { label: "Service History", href: "/reports/employee/history" },
         ],
       },
+      {
+        label: "Settings",
+        icon: "settings",
+        children: [
+          { label: "Email Configuration", href: "/settings/email" },
+          { label: "Notifications", href: "/settings/notifications" },
+          { label: "Configure Numbering Sequence", href: "/settings/configure-numbering-sequence" },
+        ],
+      },
     ],
   },
 ];

@@ -4,6 +4,8 @@ export type OnboardingChecklistStep = {
   id: string;
   title: string;
   doneField: string;
+  /** If any of these flags is true, the step counts as complete. */
+  doneAnyOf?: string[];
 };
 
 export const ONBOARDING_CHECKLIST_STEPS: OnboardingChecklistStep[] = [
@@ -13,15 +15,21 @@ export const ONBOARDING_CHECKLIST_STEPS: OnboardingChecklistStep[] = [
   { id: "statutory", title: "Statutory Details", doneField: "Step_statutory_done" },
   { id: "agreement", title: "Employment Agreement", doneField: "Step_agreement_done" },
   { id: "idcard", title: "ID Card Generation", doneField: "Step_idcard_done" },
-  { id: "account", title: "Email / User Account Creation", doneField: "Create_user_account" },
+  {
+    id: "account",
+    title: "Email / User Account Creation",
+    doneField: "Create_user_account",
+    doneAnyOf: ["Create_user_account", "User_already_created"],
+  },
 ];
 
 export function isOnboardingFlagDone(value: unknown): boolean {
   return value === true || value === "true" || value === 1 || value === "1";
 }
 
-function isStepDone(row: HrmsRow, doneField: string): boolean {
-  return isOnboardingFlagDone(row[doneField]);
+function isStepDone(row: HrmsRow, step: OnboardingChecklistStep): boolean {
+  const fields = step.doneAnyOf?.length ? step.doneAnyOf : [step.doneField];
+  return fields.some((field) => isOnboardingFlagDone(row[field]));
 }
 
 export function getChecklistProgress(row: HrmsRow): {
@@ -30,7 +38,7 @@ export function getChecklistProgress(row: HrmsRow): {
   percent: number;
 } {
   const total = ONBOARDING_CHECKLIST_STEPS.length;
-  const completed = ONBOARDING_CHECKLIST_STEPS.filter((step) => isStepDone(row, step.doneField)).length;
+  const completed = ONBOARDING_CHECKLIST_STEPS.filter((step) => isStepDone(row, step)).length;
   const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
   return { completed, total, percent };
 }
@@ -64,5 +72,5 @@ export function enrichOnboardingRow(values: HrmsRow): HrmsRow {
 export function isOnboardingStepDone(row: HrmsRow, stepId: string): boolean {
   const step = ONBOARDING_CHECKLIST_STEPS.find((item) => item.id === stepId);
   if (!step) return false;
-  return isStepDone(row, step.doneField);
+  return isStepDone(row, step);
 }

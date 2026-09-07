@@ -12,8 +12,9 @@ type OnboardingChecklistProps = {
   compact?: boolean;
 };
 
-function isStepComplete(values: HrmsRow, doneField: string): boolean {
-  return isOnboardingFlagDone(values[doneField]);
+function isStepComplete(values: HrmsRow, step: (typeof ONBOARDING_CHECKLIST_STEPS)[number]): boolean {
+  const fields = step.doneAnyOf?.length ? step.doneAnyOf : [step.doneField];
+  return fields.some((field) => isOnboardingFlagDone(values[field]));
 }
 
 export function OnboardingChecklist({
@@ -23,7 +24,7 @@ export function OnboardingChecklist({
   compact = false,
 }: OnboardingChecklistProps) {
   const completedCount = ONBOARDING_CHECKLIST_STEPS.filter((step) =>
-    isStepComplete(values, step.doneField),
+    isStepComplete(values, step),
   ).length;
   const total = ONBOARDING_CHECKLIST_STEPS.length;
   const percent = total === 0 ? 0 : Math.round((completedCount / total) * 100);
@@ -53,7 +54,7 @@ export function OnboardingChecklist({
 
       <ol className="onboarding-checklist-steps">
         {ONBOARDING_CHECKLIST_STEPS.map((step, index) => {
-          const done = isStepComplete(values, step.doneField);
+          const done = isStepComplete(values, step);
           const active = activeStepId === step.id;
 
           return (

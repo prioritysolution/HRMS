@@ -27,6 +27,8 @@ export {
 } from "@/lib/api/services/attendance.service";
 export { attendanceService } from "@/lib/api/services/attendance.service";
 export { codeSeriesService } from "@/lib/api/services/code-series.service";
+export { emailConfigService } from "@/lib/api/services/email-config.service";
+export { notificationSettingsService } from "@/lib/api/services/notification-settings.service";
 export { employeeOnboardingService } from "@/lib/api/services/employee-onboarding.service";
 export {
   attendanceTrendToPercentages,

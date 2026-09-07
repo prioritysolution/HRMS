@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { ImagePlus, X } from "lucide-react";
+import { Eye, FileText, ImagePlus, X } from "lucide-react";
 import { FormFieldLabel } from "@/components/ui/FormFieldLabel";
 import { formatFileSize, LOGO_ACCEPT, LOGO_MAX_SIZE_MB } from "@/lib/file-upload";
 import { resolvePublicFileUrl } from "@/lib/env";
@@ -11,6 +11,16 @@ function fileLabelFromPath(value?: string): string {
   if (!value) return "";
   const cleaned = value.split("?")[0].replace(/\\/g, "/");
   return cleaned.split("/").filter(Boolean).pop() || value;
+}
+
+function isPdfSource(file: File | null, existingUrl?: string, existingName?: string): boolean {
+  if (file) {
+    if (file.type === "application/pdf") return true;
+    return file.name.toLowerCase().endsWith(".pdf");
+  }
+
+  const name = (existingName || existingUrl || "").toLowerCase().split("?")[0];
+  return name.endsWith(".pdf");
 }
 
 type FileUploadFieldProps = {
@@ -67,17 +77,25 @@ export function FileUploadField({
   const previewUrl = objectUrl || resolvePublicFileUrl(existingUrl ?? "");
   const fileName =
     file?.name || fileLabelFromPath(existingName) || fileLabelFromPath(existingUrl);
+  const hasFile = Boolean(file || existingUrl);
+  const isPdf = isPdfSource(file, existingUrl, existingName);
+  const canPreviewImage = Boolean(previewUrl) && !isPdf && !previewFailed;
 
   const clear = () => {
     if (inputRef.current) inputRef.current.value = "";
     onChange(null);
   };
 
+  const openFile = () => {
+    if (!previewUrl) return;
+    window.open(previewUrl, "_blank", "noopener,noreferrer");
+  };
+
   return (
     <div>
       <FormFieldLabel htmlFor={inputId} label={label} required={required} />
       <div className={cn("file-upload", error && "is-invalid")}>
-        {previewUrl && !previewFailed ? (
+        {canPreviewImage ? (
           <img
             src={previewUrl}
             alt={`${label} preview`}
@@ -85,17 +103,43 @@ export function FileUploadField({
             onError={() => setPreviewFailed(true)}
           />
         ) : (
-          <span className="file-upload-placeholder" aria-hidden="true">
-            <ImagePlus size={18} strokeWidth={2} />
+          <span
+            className={cn(
+              "file-upload-placeholder",
+              isPdf && hasFile && "file-upload-placeholder--pdf",
+            )}
+            aria-hidden="true"
+          >
+            {isPdf && hasFile ? (
+              <FileText size={18} strokeWidth={2} />
+            ) : (
+              <ImagePlus size={18} strokeWidth={2} />
+            )}
           </span>
         )}
         <div className="file-upload-meta">
           <div className="file-upload-actions">
             <label htmlFor={inputId} className="btn btn-outline-primary file-upload-choose">
-              {file || existingUrl ? "Change file" : "Choose file"}
+              {hasFile ? "Change file" : "Choose file"}
             </label>
-            {file || existingUrl ? (
-              <button type="button" className="btn btn-outline-danger file-upload-clear" onClick={clear} disabled={disabled}>
+            {hasFile && previewUrl ? (
+              <button
+                type="button"
+                className="btn btn-outline-primary file-upload-view"
+                onClick={openFile}
+                disabled={disabled}
+              >
+                <Eye size={14} strokeWidth={2.25} />
+                {isPdf ? "View PDF" : "View"}
+              </button>
+            ) : null}
+            {hasFile ? (
+              <button
+                type="button"
+                className="btn btn-outline-danger file-upload-clear"
+                onClick={clear}
+                disabled={disabled}
+              >
                 <X size={14} strokeWidth={2.25} />
                 Remove
               </button>

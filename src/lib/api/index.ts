@@ -30,5 +30,7 @@ export {
   reportsService,
   workShiftService,
   codeSeriesService,
+  emailConfigService,
+  notificationSettingsService,
 } from "@/lib/api/services";
 export { env, getApiUrl } from "@/lib/env";

@@ -78,6 +78,22 @@ function appendFormValue(formData: FormData, key: string, value: unknown): void 
   formData.append(key, String(value));
 }
 
+/** Empty password must still be sent so the API receives null / no password. */
+function appendPasswordValue(formData: FormData, value: unknown): void {
+  const password =
+    value === undefined || value === null || value instanceof File
+      ? ""
+      : String(value).trim();
+
+  formData.append("password", password);
+}
+
+function resolvePasswordValue(value: unknown): string | null {
+  if (value === undefined || value === null || value instanceof File) return null;
+  const password = String(value).trim();
+  return password || null;
+}
+
 function flagValue(value: unknown): "1" | "0" | undefined {
   if (value === undefined || value === null || value === "") return undefined;
   if (value === true || value === "true" || value === 1 || value === "1" || value === "Y" || value === "yes") {
@@ -211,11 +227,21 @@ function flattenNestedAliases(row: Record<string, unknown>): Record<string, unkn
         if (path && extra.PAN_doc == null) extra.PAN_doc = path;
         if (verified != null && extra.Doc_pan_verified == null) extra.Doc_pan_verified = verified;
       }
-      if (isEducation && verified != null && extra.Doc_education_verified == null) {
-        extra.Doc_education_verified = verified;
+      if (isEducation) {
+        if (path && extra.Educational_certificates == null) {
+          extra.Educational_certificates = path;
+        }
+        if (verified != null && extra.Doc_education_verified == null) {
+          extra.Doc_education_verified = verified;
+        }
       }
-      if (isExperience && verified != null && extra.Doc_experience_verified == null) {
-        extra.Doc_experience_verified = verified;
+      if (isExperience) {
+        if (path && extra.Experience_certificates == null) {
+          extra.Experience_certificates = path;
+        }
+        if (verified != null && extra.Doc_experience_verified == null) {
+          extra.Doc_experience_verified = verified;
+        }
       }
       if (remarks && extra.Verification_remarks == null) extra.Verification_remarks = remarks;
     });
@@ -340,7 +366,11 @@ export function toOnboardingFormData(values: HrmsRow): FormData {
 
   appendFormValue(formData, "work_email", values.Work_email);
   appendFormValue(formData, "username", values.Username);
-  appendFormValue(formData, "password", values.Password);
+  appendPasswordValue(formData, values.Password);
+  const userAlreadyCreated = flagValue(values.User_already_created);
+  if (userAlreadyCreated !== undefined) {
+    formData.append("user_already_created", userAlreadyCreated);
+  }
   const createUser = flagValue(values.Create_user_account);
   if (createUser !== undefined) formData.append("create_user_account", createUser);
   const sendWelcome = flagValue(values.Send_welcome_email);
@@ -485,7 +515,13 @@ function normalizeListRow(row: Record<string, unknown>): HrmsRow {
       "create_user_account",
       "Step7_Complete",
     ]),
+    User_already_created: firstFlag(source, [
+      "User_already_created",
+      "user_already_created",
+    ]),
     Send_welcome_email: firstFlag(source, ["Send_welcome_email", "send_welcome_email"]),
+    // Never hydrate password into the edit form.
+    Password: "",
     Onboarding_stage: firstText(source, ["Onboarding_stage"]) || "Documents",
   } as HrmsRow;
 }
@@ -494,26 +530,52 @@ function unwrapDetail(payload: unknown): HrmsRow {
   const record = asRecord(payload);
   if (!record) return {} as HrmsRow;
 
-  const nestedOnboarding = asRecord(record.onboarding);
   const nestedData = asRecord(record.data);
+  const nestedOnboarding =
+    asRecord(record.onboarding) ??
+    asRecord(nestedData?.onboarding) ??
+    asRecord(record.Onboarding) ??
+    asRecord(nestedData?.Onboarding);
+  const nestedEmployee =
+    asRecord(record.employee) ??
+    asRecord(nestedData?.employee) ??
+    asRecord(record.Employee) ??
+    asRecord(nestedData?.Employee) ??
+    asRecord(nestedOnboarding?.employee);
+
+  // Prefer the richest onboarding object; fall back to data / root.
   const base = nestedOnboarding ?? nestedData ?? record;
+
   const identifications =
     record.identifications ??
     record.Identifications ??
     base.identifications ??
     base.Identifications ??
     nestedData?.identifications ??
-    nestedData?.Identifications;
+    nestedData?.Identifications ??
+    nestedOnboarding?.identifications ??
+    nestedOnboarding?.Identifications;
+
   const statutory =
     record.statutory ??
     record.Statutory ??
     base.statutory ??
-    nestedData?.statutory;
-  const employee = asRecord(record.employee) ?? asRecord(base.employee);
+    base.Statutory ??
+    nestedData?.statutory ??
+    nestedData?.Statutory ??
+    nestedOnboarding?.statutory ??
+    nestedOnboarding?.Statutory;
+
+  const documents =
+    asRecord(record.documents) ??
+    asRecord(base.documents) ??
+    asRecord(nestedData?.documents) ??
+    asRecord(nestedOnboarding?.documents);
 
   return normalizeListRow({
-    ...(employee ?? {}),
+    ...(nestedEmployee ?? {}),
     ...base,
+    ...(documents ?? {}),
     identifications,
     statutory,
   });
@@ -595,7 +657,7 @@ function toOnboardingJsonPayload(values: HrmsRow): Record<string, unknown> {
   setIf("id_card_number", values.Id_card_number);
   setIf("work_email", values.Work_email);
   setIf("username", values.Username);
-  setIf("password", values.Password);
+  payload.password = resolvePasswordValue(values.Password);
 
   const assignFlag = (keys: string[], value: unknown) => {
     const flag = flagValue(value);
@@ -605,6 +667,7 @@ function toOnboardingJsonPayload(values: HrmsRow): Record<string, unknown> {
     });
   };
 
+  assignFlag(["user_already_created", "User_already_created"], values.User_already_created);
   assignFlag(["agreement_signed", "Agreement_signed"], values.Agreement_signed);
   assignFlag(["id_card_generated", "Id_card_generated"], values.Id_card_generated);
   assignFlag(["create_user_account", "Create_user_account"], values.Create_user_account);

@@ -1,52 +1,59 @@
-import { AuthShowcase } from "@/components/auth/AuthShowcase";
-import { AuthBrandLogo } from "@/components/ui/AuthBrandLogo";
+import Image from "next/image";
 
 type AuthShellProps = {
-  eyebrow: string;
   title: string;
   subtitle: string;
   children: React.ReactNode;
-  footer?: React.ReactNode;
 };
 
-export function AuthShell({ eyebrow, title, subtitle, children, footer }: AuthShellProps) {
+export function AuthShell({ title, subtitle, children }: AuthShellProps) {
   return (
-    <section className="auth-page">
-      <div className="auth-ambient" aria-hidden="true">
-        <span className="auth-orb auth-orb-primary" />
-        <span className="auth-orb auth-orb-info" />
-        <span className="auth-orb auth-orb-success" />
-        <span className="auth-grid" />
-      </div>
-      <div className="auth-overlay" />
+    <section className="auth-page auth-page--login">
+      <div className="login-shell">
+        {/* =========================
+            LEFT SHOWCASE — full artwork, no crop
+           ========================= */}
+        <div
+          className="login-showcase-panel"
+          role="img"
+          aria-label="PrioHRM — Human Resource Management System. Employee management, attendance and leave, payroll and performance, multi-branch support, and mobile access."
+        />
 
-      <div className="auth-container">
-        <div className="auth-card auth-card-split">
-          <div className="auth-pane auth-pane-form">
-            <div className="auth-pane-inner">
-              <header className="auth-header">
-                <div className="auth-logo">
-                  <AuthBrandLogo />
-                </div>
-                <span className="auth-eyebrow">{eyebrow}</span>
-                <h1 className="auth-heading">{title}</h1>
-                <p className="auth-subheading">{subtitle}</p>
-              </header>
-
-              <div className="auth-form-panel">{children}</div>
-
-              {footer ? <footer className="auth-footer-link">{footer}</footer> : null}
-
-              <p className="auth-legal auth-legal--form">
-                By continuing, you agree to our{" "}
-                <a href="#">Terms of Service</a> and{" "}
-                <a href="#">Privacy Policy</a>
-              </p>
+        {/* =========================
+            RIGHT LOGIN SECTION
+           ========================= */}
+        <div className="login-form-panel">
+          <div className="login-form-card">
+            <div className="login-card-brand">
+              <Image
+                src="/images/logos/prio-hrm-login-brand.png"
+                alt="PrioHRM"
+                width={420}
+                height={278}
+                priority
+                className="login-card-brand-image"
+              />
             </div>
-          </div>
 
-          <div className="auth-pane auth-pane-media">
-            <AuthShowcase />
+            <div className="login-welcome">
+              <h1>{title}</h1>
+              <p>{subtitle}</p>
+            </div>
+
+            <div className="login-form-content">{children}</div>
+
+            <div className="login-card-footer">
+              <span aria-hidden="true" />
+              <a
+                href="https://prioritysolutions.in/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="login-card-footer-link"
+              >
+                Powered by Priority Solutions
+              </a>
+              <span aria-hidden="true" />
+            </div>
           </div>
         </div>
       </div>

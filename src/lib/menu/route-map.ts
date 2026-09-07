@@ -133,6 +133,17 @@ const ROUTE_ALIASES: Record<string, string> = {
   "/ess/requests": "/ess/requests",
   "/ess/service-history": "/ess/service-history",
   "/ess/change-password": "/ess/change-password",
+
+  // Settings
+  "/settings/email": "/settings/email",
+  "/settings/email-config": "/settings/email",
+  "/settings/smtp": "/settings/email",
+  "/settings/mail": "/settings/email",
+  "/settings/notifications": "/settings/notifications",
+  "/settings/notification": "/settings/notifications",
+  "/settings/notification-settings": "/settings/notifications",
+  "/settings/configure-numbering-sequence": "/settings/configure-numbering-sequence",
+  "/settings/numbering-sequence": "/settings/configure-numbering-sequence",
 };
 
 /**
@@ -199,6 +210,10 @@ const LABEL_ROUTES: Array<{ match: RegExp; href: string }> = [
   { match: /^submit\s*requests?$/i, href: "/ess/requests" },
   { match: /^service\s*history$/i, href: "/ess/service-history" },
   { match: /^employee\s*self\s*service$/i, href: "/ess" },
+  { match: /^email\s*(configuration|config|settings)$/i, href: "/settings/email" },
+  { match: /^smtp(\s*configuration)?$/i, href: "/settings/email" },
+  { match: /^notifications?(\s*settings)?$/i, href: "/settings/notifications" },
+  { match: /^(configure\s*)?numbering\s*sequence$/i, href: "/settings/configure-numbering-sequence" },
 ];
 
 function normalizePath(route: string): string {
@@ -246,7 +261,9 @@ export function resolveAppRoute(
       path.startsWith("/payroll/") ||
       path.startsWith("/reports/") ||
       path === "/ess" ||
-      path.startsWith("/ess/")
+      path.startsWith("/ess/") ||
+      path === "/settings" ||
+      path.startsWith("/settings/")
     ) {
       return path;
     }

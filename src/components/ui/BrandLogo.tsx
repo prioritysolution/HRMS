@@ -23,7 +23,8 @@ export function BrandLogo({
   return (
     <Link href={href} className={`brand-logo ${className ?? ""}`} aria-label="PrioHRM home">
       <Image
-        src="/images/logos/prio-hrm-logo.png"
+        // src="/images/logos/prio-hrm-logo.png"
+        src="/images/logos/logo.jpeg"
         alt="PrioHRM"
         width={dimensions.width}
         height={dimensions.height}

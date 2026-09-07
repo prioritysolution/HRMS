@@ -12,10 +12,17 @@ import { cn } from "@/lib/utils";
 
 type Theme = "light" | "dark";
 
+const MOBILE_BREAKPOINT = 992;
+
+function isMobileViewport() {
+  return window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`).matches;
+}
+
 type UIContextValue = {
   theme: Theme;
   sidebarCollapsed: boolean;
   mobileOpen: boolean;
+  isMobile: boolean;
   toggleTheme: () => void;
   toggleSidebar: () => void;
   closeMobile: () => void;
@@ -27,6 +34,7 @@ export function UIProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>("light");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     const saved = window.localStorage.getItem("priohrm-theme") as Theme | null;
@@ -46,26 +54,37 @@ export function UIProvider({ children }: { children: React.ReactNode }) {
   }, [mobileOpen]);
 
   useEffect(() => {
-    const onResize = () => {
-      if (window.innerWidth >= 992) {
-        setMobileOpen(false);
-      }
+    const media = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
+    const syncViewport = () => {
+      const mobile = media.matches;
+      setIsMobile(mobile);
+      if (!mobile) setMobileOpen(false);
     };
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
+    syncViewport();
+    media.addEventListener("change", syncViewport);
+    return () => media.removeEventListener("change", syncViewport);
   }, []);
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMobileOpen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [mobileOpen]);
 
   const toggleTheme = useCallback(() => {
     setTheme((prev) => (prev === "light" ? "dark" : "light"));
   }, []);
 
   const toggleSidebar = useCallback(() => {
-    if (window.innerWidth < 992) {
+    if (isMobile || isMobileViewport()) {
       setMobileOpen((prev) => !prev);
       return;
     }
     setSidebarCollapsed((prev) => !prev);
-  }, []);
+  }, [isMobile]);
 
   const closeMobile = useCallback(() => setMobileOpen(false), []);
 
@@ -74,11 +93,20 @@ export function UIProvider({ children }: { children: React.ReactNode }) {
       theme,
       sidebarCollapsed,
       mobileOpen,
+      isMobile,
       toggleTheme,
       toggleSidebar,
       closeMobile,
     }),
-    [theme, sidebarCollapsed, mobileOpen, toggleTheme, toggleSidebar, closeMobile],
+    [
+      theme,
+      sidebarCollapsed,
+      mobileOpen,
+      isMobile,
+      toggleTheme,
+      toggleSidebar,
+      closeMobile,
+    ],
   );
 
   return (

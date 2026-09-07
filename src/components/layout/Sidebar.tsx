@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useLayoutEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   Building2,
   ChevronDown,
@@ -56,9 +56,36 @@ function sameSections(a: NavSection[], b: NavSection[]) {
   return JSON.stringify(a) === JSON.stringify(b);
 }
 
+const FLYOUT_VIEWPORT_PADDING = 12;
+
+function placeCollapsedFlyout(el: HTMLElement | null) {
+  if (!el) return;
+
+  el.style.setProperty("--flyout-shift", "0px");
+
+  const viewportHeight = window.innerHeight;
+  const maxHeight = Math.max(180, viewportHeight - FLYOUT_VIEWPORT_PADDING * 2);
+  el.style.setProperty("--flyout-max-height", `${maxHeight}px`);
+
+  const rect = el.getBoundingClientRect();
+  const visibleHeight = Math.min(rect.height, maxHeight);
+  const bottom = rect.top + visibleHeight;
+  let shift = 0;
+
+  if (bottom > viewportHeight - FLYOUT_VIEWPORT_PADDING) {
+    shift = viewportHeight - FLYOUT_VIEWPORT_PADDING - bottom;
+  }
+
+  if (rect.top + shift < FLYOUT_VIEWPORT_PADDING) {
+    shift = FLYOUT_VIEWPORT_PADDING - rect.top;
+  }
+
+  el.style.setProperty("--flyout-shift", `${Math.round(shift)}px`);
+}
+
 export function Sidebar() {
   const pathname = usePathname();
-  const { closeMobile } = useUIStore();
+  const { closeMobile, mobileOpen, isMobile, sidebarCollapsed } = useUIStore();
   const [sections, setSections] = useState<NavSection[]>(navigation);
   const [menuReady, setMenuReady] = useState(true);
   const [showLoading, setShowLoading] = useState(false);
@@ -128,23 +155,63 @@ export function Sidebar() {
   }, [pathname, sections]);
 
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+  const [flyoutLabel, setFlyoutLabel] = useState<string | null>(null);
+  const flyoutMenuRef = useRef<HTMLDivElement | null>(null);
+  const iconOnly = sidebarCollapsed && !isMobile;
+
+  const positionOpenFlyout = useCallback(() => {
+    placeCollapsedFlyout(flyoutMenuRef.current);
+  }, []);
 
   useEffect(() => {
     setOpenGroups((prev) => ({ ...prev, ...initiallyOpen }));
   }, [initiallyOpen]);
 
-  const toggleGroup = (label: string) => {
-    setOpenGroups((prev) => ({ ...prev, [label]: !prev[label] }));
+  useEffect(() => {
+    setFlyoutLabel(null);
+  }, [pathname]);
+
+  useLayoutEffect(() => {
+    if (!iconOnly || !flyoutLabel) return;
+
+    positionOpenFlyout();
+
+    const menu = document.querySelector(".leftbar-menu");
+    window.addEventListener("resize", positionOpenFlyout);
+    menu?.addEventListener("scroll", positionOpenFlyout, { passive: true });
+
+    return () => {
+      window.removeEventListener("resize", positionOpenFlyout);
+      menu?.removeEventListener("scroll", positionOpenFlyout);
+    };
+  }, [iconOnly, flyoutLabel, positionOpenFlyout, sections]);
+
+  const toggleGroup = (label: string, isActiveParent: boolean) => {
+    setOpenGroups((prev) => {
+      const currentState = prev[label] ?? isActiveParent;
+      return { ...prev, [label]: !currentState };
+    });
+  };
+
+  const closeFlyout = () => {
+    setFlyoutLabel(null);
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
   };
 
   const handleNavClick = () => {
-    if (window.innerWidth < 992) {
+    closeFlyout();
+    if (isMobile) {
       closeMobile();
     }
   };
 
   return (
-    <aside className="left-sidebar">
+    <aside
+      id="app-sidebar"
+      className={cn("left-sidebar", mobileOpen && "is-open")}
+    >
       <div className="leftbar-menu">
         {!menuReady ? (
           showLoading ? (
@@ -166,13 +233,34 @@ export function Sidebar() {
               {section.items.map((item) => {
                 const Icon = itemIcons[item.icon] ?? LayoutDashboard;
                 if (item.children) {
-                  const open = openGroups[item.label] || hasActiveChild(pathname, item);
+                  const isActiveParent = hasActiveChild(pathname, item);
+                  const open = openGroups[item.label] ?? isActiveParent;
+                  const showSubmenu = iconOnly || open;
                   return (
-                    <div className="nav-item" key={item.label}>
+                    <div
+                      className={cn("nav-item", iconOnly && flyoutLabel === item.label && "is-flyout-open")}
+                      key={item.label}
+                      onMouseEnter={() => {
+                        if (iconOnly) setFlyoutLabel(item.label);
+                      }}
+                      onMouseLeave={() => {
+                        if (iconOnly) setFlyoutLabel(null);
+                      }}
+                    >
                       <button
                         type="button"
-                        className={cn("nav-link menu-drop-btn", open && "open")}
-                        onClick={() => toggleGroup(item.label)}
+                        title={item.label}
+                        className={cn(
+                          "nav-link menu-drop-btn",
+                          iconOnly ? isActiveParent && "active" : open && "open",
+                        )}
+                        onClick={() => {
+                          if (iconOnly) {
+                            setFlyoutLabel(item.label);
+                            return;
+                          }
+                          toggleGroup(item.label, isActiveParent);
+                        }}
                       >
                         <div className="drop-link-title">
                           <span className="menu-icon">
@@ -184,8 +272,12 @@ export function Sidebar() {
                         </div>
                         <ChevronDown size={16} className="menu-arrow" />
                       </button>
-                      {open && (
-                        <div className="sub-menu">
+                      {showSubmenu && (
+                        <div
+                          className="sub-menu"
+                          ref={flyoutLabel === item.label ? flyoutMenuRef : undefined}
+                        >
+                          <div className="collapsed-flyout-title">{item.label}</div>
                           {item.children.map((child) => (
                             <div className="nav-item" key={`${item.label}-${child.href}`}>
                               <Link
@@ -214,6 +306,7 @@ export function Sidebar() {
                     <Link
                       href={item.href!}
                       onClick={handleNavClick}
+                      title={item.label}
                       className={cn(
                         "nav-link",
                         isActivePath(pathname, item.href) && "active",

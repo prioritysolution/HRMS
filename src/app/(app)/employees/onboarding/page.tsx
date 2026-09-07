@@ -68,25 +68,38 @@ export default function EmployeeOnboardingPage() {
   const handleEdit = async (row: HrmsRow) => {
     const onboardId = asOnboardId(row.Onboard_id ?? row.id);
     if (onboardId === null) {
-      setEditRow(row);
+      toast.error({
+        title: "Load failed",
+        message: "Missing onboarding id for this record.",
+      });
       return;
     }
 
     setEditLoading(true);
     try {
+      // Always fetch full detail for edit — list rows are incomplete.
       const detail = await employeeOnboardingService.get(onboardId);
+      const resolvedId = String(detail.Onboard_id ?? detail.id ?? onboardId);
       setEditRow({
-        ...row,
         ...detail,
-        id: String(detail.Onboard_id ?? detail.id ?? onboardId),
+        id: resolvedId,
+        Onboard_id: detail.Onboard_id ?? resolvedId,
+        // Keep list display labels only when the detail payload omits them.
+        Display_name: detail.Display_name || row.Display_name,
+        Employee_code: detail.Employee_code || row.Employee_code,
+        Dept_Name: detail.Dept_Name || row.Dept_Name,
+        Employment_status_name:
+          detail.Employment_status_name || row.Employment_status_name,
       });
     } catch (error) {
       console.error(error);
       toast.error({
         title: "Load failed",
-        message: error instanceof ApiError ? error.message : "Unable to load onboarding details.",
+        message:
+          error instanceof ApiError
+            ? error.message
+            : "Unable to load onboarding details.",
       });
-      setEditRow(row);
     } finally {
       setEditLoading(false);
     }

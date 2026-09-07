@@ -194,11 +194,34 @@ export const ONBOARDING_FORM_SECTIONS: FormSection[] = [
     title: "Email / User Account Creation",
     description: "Create work email and system user account for the employee.",
     fields: [
+      {
+        name: "User_already_created",
+        label: "User already created",
+        type: "checkbox",
+        span: "full",
+        hideOnCreate: true,
+      },
       { name: "Work_email", label: "Work Email", type: "email", placeholder: "firstname@company.com", unique: true },
       { name: "Username", label: "System Username", placeholder: "firstname.lastname", unique: true },
-      { name: "Password", label: "Password", type: "password", placeholder: "Enter password", minLength: 6, span: "full" },
-      { name: "Create_user_account", label: "Create user account", type: "checkbox" },
-      { name: "Send_welcome_email", label: "Send welcome email with login credentials", type: "checkbox" },
+      {
+        name: "Password",
+        label: "Password",
+        type: "password",
+        placeholder: "Leave blank to keep existing password",
+        minLength: 6,
+        span: "full",
+      },
+      {
+        name: "Create_user_account",
+        label: "Create user account",
+        type: "checkbox",
+        hideOnEdit: true,
+      },
+      {
+        name: "Send_welcome_email",
+        label: "Send welcome email with login credentials",
+        type: "checkbox",
+      },
     ],
   },
 ];

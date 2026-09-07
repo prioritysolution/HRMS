@@ -229,39 +229,68 @@ export function OnboardingModal({
       return;
     }
 
-    void Promise.all([
-      apiClient.get<unknown>(`${API_ENDPOINTS.employee.list}?status=1`).catch(() => []),
-      apiClient.get<unknown>(API_ENDPOINTS.employee.list).catch(() => []),
-      employeeOnboardingService.list().catch(() => [] as HrmsRow[]),
-    ]).then(([activeEmployeesPayload, allEmployeesPayload, onboardingRows]) => {
-      const rows = asArray(activeEmployeesPayload);
-      setEmployees(rows);
-      uniqueRecordsRef.current = collectUniqueConflictRecords([
-        ...asArray(allEmployeesPayload),
-        ...onboardingRows,
-      ]);
+    // Create needs the active employee picker + uniqueness scans.
+    // Edit locks Employee_id, so skip employee list APIs and only refresh
+    // onboarding uniqueness + dropdown masters.
+    if (!isEditMode) {
+      void Promise.all([
+        apiClient.get<unknown>(`${API_ENDPOINTS.employee.list}?status=1`).catch(() => []),
+        apiClient.get<unknown>(API_ENDPOINTS.employee.list).catch(() => []),
+        employeeOnboardingService.list().catch(() => [] as HrmsRow[]),
+      ]).then(([activeEmployeesPayload, allEmployeesPayload, onboardingRows]) => {
+        const rows = asArray(activeEmployeesPayload);
+        setEmployees(rows);
+        uniqueRecordsRef.current = collectUniqueConflictRecords([
+          ...asArray(allEmployeesPayload),
+          ...onboardingRows,
+        ]);
 
+        const currentEmployeeId = String(initialValues?.Employee_id ?? "").trim();
+        const options = eligibleEmployeeOptions(
+          rows,
+          collectOnboardedEmployeeIds(onboardingRows),
+          currentEmployeeId,
+        );
+
+        if (
+          currentEmployeeId &&
+          !options.some((option) => option.value === currentEmployeeId)
+        ) {
+          const code = String(initialValues?.Employee_code ?? currentEmployeeId);
+          const name = String(initialValues?.Display_name ?? "").trim();
+          options.unshift({
+            value: currentEmployeeId,
+            label: name ? `${code} - ${name}` : code,
+          });
+        }
+
+        setEmployeeOptions(options);
+      });
+    } else {
       const currentEmployeeId = String(initialValues?.Employee_id ?? "").trim();
-      const options = eligibleEmployeeOptions(
-        rows,
-        collectOnboardedEmployeeIds(onboardingRows),
-        currentEmployeeId,
-      );
-
-      if (
-        currentEmployeeId &&
-        !options.some((option) => option.value === currentEmployeeId)
-      ) {
+      if (currentEmployeeId) {
         const code = String(initialValues?.Employee_code ?? currentEmployeeId);
         const name = String(initialValues?.Display_name ?? "").trim();
-        options.unshift({
-          value: currentEmployeeId,
-          label: name ? `${code} - ${name}` : code,
-        });
+        setEmployeeOptions([
+          {
+            value: currentEmployeeId,
+            label: name ? `${code} - ${name}` : code,
+          },
+        ]);
+      } else {
+        setEmployeeOptions([]);
       }
+      setEmployees([]);
 
-      setEmployeeOptions(options);
-    });
+      void employeeOnboardingService
+        .list()
+        .then((onboardingRows) => {
+          uniqueRecordsRef.current = collectUniqueConflictRecords(onboardingRows);
+        })
+        .catch(() => {
+          uniqueRecordsRef.current = [];
+        });
+    }
 
     void apiClient
       .get<unknown>(API_ENDPOINTS.department.list)
@@ -316,11 +345,48 @@ export function OnboardingModal({
       )
       .catch(console.error);
 
-    setValues(buildInitialFormValues(resolvedFields, initialValues));
+    setValues(() => {
+      const next = buildInitialFormValues(resolvedFields, initialValues);
+      // Never hydrate a stored password into the form.
+      next.Password = "";
+
+      const editing = Boolean(
+        String(initialValues?.Onboard_id ?? initialValues?.id ?? "").trim(),
+      );
+
+      if (editing) {
+        // Default checked on edit unless API explicitly sent false.
+        if (
+          initialValues?.User_already_created === undefined ||
+          initialValues?.User_already_created === null ||
+          initialValues?.User_already_created === ""
+        ) {
+          next.User_already_created = true;
+        }
+        if (next.User_already_created === true) {
+          next.Create_user_account = false;
+        }
+      } else {
+        next.User_already_created = false;
+      }
+
+      return next;
+    });
     setErrors({});
     setSubmitError("");
     setOpenSectionId(sections[0]?.id ?? null);
-  }, [open, resolvedFields, initialValues?.id, initialValues?.Onboard_id, initialValues?.Employee_id, sections]);
+  }, [
+    open,
+    isEditMode,
+    resolvedFields,
+    initialValues?.id,
+    initialValues?.Onboard_id,
+    initialValues?.Employee_id,
+    initialValues?.Employee_code,
+    initialValues?.Display_name,
+    initialValues?.User_already_created,
+    sections,
+  ]);
 
   const dynamicSections = useMemo(() => {
     return sections.map((section) => ({
@@ -438,6 +504,10 @@ export function OnboardingModal({
         }
       }
 
+      if (name === "User_already_created" && (value === true || value === "true" || value === 1 || value === "1")) {
+        next.Create_user_account = false;
+      }
+
       nextValues = next;
       return next;
     });
@@ -499,6 +569,17 @@ export function OnboardingModal({
       }
     });
 
+    const password =
+      payload.Password === undefined || payload.Password === null
+        ? ""
+        : String(payload.Password).trim();
+    payload.Password = password || null;
+
+    // Edit default: existing users should not force account recreation.
+    if (isEditMode && payload.User_already_created === true) {
+      payload.Create_user_account = false;
+    }
+
     return payload;
   };
 
@@ -523,30 +604,36 @@ export function OnboardingModal({
     setSubmitting(true);
     setSubmitError("");
     try {
-      const [employeePayload, onboardingRows] = await Promise.all([
-        apiClient.get<unknown>(API_ENDPOINTS.employee.list).catch(() => []),
-        employeeOnboardingService.list().catch(() => [] as HrmsRow[]),
-      ]);
-      uniqueRecordsRef.current = collectUniqueConflictRecords([
-        ...asArray(employeePayload),
-        ...onboardingRows,
-      ]);
+      if (isEditMode) {
+        const onboardingRows = await employeeOnboardingService.list().catch(() => [] as HrmsRow[]);
+        uniqueRecordsRef.current = collectUniqueConflictRecords(onboardingRows);
+      } else {
+        const [employeePayload, onboardingRows] = await Promise.all([
+          apiClient.get<unknown>(API_ENDPOINTS.employee.list).catch(() => []),
+          employeeOnboardingService.list().catch(() => [] as HrmsRow[]),
+        ]);
+        uniqueRecordsRef.current = collectUniqueConflictRecords([
+          ...asArray(employeePayload),
+          ...onboardingRows,
+        ]);
 
-      const selectedEmployeeId = String(values.Employee_id ?? "").trim();
-      if (!isEditMode && selectedEmployeeId) {
-        const alreadyOnboarded = onboardingRows.some(
-          (row) => String(row.Employee_id ?? "").trim() === selectedEmployeeId,
-        );
-        if (alreadyOnboarded) {
-          setErrors((prev) => ({
-            ...prev,
-            Employee_id: "This employee already has an onboarding record.",
-          }));
-          setOpenSectionId(sections[0]?.id ?? "registration");
-          setSubmitting(false);
-          return;
+        const selectedEmployeeId = String(values.Employee_id ?? "").trim();
+        if (selectedEmployeeId) {
+          const alreadyOnboarded = onboardingRows.some(
+            (row) => String(row.Employee_id ?? "").trim() === selectedEmployeeId,
+          );
+          if (alreadyOnboarded) {
+            setErrors((prev) => ({
+              ...prev,
+              Employee_id: "This employee already has an onboarding record.",
+            }));
+            setOpenSectionId(sections[0]?.id ?? "registration");
+            setSubmitting(false);
+            return;
+          }
         }
       }
+
       const latestUniqueErrors = getOnboardingUniqueErrors(
         values,
         uniqueRecordsRef.current,
