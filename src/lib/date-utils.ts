@@ -5,6 +5,31 @@ export function pad2(value: number): string {
   return String(value).padStart(2, "0");
 }
 
+export function formatTimeDisplay(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+
+  const twelveHour = trimmed.match(/^(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)$/i);
+  if (twelveHour) {
+    const hour = Number(twelveHour[1]);
+    const minutes = twelveHour[2];
+    const period = twelveHour[3].toUpperCase();
+    const hour12 = hour === 0 ? 12 : hour;
+    return `${pad2(hour12)}:${minutes} ${period}`;
+  }
+
+  const match = trimmed.match(/(\d{1,2}):(\d{2})(?::\d{2})?/);
+  if (!match) return trimmed;
+
+  const hours = Number(match[1]);
+  const minutes = match[2];
+  if (!Number.isFinite(hours) || hours < 0 || hours > 23) return trimmed;
+
+  const period = hours >= 12 ? "PM" : "AM";
+  const hour12 = hours % 12 || 12;
+  return `${pad2(hour12)}:${minutes} ${period}`;
+}
+
 export function formatDateDisplay(value: string): string {
   if (!value) return "";
 

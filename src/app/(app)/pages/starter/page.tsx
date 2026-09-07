@@ -42,7 +42,7 @@ export default function Page() {
           secondary: "Default layout",
           avatar: "/images/avatars/avatar1.jpg",
           c1: "Template",
-          c2: "Staffu Admin",
+          c2: "PrioHRM Admin",
           c3: "20 Aug 2026",
           status: "Published",
         },

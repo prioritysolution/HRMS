@@ -16,6 +16,7 @@ export function validateFormField(field: FormField, value: FormValue): string | 
       required: field.required,
       label: field.label,
       maxSizeMb: field.maxSizeMb,
+      accept: field.accept,
     });
   }
 

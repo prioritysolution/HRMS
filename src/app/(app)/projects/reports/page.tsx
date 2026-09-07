@@ -41,7 +41,7 @@ export default function Page() {
           primary: "Engineering",
           secondary: "Backend & Platform",
           avatar: "/images/avatars/avatar4.jpg",
-          c1: "Staffu Core",
+          c1: "PrioHRM Core",
           c2: "62 tasks",
           c3: "Aug 2026",
           status: "Healthy",

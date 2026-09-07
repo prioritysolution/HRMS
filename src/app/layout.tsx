@@ -11,11 +11,19 @@ const nunito = Nunito({
 
 export const metadata: Metadata = {
   title: {
-    default: "Staffu | HRMS Portal",
-    template: "%s | Staffu HRMS",
+    default: "PrioHRM | HRMS Portal",
+    template: "%s | PrioHRM HRMS",
   },
   description:
-    "Staffu HRMS Portal — modern SaaS HR, CRM, payroll, and workforce analytics.",
+    "PrioHRM HRMS Portal — modern SaaS HR, CRM, payroll, and workforce analytics.",
+  icons: {
+    icon: [
+      { url: "/images/logos/prio-hrm-mark.png", sizes: "any", type: "image/png" },
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/icons/apple-touch-icon.png" }],
+  },
 };
 
 export const viewport: Viewport = {

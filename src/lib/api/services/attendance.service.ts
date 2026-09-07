@@ -1,5 +1,9 @@
+import { ATTENDANCE_SOURCE_TYPES, ATTENDANCE_STATUS_OPTIONS } from "@/config/attendance-form-sections";
 import { apiClient } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/endpoints";
+import { applOptionService } from "@/lib/api/services/appl-options.service";
+import { employeeService } from "@/lib/api/services/employee.service";
+import { workShiftService } from "@/lib/api/services/work-shift.service";
 import type {
   ApplOptionRecord,
   AttendanceListQuery,
@@ -11,6 +15,13 @@ import type {
 } from "@/lib/api/types";
 import { formatDateDisplay, parseDateToIso } from "@/lib/date-utils";
 import type { HrmsRow } from "@/types/hrms";
+
+export type AttendanceWriteContext = {
+  employees: HrmsRow[];
+  shifts: HrmsRow[];
+  statusOptions: ApplOptionRecord[];
+  sourceOptions: ApplOptionRecord[];
+};
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
@@ -190,6 +201,10 @@ export function attendanceToRow(record: AttendanceRecord): HrmsRow {
     Employee_name:
       optionalText(readValue(source, ["Employee_name", "employee_name"])) ?? "",
     Branch_Id: optionalNumber(readValue(source, ["Branch_Id", "branch_id"])),
+    Branch_Name:
+      optionalText(
+        readValue(source, ["Branch_Name", "branch_name", "Branch_name"]),
+      ) ?? "",
     Dept_Id: optionalNumber(readValue(source, ["Dept_Id", "dept_id"])),
     Dept_Name: optionalText(readValue(source, ["Dept_Name", "dept_name"])) ?? "",
     Attendance_date: attendanceDate ? formatDateDisplay(attendanceDate) : "",
@@ -241,26 +256,73 @@ export function punchToRow(record: AttendancePunchRecord): HrmsRow {
   };
 }
 
-function resolveEmployeeId(row: HrmsRow, employees: HrmsRow[]): number {
-  const directId = Number(row.Employee_id);
-  if (Number.isFinite(directId) && directId > 0) return directId;
+function filterApplOptions(
+  options: ApplOptionRecord[],
+  labels: readonly string[],
+  groupNeedles: string[],
+): ApplOptionRecord[] {
+  const labelSet = new Set(labels.map((label) => label.toLowerCase()));
+  return [...options]
+    .filter((option) => {
+      const group = String(option.Opt_Group ?? "").toLowerCase();
+      const label = String(option.Opt_Description ?? "").trim().toLowerCase();
+      return (
+        labelSet.has(label) ||
+        (groupNeedles.length > 0 && groupNeedles.every((needle) => group.includes(needle)))
+      );
+    })
+    .sort((left, right) => Number(left.Srl_No ?? 0) - Number(right.Srl_No ?? 0));
+}
 
+export function filterAttendanceStatusOptions(options: ApplOptionRecord[]): ApplOptionRecord[] {
+  return filterApplOptions(options, ATTENDANCE_STATUS_OPTIONS, ["attendance", "status"]);
+}
+
+export function filterAttendanceSourceOptions(options: ApplOptionRecord[]): ApplOptionRecord[] {
+  return filterApplOptions(options, ATTENDANCE_SOURCE_TYPES, ["attendance", "source"]);
+}
+
+async function getAttendanceWriteContext(): Promise<AttendanceWriteContext> {
+  const [employees, shifts, applOptions] = await Promise.all([
+    employeeService.list({ status: 1 }),
+    workShiftService.list({ status: 1 }),
+    applOptionService.list({ is_active: 1 }),
+  ]);
+
+  return {
+    employees,
+    shifts,
+    statusOptions: filterAttendanceStatusOptions(applOptions),
+    sourceOptions: filterAttendanceSourceOptions(applOptions),
+  };
+}
+
+function resolveEmployeeId(row: HrmsRow, employees: HrmsRow[]): number {
   const code = String(row.Employee_code ?? "").trim();
-  const employee = employees.find(
-    (item) => String(item.Employee_code ?? "").trim() === code,
-  );
-  return Number(employee?.Employee_id ?? 0);
+  if (code) {
+    const employee = employees.find(
+      (item) => String(item.Employee_code ?? "").trim() === code,
+    );
+    const matchedId = Number(employee?.Employee_id ?? 0);
+    if (Number.isFinite(matchedId) && matchedId > 0) return matchedId;
+  }
+
+  const directId = Number(row.Employee_id);
+  return Number.isFinite(directId) && directId > 0 ? directId : 0;
 }
 
 function resolveShiftId(row: HrmsRow, shifts: HrmsRow[]): number {
-  const directId = Number(row.Shift_id);
-  if (Number.isFinite(directId) && directId > 0) return directId;
-
   const shiftName = String(row.Shift_name ?? "").trim();
-  const shift = shifts.find(
-    (item) => String(item.Shift_name ?? "").trim() === shiftName,
-  );
-  return Number(shift?.Shift_id ?? 0);
+  if (shiftName) {
+    const shift = shifts.find(
+      (item) => String(item.Shift_name ?? "").trim() === shiftName,
+    );
+    const matchedId = Number(shift?.Shift_id ?? 0);
+    if (Number.isFinite(matchedId) && matchedId > 0) return matchedId;
+  }
+
+  const directId = Number(row.Shift_id);
+  return Number.isFinite(directId) && directId > 0 ? directId : 0;
 }
 
 function resolveOptionCode(
@@ -268,30 +330,35 @@ function resolveOptionCode(
   codeValue: unknown,
   options: ApplOptionRecord[],
 ): number {
-  const directCode = Number(codeValue);
-  if (Number.isFinite(directCode) && directCode > 0) return directCode;
-
   const label = String(value ?? "").trim();
-  if (!label) return 0;
+  if (label) {
+    const asNumber = Number(label);
+    if (Number.isFinite(asNumber) && asNumber > 0) {
+      const byExactCode = options.find((option) => Number(option.Opt_Code) === asNumber);
+      if (byExactCode) return Number(byExactCode.Opt_Code);
+      if (options.length === 0) return asNumber;
+    }
 
-  const byLabel = options.find(
-    (option) =>
-      String(option.Opt_Description).toLowerCase() === label.toLowerCase(),
-  );
-  if (byLabel) return Number(byLabel.Opt_Code);
+    const byLabel = options.find(
+      (option) => String(option.Opt_Description).toLowerCase() === label.toLowerCase(),
+    );
+    if (byLabel) return Number(byLabel.Opt_Code);
 
-  const byCode = options.find((option) => String(option.Opt_Code) === label);
-  return byCode ? Number(byCode.Opt_Code) : 0;
+    const byCode = options.find((option) => String(option.Opt_Code) === label);
+    if (byCode) return Number(byCode.Opt_Code);
+
+    // A selected label that does not match loaded options must not keep the old code.
+    if (options.length > 0) return 0;
+  }
+
+  const fallbackCode = Number(codeValue);
+  if (Number.isFinite(fallbackCode) && fallbackCode > 0) return fallbackCode;
+  return 0;
 }
 
 export function rowToAttendancePayload(
   row: HrmsRow,
-  context: {
-    employees: HrmsRow[];
-    shifts: HrmsRow[];
-    statusOptions: ApplOptionRecord[];
-    sourceOptions: ApplOptionRecord[];
-  },
+  context: AttendanceWriteContext,
 ): AttendanceWritePayload {
   const employeeId = resolveEmployeeId(row, context.employees);
   if (!Number.isFinite(employeeId) || employeeId <= 0) {
@@ -310,6 +377,9 @@ export function rowToAttendancePayload(
     row.Attendance_status_code,
     context.statusOptions,
   );
+  if (attendanceStatus <= 0) {
+    throw new Error("Attendance status is required.");
+  }
   const source = resolveOptionCode(row.Source, row.Source_code, context.sourceOptions) || 4;
 
   const checkIn = combineDateTime(attendanceDate, row.Check_in);
@@ -321,7 +391,7 @@ export function rowToAttendancePayload(
     ...(shiftId > 0 ? { shift_id: shiftId } : {}),
     ...(checkIn ? { check_in: checkIn } : { check_in: null }),
     ...(checkOut ? { check_out: checkOut } : { check_out: null }),
-    ...(attendanceStatus > 0 ? { attendance_status: attendanceStatus } : {}),
+    attendance_status: attendanceStatus,
     source,
     remarks: optionalText(row.Remarks),
   };
@@ -383,16 +453,12 @@ export const attendanceService = {
 
   create: async (
     row: HrmsRow,
-    context: {
-      employees: HrmsRow[];
-      shifts: HrmsRow[];
-      statusOptions: ApplOptionRecord[];
-      sourceOptions: ApplOptionRecord[];
-    },
+    context?: AttendanceWriteContext,
   ): Promise<HrmsRow> => {
+    const writeContext = context ?? (await getAttendanceWriteContext());
     const payload = await apiClient.post<unknown>(
       API_ENDPOINTS.attendance.create,
-      rowToAttendancePayload(row, context),
+      rowToAttendancePayload(row, writeContext),
     );
     return attendanceToRow(asAttendance(payload));
   },
@@ -400,16 +466,12 @@ export const attendanceService = {
   update: async (
     id: string | number,
     row: HrmsRow,
-    context: {
-      employees: HrmsRow[];
-      shifts: HrmsRow[];
-      statusOptions: ApplOptionRecord[];
-      sourceOptions: ApplOptionRecord[];
-    },
+    context?: AttendanceWriteContext,
   ): Promise<HrmsRow> => {
+    const writeContext = context ?? (await getAttendanceWriteContext());
     const payload = await apiClient.put<unknown>(
       API_ENDPOINTS.attendance.update(id),
-      rowToAttendancePayload(row, context),
+      rowToAttendancePayload(row, writeContext),
     );
     return attendanceToRow(asAttendance(payload));
   },

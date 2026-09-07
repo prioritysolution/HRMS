@@ -40,9 +40,9 @@ export default function Page() {
       rows={[
         {
           primary: "Payroll release cut",
-          secondary: "Staffu Core",
+          secondary: "PrioHRM Core",
           avatar: "/images/avatars/avatar7.jpg",
-          c1: "Staffu Core",
+          c1: "PrioHRM Core",
           c2: "Priya Sharma",
           c3: "29 Aug 2026",
           status: "Critical",

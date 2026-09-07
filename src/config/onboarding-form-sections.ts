@@ -1,8 +1,8 @@
 import type { FormSection } from "@/types/hrms";
 
-const departmentOptions = ["IT", "HR", "Finance", "Operations", "Design", "Engineering"];
-const designationOptions = ["Manager", "Executive", "Analyst", "Senior Developer", "HR Executive"];
-const employmentTypeOptions = ["Full Time", "Part Time", "Contract", "Internship"];
+const ONBOARDING_FILE_ACCEPT =
+  "application/pdf,image/jpeg,image/png,image/webp,.pdf,.jpg,.jpeg,.png,.webp";
+const ONBOARDING_FILE_HINT = "JPG, JPEG, PNG, WEBP, PDF · max 2 MB";
 
 export const ONBOARDING_FORM_SECTIONS: FormSection[] = [
   {
@@ -10,8 +10,8 @@ export const ONBOARDING_FORM_SECTIONS: FormSection[] = [
     title: "Employee Registration",
     description: "Register the new employee with basic profile and employment details.",
     fields: [
-      { name: "Employee_id", label: "Employee", type: "select", required: true },
-      { name: "Device_user_id", label: "Device ID (Biometric)", type: "number", min: 1 },
+      { name: "Employee_id", label: "Employee", type: "select", required: true, readOnlyOnEdit: true },
+      { name: "Device_user_id", label: "Device ID (Biometric)", type: "number", min: 1, unique: true },
       { name: "Date_of_joining", label: "Date of Joining", type: "date", required: true },
       { name: "Department", label: "Department", type: "select" },
       { name: "Designation", label: "Designation", type: "select" },
@@ -38,32 +38,44 @@ export const ONBOARDING_FORM_SECTIONS: FormSection[] = [
         name: "Aadhaar_doc",
         label: "Aadhaar ID",
         type: "file",
-        accept: "application/pdf,image/jpeg,image/png,.pdf,.jpg,.jpeg,.png",
-        hint: "PDF, JPG, PNG",
+        accept: ONBOARDING_FILE_ACCEPT,
+        maxSizeMb: 2,
+        previewKey: "Aadhaar_doc",
+        fileNameKey: "Aadhaar_doc",
+        hint: ONBOARDING_FILE_HINT,
       },
       { name: "PAN", label: "PAN Number", placeholder: "ABCDE1234F", pattern: /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, patternMessage: "PAN must be a valid format (e.g. ABCDE1234F)." },
       {
         name: "PAN_doc",
         label: "PAN Card",
         type: "file",
-        accept: "application/pdf,image/jpeg,image/png,.pdf,.jpg,.jpeg,.png",
-        hint: "PDF, JPG, PNG",
+        accept: ONBOARDING_FILE_ACCEPT,
+        maxSizeMb: 2,
+        previewKey: "PAN_doc",
+        fileNameKey: "PAN_doc",
+        hint: ONBOARDING_FILE_HINT,
       },
       {
         name: "Educational_certificates",
         label: "Educational Certificates",
         type: "file",
-        accept: "application/pdf,image/jpeg,image/png,.pdf,.jpg,.jpeg,.png",
+        accept: ONBOARDING_FILE_ACCEPT,
+        maxSizeMb: 2,
         span: "full",
-        hint: "Degree / diploma certificates",
+        previewKey: "Educational_certificates",
+        fileNameKey: "Educational_certificates",
+        hint: ONBOARDING_FILE_HINT,
       },
       {
         name: "Experience_certificates",
         label: "Experience Certificates",
         type: "file",
-        accept: "application/pdf,image/jpeg,image/png,.pdf,.jpg,.jpeg,.png",
+        accept: ONBOARDING_FILE_ACCEPT,
+        maxSizeMb: 2,
         span: "full",
-        hint: "Previous employment / experience letters",
+        previewKey: "Experience_certificates",
+        fileNameKey: "Experience_certificates",
+        hint: ONBOARDING_FILE_HINT,
       },
       {
         name: "Step_documents_done",
@@ -131,9 +143,12 @@ export const ONBOARDING_FORM_SECTIONS: FormSection[] = [
         name: "Employment_agreement",
         label: "Employment Agreement",
         type: "file",
-        accept: "application/pdf,.pdf",
+        accept: ONBOARDING_FILE_ACCEPT,
+        maxSizeMb: 2,
         span: "full",
-        hint: "Signed employment agreement (PDF)",
+        previewKey: "Employment_agreement",
+        fileNameKey: "Employment_agreement",
+        hint: ONBOARDING_FILE_HINT,
       },
       {
         name: "Agreement_signed",
@@ -158,13 +173,13 @@ export const ONBOARDING_FORM_SECTIONS: FormSection[] = [
         name: "Photo",
         label: "Employee Photograph",
         type: "file",
-        accept: "image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp",
+        accept: ONBOARDING_FILE_ACCEPT,
         maxSizeMb: 2,
         previewKey: "Photo_path",
         fileNameKey: "Photo_path",
-        hint: "JPG, PNG, WEBP · max 2 MB",
+        hint: ONBOARDING_FILE_HINT,
       },
-      { name: "Id_card_number", label: "ID Card Number", placeholder: "IDC-1045" },
+      { name: "Id_card_number", label: "ID Card Number", placeholder: "IDC-1045", unique: true },
       { name: "Id_card_generated", label: "ID card generated", type: "checkbox" },
       {
         name: "Step_idcard_done",
@@ -179,8 +194,9 @@ export const ONBOARDING_FORM_SECTIONS: FormSection[] = [
     title: "Email / User Account Creation",
     description: "Create work email and system user account for the employee.",
     fields: [
-      { name: "Work_email", label: "Work Email", type: "email", placeholder: "firstname@company.com" },
-      { name: "Username", label: "System Username", placeholder: "firstname.lastname" },
+      { name: "Work_email", label: "Work Email", type: "email", placeholder: "firstname@company.com", unique: true },
+      { name: "Username", label: "System Username", placeholder: "firstname.lastname", unique: true },
+      { name: "Password", label: "Password", type: "password", placeholder: "Enter password", minLength: 6, span: "full" },
       { name: "Create_user_account", label: "Create user account", type: "checkbox" },
       { name: "Send_welcome_email", label: "Send welcome email with login credentials", type: "checkbox" },
     ],

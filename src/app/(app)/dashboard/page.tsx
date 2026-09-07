@@ -5,7 +5,6 @@ import { RefreshCw } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { AnalyticsStatCard } from "@/components/dashboard/AnalyticsStatCard";
 import { AttendancePercentageChart } from "@/components/dashboard/AttendancePercentageChart";
-import { DepartmentCountChart } from "@/components/dashboard/DepartmentCountChart";
 import { TodayAttendanceTable } from "@/components/dashboard/TodayAttendanceTable";
 import { RoundLoader } from "@/components/ui/RoundLoader";
 import { useToast } from "@/components/ui/ToastProvider";
@@ -176,10 +175,6 @@ export default function DashboardPage() {
 
   const stats = mapSummaryToCards(overview?.summary ?? emptySummary);
   const attendanceTrend = attendanceTrendToPercentages(overview?.attendance_trend ?? []);
-  const departmentCategories =
-    overview?.department_distribution.map((row) => row.Dept_Name) ?? [];
-  const departmentData =
-    overview?.department_distribution.map((row) => row.Employee_count) ?? [];
 
   const refreshAction = (
     <button
@@ -229,17 +224,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Row 2: Department distribution */}
-        <div className="dash-row mb-4">
-          <div className="dash-full-col">
-            <DepartmentCountChart
-              categories={departmentCategories}
-              data={departmentData}
-            />
-          </div>
-        </div>
-
-        {/* Row 3: Today's attendance under the department graph */}
+        {/* Today's attendance */}
         <div className="dash-row">
           <div className="dash-full-col">
             <TodayAttendanceTable rows={overview?.today_attendance ?? []} />

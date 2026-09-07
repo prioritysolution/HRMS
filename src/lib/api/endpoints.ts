@@ -166,6 +166,13 @@ export const API_ENDPOINTS = {
     update: (id: number | string) => `/api/v1/employee/update/${id}`,
     remove: (id: number | string) => `/api/v1/employee/delete/${id}`,
   },
+  employeeOnboarding: {
+    list: "/api/v1/employee-onboarding/list",
+    get: (id: number | string) => `/api/v1/employee-onboarding/get/${id}`,
+    create: "/api/v1/employee-onboarding/create",
+    update: (id: number | string) => `/api/v1/employee-onboarding/update/${id}`,
+    remove: (id: number | string) => `/api/v1/employee-onboarding/delete/${id}`,
+  },
   attendance: {
     list: "/api/v1/attendance/list",
     daily: "/api/v1/attendance/daily",

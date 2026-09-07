@@ -18,6 +18,7 @@ import { notifications } from "@/data/mock";
 import { LogoutButton } from "@/components/layout/LogoutButton";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { useUIStore } from "@/components/layout/UIProvider";
+import { BrandLogo } from "@/components/ui/BrandLogo";
 
 export function Topbar() {
   const { theme, toggleTheme, toggleSidebar } = useUIStore();
@@ -27,7 +28,7 @@ export function Topbar() {
   const [fullscreen, setFullscreen] = useState(false);
   const notiRef = useRef<HTMLDivElement>(null);
   const userRef = useRef<HTMLDivElement>(null);
-  const displayName = user?.name ?? "Staffu User";
+  const displayName = user?.name ?? "PrioHRM User";
   const displayEmail = user?.email ?? "";
   const displayRole = user?.role ?? "Admin";
 
@@ -55,25 +56,7 @@ export function Topbar() {
       <div className="topbar-content">
         <div className="top-left-content">
           <div className="main-logo mr-1">
-            <Link href="/dashboard" className="logo-dark">
-              <Image
-                src="/images/logos/logo_dark.png"
-                alt="Staffu"
-                width={112}
-                height={28}
-                style={{ width: "auto", height: "auto" }} // Add this
-                priority
-              />
-            </Link>
-            <Link href="/dashboard" className="logo-light">
-              <Image
-                src="/images/logos/logo_light.png"
-                alt="Staffu"
-                width={112}
-                height={28}
-                priority
-              />
-            </Link>
+            <BrandLogo size="lg" />
           </div>
           <button
             type="button"

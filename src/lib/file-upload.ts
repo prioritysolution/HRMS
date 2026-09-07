@@ -13,18 +13,36 @@ export function isImageFile(file: File): boolean {
 
 export function validateImageFile(
   file: File | null | undefined,
-  options?: { required?: boolean; label?: string; maxSizeMb?: number },
+  options?: { required?: boolean; label?: string; maxSizeMb?: number; accept?: string },
 ): string | undefined {
   const label = options?.label ?? "File";
   const maxSizeMb = options?.maxSizeMb ?? LOGO_MAX_SIZE_MB;
   const maxBytes = maxSizeMb * 1024 * 1024;
+  const accept = options?.accept ?? LOGO_ACCEPT;
+  const acceptedTokens = accept
+    .split(",")
+    .map((token) => token.trim().toLowerCase())
+    .filter(Boolean);
+  const acceptedExtensions = acceptedTokens.filter((token) => token.startsWith("."));
+  const acceptedMimeTypes = acceptedTokens.filter((token) => token.includes("/"));
 
   if (!file) {
     return options?.required ? `${label} is required.` : undefined;
   }
 
-  if (!isImageFile(file)) {
-    return `${label} must be a JPG, JPEG, PNG, or WEBP image.`;
+  const fileName = file.name.toLowerCase();
+  const hasAllowedExtension = acceptedExtensions.some((ext) => fileName.endsWith(ext));
+  const hasAllowedMimeType =
+    !file.type ||
+    acceptedMimeTypes.some((mimeType) =>
+      mimeType.endsWith("/*")
+        ? file.type.toLowerCase().startsWith(mimeType.replace("/*", "/"))
+        : file.type.toLowerCase() === mimeType,
+    );
+
+  if (!hasAllowedExtension || !hasAllowedMimeType) {
+    const allowsPdf = acceptedExtensions.includes(".pdf") || acceptedMimeTypes.includes("application/pdf");
+    return `${label} must be a JPG, JPEG, PNG, WEBP${allowsPdf ? ", or PDF" : ""} file.`;
   }
 
   if (file.size > maxBytes) {

@@ -7,6 +7,12 @@ import { formatFileSize, LOGO_ACCEPT, LOGO_MAX_SIZE_MB } from "@/lib/file-upload
 import { resolvePublicFileUrl } from "@/lib/env";
 import { cn } from "@/lib/utils";
 
+function fileLabelFromPath(value?: string): string {
+  if (!value) return "";
+  const cleaned = value.split("?")[0].replace(/\\/g, "/");
+  return cleaned.split("/").filter(Boolean).pop() || value;
+}
+
 type FileUploadFieldProps = {
   id?: string;
   name: string;
@@ -60,9 +66,7 @@ export function FileUploadField({
 
   const previewUrl = objectUrl || resolvePublicFileUrl(existingUrl ?? "");
   const fileName =
-    file?.name ??
-    existingName ??
-    (existingUrl ? existingUrl.split("/").pop() : "");
+    file?.name || fileLabelFromPath(existingName) || fileLabelFromPath(existingUrl);
 
   const clear = () => {
     if (inputRef.current) inputRef.current.value = "";

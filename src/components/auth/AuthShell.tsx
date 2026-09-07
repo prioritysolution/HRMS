@@ -1,5 +1,5 @@
-import Image from "next/image";
-import { AuthCarousel } from "@/components/auth/AuthCarousel";
+import { AuthShowcase } from "@/components/auth/AuthShowcase";
+import { AuthBrandLogo } from "@/components/ui/AuthBrandLogo";
 
 type AuthShellProps = {
   eyebrow: string;
@@ -26,14 +26,7 @@ export function AuthShell({ eyebrow, title, subtitle, children, footer }: AuthSh
             <div className="auth-pane-inner">
               <header className="auth-header">
                 <div className="auth-logo">
-                  <Image
-                    src="/images/logos/logo_light.png"
-                    alt="Staffu"
-                    width={132}
-                    height={34}
-                    style={{ width: "auto", height: "auto" }} // Add this
-                    priority
-                  />
+                  <AuthBrandLogo />
                 </div>
                 <span className="auth-eyebrow">{eyebrow}</span>
                 <h1 className="auth-heading">{title}</h1>
@@ -43,18 +36,19 @@ export function AuthShell({ eyebrow, title, subtitle, children, footer }: AuthSh
               <div className="auth-form-panel">{children}</div>
 
               {footer ? <footer className="auth-footer-link">{footer}</footer> : null}
+
+              <p className="auth-legal auth-legal--form">
+                By continuing, you agree to our{" "}
+                <a href="#">Terms of Service</a> and{" "}
+                <a href="#">Privacy Policy</a>
+              </p>
             </div>
           </div>
 
           <div className="auth-pane auth-pane-media">
-            <AuthCarousel />
+            <AuthShowcase />
           </div>
         </div>
-
-        <p className="auth-legal">
-          By continuing, you agree to our <a href="#">Terms of Service</a> and{" "}
-          <a href="#">Privacy Policy</a>
-        </p>
       </div>
     </section>
   );

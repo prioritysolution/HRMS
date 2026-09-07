@@ -29,13 +29,13 @@ export function UIProvider({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    const saved = window.localStorage.getItem("staffu-theme") as Theme | null;
+    const saved = window.localStorage.getItem("priohrm-theme") as Theme | null;
     if (saved) setTheme(saved);
   }, []);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
-    window.localStorage.setItem("staffu-theme", theme);
+    window.localStorage.setItem("priohrm-theme", theme);
   }, [theme]);
 
   useEffect(() => {

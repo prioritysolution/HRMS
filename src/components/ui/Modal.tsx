@@ -50,7 +50,13 @@ export function Modal({
   if (!open) return null;
 
   return (
-    <div className="modal-root" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div
+      className="modal-root"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
+      onMouseDown={(event) => event.stopPropagation()}
+    >
       <button type="button" className="modal-backdrop" aria-label="Close modal" onClick={onClose} />
       <div className={cn("modal-dialog", sizes[size])}>
         <div className="modal-content animate-modal-in">

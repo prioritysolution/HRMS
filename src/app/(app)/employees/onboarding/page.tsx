@@ -6,9 +6,10 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { StatCard } from "@/components/ui/StatCard";
 import { DataTable, PersonCell, SoftStatus } from "@/components/ui/DataTable";
 import { useToast } from "@/components/ui/ToastProvider";
-import { getHrmsMockRows } from "@/data/hrms-mock";
+import { ApiError } from "@/lib/api/client";
+import { employeeOnboardingService } from "@/lib/api/services/employee-onboarding.service";
 import { getModuleEmptyIcon } from "@/lib/module-icons";
-import { enrichOnboardingRow, getChecklistProgress } from "@/lib/onboarding-checklist";
+import { getChecklistProgress, isOnboardingFlagDone } from "@/lib/onboarding-checklist";
 import { formatDateDisplay } from "@/lib/date-utils";
 import type { HrmsRow } from "@/types/hrms";
 
@@ -17,42 +18,39 @@ function formatCell(value: HrmsRow[string]): string {
   return String(value);
 }
 
+function asOnboardId(value: HrmsRow[string]): string | number | null {
+  if (value === undefined || value === null || value === "" || typeof value === "boolean" || value instanceof File) {
+    return null;
+  }
+  return value;
+}
+
 export default function EmployeeOnboardingPage() {
   const toast = useToast();
   const [rows, setRows] = useState<HrmsRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editLoading, setEditLoading] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [editRow, setEditRow] = useState<HrmsRow | null>(null);
 
   const loadRows = useCallback(async () => {
     setLoading(true);
     try {
-      const { apiClient } = await import("@/lib/api/client");
-      const response = await apiClient.get<any[]>("/api/v1/employee-onboarding/list");
-      if (Array.isArray(response)) {
-        setRows(response.map((row: any) => ({
-          ...row, 
-          id: row.Onboard_id ?? row.id,
-          Display_name: row.Employee_name || `${row.First_name || ""} ${row.Last_name || ""}`.trim() || row.Display_name,
-          Department: String(row.Dept_Id || ""),
-          Designation: String(row.Desig_Id || ""),
-          Employment_type: String(row.Emp_type_id || ""),
-          Branch: String(row.Branch_Id || ""),
-          Grade: String(row.Grade_Id || ""),
-          Shift: Array.isArray(row.Shift_id) ? row.Shift_id.map(String).join(",") : String(row.Shift_id || ""),
-          Employment_status: String(row.Employment_status || ""),
-        })));
-      }
-    } catch (error: any) {
+      const list = await employeeOnboardingService.list();
+      setRows(list);
+    } catch (error) {
       console.error(error);
-      toast.error({ title: "Error", message: "Failed to load onboarding list" });
+      toast.error({
+        title: "Error",
+        message: error instanceof ApiError ? error.message : "Failed to load onboarding list",
+      });
     } finally {
       setLoading(false);
     }
   }, [toast]);
 
   useEffect(() => {
-    loadRows();
+    void loadRows();
   }, [loadRows]);
 
   const stats = useMemo(() => {
@@ -62,93 +60,76 @@ export default function EmployeeOnboardingPage() {
     }).length;
     const pending = rows.filter((row) => getChecklistProgress(row).percent === 0).length;
     const completed = rows.filter((row) => getChecklistProgress(row).percent >= 100).length;
-    const documentsPending = rows.filter((row) => row.Step_documents_done !== true && row.Step_documents_done !== "true").length;
+    const documentsPending = rows.filter((row) => !isOnboardingFlagDone(row.Step_documents_done)).length;
 
     return { inProgress, pending, completed, documentsPending };
   }, [rows]);
 
+  const handleEdit = async (row: HrmsRow) => {
+    const onboardId = asOnboardId(row.Onboard_id ?? row.id);
+    if (onboardId === null) {
+      setEditRow(row);
+      return;
+    }
+
+    setEditLoading(true);
+    try {
+      const detail = await employeeOnboardingService.get(onboardId);
+      setEditRow({
+        ...row,
+        ...detail,
+        id: String(detail.Onboard_id ?? detail.id ?? onboardId),
+      });
+    } catch (error) {
+      console.error(error);
+      toast.error({
+        title: "Load failed",
+        message: error instanceof ApiError ? error.message : "Unable to load onboarding details.",
+      });
+      setEditRow(row);
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
   const handleSave = async (values: HrmsRow, mode: "add" | "edit") => {
     try {
-      const { apiClient } = await import("@/lib/api/client");
-      const payload = {
-        employee_id: values.Employee_id,
-        user_name: values.Username,
-        work_email: values.Work_email,
-        idcard_no: values.Id_card_number,
-        idcard_doc_path: typeof values.Photo_path === "string" ? values.Photo_path : undefined,
-        agreement_doc_path: typeof values.Employment_agreement === "string" ? values.Employment_agreement : undefined,
-        remarks: values.Verification_remarks,
-        date_of_joining: values.Date_of_joining,
-        device_user_id: values.Device_user_id,
-        department: values.Department ? Number(values.Department) : null,
-        dept_id: values.Department ? Number(values.Department) : null,
-        designation: values.Designation ? Number(values.Designation) : null,
-        desig_id: values.Designation ? Number(values.Designation) : null,
-        employment_type: values.Employment_type ? Number(values.Employment_type) : null,
-        emp_type_id: values.Employment_type ? Number(values.Employment_type) : null,
-        branch: values.Branch ? Number(values.Branch) : null,
-        branch_id: values.Branch ? Number(values.Branch) : null,
-        grade: values.Grade ? Number(values.Grade) : null,
-        grade_id: values.Grade ? Number(values.Grade) : null,
-        shift: values.Shift ? String(values.Shift).split(",").map(Number) : null,
-        shift_id: values.Shift ? String(values.Shift).split(",").map(Number) : null,
-        employment_status: values.Employment_status ? Number(values.Employment_status) : null,
-        identifications: [
-          values.Aadhaar_no ? { id_type: 1, id_number: values.Aadhaar_no } : null,
-          values.PAN ? { id_type: 2, id_number: values.PAN } : null,
-        ].filter(Boolean),
-        statutory: {
-          pf_no: values.PF_number,
-          uan_no: values.UAN,
-          esi_no: values.ESI_number,
-          ptax_no: values.Professional_tax,
-          tds_applicable: values.TDS ? 1 : 0,
+      if (mode === "edit") {
+        const onboardId = asOnboardId(editRow?.Onboard_id ?? editRow?.id ?? values.Onboard_id ?? values.id);
+        if (onboardId === null) {
+          throw new Error("Missing onboarding id for update.");
         }
-      };
-
-      let finalBody: any = payload;
-      let hasFiles = false;
-      const fileFields = ["Photo", "Employment_agreement", "Aadhaar_doc", "PAN_doc", "Educational_certificates", "Experience_certificates"];
-      fileFields.forEach((f) => {
-        if (values[f] instanceof File) hasFiles = true;
-      });
-
-      if (hasFiles) {
-        const formData = new FormData();
-        const buildFormData = (fd: FormData, data: any, parentKey?: string) => {
-          if (data && typeof data === "object" && !(data instanceof Date) && !(data instanceof File)) {
-            Object.keys(data).forEach((key) => {
-              buildFormData(fd, data[key], parentKey ? `${parentKey}[${key}]` : key);
-            });
-          } else if (data !== undefined && data !== null) {
-            fd.append(parentKey!, data instanceof File ? data : String(data));
-          }
-        };
-        buildFormData(formData, payload);
-
-        if (values.Photo instanceof File) formData.append("idcard_doc", values.Photo);
-        if (values.Employment_agreement instanceof File) formData.append("agreement_doc", values.Employment_agreement);
-        if (values.Aadhaar_doc instanceof File) formData.append("aadhaar_doc", values.Aadhaar_doc);
-        if (values.PAN_doc instanceof File) formData.append("pan_doc", values.PAN_doc);
-        if (values.Educational_certificates instanceof File) formData.append("educational_certificates", values.Educational_certificates);
-        if (values.Experience_certificates instanceof File) formData.append("experience_certificates", values.Experience_certificates);
-        
-        finalBody = formData;
-      }
-
-      if (mode === "edit" || editRow) {
-        await apiClient.put(
-          `/api/v1/employee-onboarding/update/${(editRow?.id ?? values.Onboard_id ?? values.id)}`,
-          finalBody
-        );
+        await employeeOnboardingService.update(onboardId, values);
         toast.success({ title: "Onboarding updated", message: "Checklist saved successfully." });
       } else {
-        await apiClient.post("/api/v1/employee-onboarding/create", finalBody);
+        await employeeOnboardingService.create(values);
         toast.success({ title: "Onboarding started", message: "Checklist saved successfully." });
       }
 
       await loadRows();
-    } catch (error: any) {
+    } catch (error) {
+      throw error instanceof Error
+        ? error
+        : new Error("Unable to save onboarding record.");
+    }
+  };
+
+  const handleDelete = async (row: HrmsRow) => {
+    const onboardId = asOnboardId(row.Onboard_id ?? row.id);
+    if (onboardId === null) return;
+
+    try {
+      await employeeOnboardingService.remove(onboardId);
+      setRows((prev) => prev.filter((item) => String(item.id) !== String(row.id)));
+      toast.success({
+        title: "Onboarding removed",
+        message: `"${row.Display_name}" was removed from the onboarding list.`,
+      });
+    } catch (error) {
+      toast.error({
+        title: "Delete failed",
+        message: error instanceof ApiError ? error.message : "Unable to delete onboarding record.",
+      });
       throw error;
     }
   };
@@ -193,25 +174,19 @@ export default function EmployeeOnboardingPage() {
           actionLabel="Start Onboarding"
           onAction={() => setAddOpen(true)}
           rows={rows}
-          loading={loading}
-          searchKeys={["Employee_code", "Display_name", "Department", "Onboarding_stage"]}
+          loading={loading || editLoading}
+          searchKeys={["Employee_code", "Display_name", "Dept_Name", "Department_name", "Onboarding_stage"]}
           filterFields={[
-            { key: "Department", label: "Department" },
+            { key: "Dept_Name", label: "Department" },
             { key: "Onboarding_stage", label: "Stage" },
-            { key: "Employment_status", label: "Status" },
+            { key: "Employment_status_name", label: "Status" },
           ]}
-          onRowEdit={setEditRow}
+          onRowEdit={handleEdit}
           showRowActions
           deleteConfirmTitle="Remove onboarding record?"
           deleteConfirmMessage='Remove onboarding for "{name}"? This will not delete the employee profile.'
           getDeleteLabel={(row) => String(row.Display_name ?? row.Employee_code ?? "this employee")}
-          onRowDelete={(row) => {
-            setRows((prev) => prev.filter((item) => item.id !== row.id));
-            toast.success({
-              title: "Onboarding removed",
-              message: `"${row.Display_name}" was removed from the onboarding list.`,
-            });
-          }}
+          onRowDelete={handleDelete}
           emptyStateIcon={getModuleEmptyIcon("onboarding")}
           emptyStateTitle="No onboarding records yet"
           emptyStateMessage="Start onboarding for a new employee to track registration, documents, and checklist progress."
@@ -235,7 +210,7 @@ export default function EmployeeOnboardingPage() {
             {
               key: "Department",
               header: "Department",
-              render: (row) => formatCell(row.Dept_Name),
+              render: (row) => formatCell(row.Dept_Name ?? row.Department_name ?? row.Department),
             },
             {
               key: "Date_of_joining",
@@ -274,7 +249,9 @@ export default function EmployeeOnboardingPage() {
             {
               key: "Employment_status",
               header: "Status",
-              render: (row) => <SoftStatus value={String(row.Employment_status_name || "Pending")} />,
+              render: (row) => (
+                <SoftStatus value={String(row.Employment_status_name || row.Employment_status || "Pending")} />
+              ),
             },
           ]}
         />
@@ -289,6 +266,7 @@ export default function EmployeeOnboardingPage() {
       />
 
       <OnboardingModal
+        key={editRow ? String(editRow.Onboard_id ?? editRow.id) : "onboarding-edit"}
         open={Boolean(editRow)}
         onClose={() => setEditRow(null)}
         title="Continue Onboarding"

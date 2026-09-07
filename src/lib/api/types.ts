@@ -404,6 +404,7 @@ export type AttendanceRecord = {
   Employee_code?: string | null;
   Employee_name?: string | null;
   Branch_Id?: number | null;
+  Branch_Name?: string | null;
   Dept_Id?: number | null;
   Dept_Name?: string | null;
   Attendance_date?: string | null;
@@ -751,6 +752,9 @@ export interface EmployeeRecord {
   Last_name: string;
   Display_name: string;
 
+  Branch_Id?: number | null;
+  Branch_Name?: string | null;
+
   Dept_Id: number | null;
   Dept_Name: string | null;
 
@@ -799,6 +803,7 @@ export interface EmployeeDetailRecord {
   Emergency_contact?: string | null;
 
   Branch_Id?: number | null;
+  Branch_Name?: string | null;
   Dept_Id?: number | null;
   Desig_Id?: number | null;
   Grade_Id?: number | null;
@@ -917,11 +922,17 @@ export interface EmployeeCreatePayload {
   mobile?: string | null;
   email?: string | null;
 
+  father_name?: string | null;
+  mother_name?: string | null;
+  spouse_name?: string | null;
+
   address_line1?: string | null;
+  address_line2?: string | null;
   city?: string | null;
   state?: string | null;
   country?: string | null;
   pincode?: string | null;
+  emergency_contact?: string | null;
 
   branch_id: number;
   dept_id: number;

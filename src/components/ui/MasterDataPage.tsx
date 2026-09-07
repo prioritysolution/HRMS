@@ -10,6 +10,7 @@ import {
   branchService,
   departmentService,
   designationService,
+  employeeService,
   employmentStatusService,
   employmentTypeService,
   gradeService,
@@ -17,7 +18,9 @@ import {
   workShiftService,
 } from "@/lib/api";
 import { applOptionsToSelectOptions } from "@/lib/api/services/appl-options.service";
+import { filterAttendanceStatusOptions } from "@/lib/api/services/attendance.service";
 import { EMPLOYEE_APPL_OPTION_FALLBACKS } from "@/config/employee-form-sections";
+import { ATTENDANCE_STATUS_OPTIONS } from "@/config/attendance-form-sections";
 import {
   getMasterDataApiService,
   moduleUsesGradeSelect,
@@ -26,7 +29,7 @@ import {
 } from "@/lib/api/master-data-services";
 import { assetTypeService } from "@/lib/api/services/asset-type.service";
 import { DEACTIVATE_CONFIRM_MESSAGE, ACTIVATE_CONFIRM_MESSAGE } from "@/lib/confirm-messages";
-import { formatDateDisplay } from "@/lib/date-utils";
+import { formatDateDisplay, formatTimeDisplay } from "@/lib/date-utils";
 import { formatRowStatus, getRowStatusKey } from "@/lib/row-status";
 import { MasterDataModal } from "@/components/modals/MasterDataModal";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -53,6 +56,7 @@ function formatCellValue(value: HrmsRow[string], type?: TableColumn["type"]): st
   if (type === "boolean") return value === true || value === "true" || value === 1 ? "Yes" : "No";
   if (type === "currency") return `₹${Number(value).toLocaleString("en-IN")}`;
   if (type === "date") return formatDateDisplay(String(value));
+  if (type === "time") return formatTimeDisplay(String(value)) || "—";
   if (type === "duration") {
     const num = Number(value);
     if (isNaN(num)) return String(value);
@@ -215,6 +219,14 @@ export function MasterDataPage({
     Array<{ value: string; label: string }>
   >([]);
 
+  const [employeeOptions, setEmployeeOptions] = useState<
+    Array<{ value: string; label: string }>
+  >([]);
+
+  const [attendanceStatusOptions, setAttendanceStatusOptions] = useState<
+    Array<{ value: string; label: string }>
+  >([]);
+
   const [shiftOptions, setShiftOptions] = useState<
     Array<{ value: string; label: string }>
   >([]);
@@ -222,21 +234,40 @@ export function MasterDataPage({
   const [maritalStatusOptions, setMaritalStatusOptions] = useState<Array<{ value: string; label: string }>>([]);
 
   const isEmployeeModule = moduleId === "employees";
+  const isDailyAttendanceModule = moduleId === "daily-attendance";
 
   const columns = useMemo(() => buildColumns(config.columns), [config.columns]);
   const filterFields = useMemo(() => {
-    const fields = getModuleFilterFields(config);
+    const fields = isEmployeeModule || isDailyAttendanceModule
+      ? [...getModuleFilterFields(config), { key: "Branch_Id", label: "Branch" }]
+      : getModuleFilterFields(config);
     return fields.map((field) => {
       if (isEmployeeModule) {
         if (field.key === "Department") return { ...field, options: departmentOptions.map(o => ({ value: o.label, label: o.label })) };
         if (field.key === "Designation") return { ...field, options: designationOptions.map(o => ({ value: o.label, label: o.label })) };
+        if (field.key === "Branch_Id") return { ...field, options: branchOptions };
         if (field.key === "Branch") return { ...field, options: branchOptions.map(o => ({ value: o.label, label: o.label })) };
         if (field.key === "Employment_status_name") return { ...field, options: employmentStatusOptions.map(o => ({ value: o.label, label: o.label })) };
         if (field.key === "Status") return { ...field, options: [{ value: "1", label: "Active" }, { value: "0", label: "Inactive" }] };
       }
+      if (isDailyAttendanceModule) {
+        if (field.key === "Shift_name") return { ...field, options: shiftOptions };
+        if (field.key === "Attendance_status") return { ...field, options: attendanceStatusOptions };
+        if (field.key === "Branch_Id") return { ...field, options: branchOptions };
+      }
       return field;
     });
-  }, [config, isEmployeeModule, departmentOptions, designationOptions, branchOptions, employmentStatusOptions]);
+  }, [
+    attendanceStatusOptions,
+    branchOptions,
+    config,
+    departmentOptions,
+    designationOptions,
+    employmentStatusOptions,
+    isDailyAttendanceModule,
+    isEmployeeModule,
+    shiftOptions,
+  ]);
   const apiService = useMemo(
     () => (usesApi ? getMasterDataApiService(moduleId) : undefined),
     [moduleId, usesApi],
@@ -278,6 +309,15 @@ export function MasterDataPage({
       if (isEmployeeModule && field.name === "Shift") {
         return { ...field, options: shiftOptions };
       }
+      if (isDailyAttendanceModule && field.name === "Employee_code") {
+        return { ...field, options: employeeOptions };
+      }
+      if (isDailyAttendanceModule && field.name === "Shift_name") {
+        return { ...field, options: shiftOptions };
+      }
+      if (isDailyAttendanceModule && field.name === "Attendance_status") {
+        return { ...field, options: attendanceStatusOptions };
+      }
       if (field.name === "Grade_Id" && usesGradeSelect) {
         return { ...field, options: gradeOptions };
       }
@@ -304,13 +344,16 @@ export function MasterDataPage({
       organizationOptions,
       usesGradeSelect,
       usesOrganizationSelect,
+      attendanceStatusOptions,
       branchOptions,
       departmentOptions,
       designationOptions,
+      employeeOptions,
       employmentTypeOptions,
       employmentStatusOptions,
       shiftOptions,
       assetTypeOptions,
+      isDailyAttendanceModule,
       moduleId,
     ],
   );
@@ -416,7 +459,9 @@ export function MasterDataPage({
   }, [isEmployeeModule, moduleId]);
 
   useEffect(() => {
-    if (!isEmployeeModule) {
+    if (!isEmployeeModule && !isDailyAttendanceModule) {
+      setEmployeeOptions([]);
+      setAttendanceStatusOptions([]);
       setBranchOptions([]);
       setDepartmentOptions([]);
       setDesignationOptions([]);
@@ -430,6 +475,71 @@ export function MasterDataPage({
 
     async function loadEmployeeMasterOptions() {
       try {
+        if (isDailyAttendanceModule) {
+          const [employees, shifts, applOptions, branches] = await Promise.all([
+            employeeService.list({ status: 1 }),
+            workShiftService.list({ status: 1 }),
+            applOptionService.list({ is_active: 1 }),
+            branchService.list(),
+          ]);
+
+          if (cancelled) return;
+
+          setEmployeeOptions(
+            employees
+              .map((row) => {
+                const code = String(row.Employee_code ?? "").trim();
+                const name = String(row.Display_name ?? row.Employee_name ?? "").trim();
+                return {
+                  value: code,
+                  label: name && code ? `${name} (${code})` : name || code,
+                };
+              })
+              .filter((option) => option.value && option.label),
+          );
+
+          setShiftOptions(
+            shifts
+              .map((row) => {
+                const name = String(row.Shift_name ?? "").trim();
+                const code = String(row.Shift_code ?? "").trim();
+                return {
+                  value: name,
+                  label: code ? `${name} (${code})` : name,
+                };
+              })
+              .filter((option) => option.value && option.label),
+          );
+
+          const fallbackStatusOptions = ATTENDANCE_STATUS_OPTIONS.map((status) => ({
+            value: status,
+            label: status,
+          }));
+          const apiStatusOptions = filterAttendanceStatusOptions(applOptions)
+            .map((option) => {
+              const label = String(option.Opt_Description ?? "").trim();
+              return { value: label, label };
+            })
+            .filter((option) => option.value && option.label);
+
+          setAttendanceStatusOptions(
+            apiStatusOptions.length > 0 ? apiStatusOptions : fallbackStatusOptions,
+          );
+          setBranchOptions(
+            branches
+              .map((row) => ({
+                value: String(row.Branch_Id),
+                label: String(row.Branch_Name ?? ""),
+              }))
+              .filter((option) => option.value && option.label),
+          );
+          setDepartmentOptions([]);
+          setDesignationOptions([]);
+          setEmploymentTypeOptions([]);
+          setEmploymentStatusOptions([]);
+          return;
+        }
+
         const [
           branches,
           departments,
@@ -447,6 +557,9 @@ export function MasterDataPage({
         ]);
 
         if (cancelled) return;
+
+        setEmployeeOptions([]);
+        setAttendanceStatusOptions([]);
 
         setBranchOptions(
           branches.map((row) => ({
@@ -492,6 +605,12 @@ export function MasterDataPage({
       } catch {
         if (cancelled) return;
 
+        setEmployeeOptions([]);
+        setAttendanceStatusOptions(
+          isDailyAttendanceModule
+            ? ATTENDANCE_STATUS_OPTIONS.map((status) => ({ value: status, label: status }))
+            : [],
+        );
         setBranchOptions([]);
         setDepartmentOptions([]);
         setDesignationOptions([]);
@@ -506,7 +625,7 @@ export function MasterDataPage({
     return () => {
       cancelled = true;
     };
-  }, [isEmployeeModule]);
+  }, [isDailyAttendanceModule, isEmployeeModule]);
 
   useEffect(() => {
     if (!usesGradeSelect || !usesApi) {
@@ -941,6 +1060,28 @@ export function MasterDataPage({
 
   const activeStats = stats ?? config.stats;
 
+  const tableRows = useMemo(() => {
+    if (
+      (!isDailyAttendanceModule && !isEmployeeModule) ||
+      branchOptions.length === 0
+    ) {
+      return rows;
+    }
+
+    const nameById = new Map(
+      branchOptions.map((option) => [option.value, option.label]),
+    );
+
+    return rows.map((row) => {
+      const existingName = String(row.Branch_Name ?? "").trim();
+      if (existingName) return row;
+
+      const branchId = String(row.Branch_Id ?? "").trim();
+      const resolvedName = branchId ? nameById.get(branchId) : undefined;
+      return resolvedName ? { ...row, Branch_Name: resolvedName } : row;
+    });
+  }, [branchOptions, isDailyAttendanceModule, isEmployeeModule, rows]);
+
   return (
     <>
       <PageHeader title={config.title} section={config.section} hideTitle />
@@ -979,7 +1120,7 @@ export function MasterDataPage({
           deleteConfirmMessage={(config.statusToggle ?? usesApi) ? DEACTIVATE_CONFIRM_MESSAGE : undefined}
           activateConfirmTitle={`Activate ${config.title.toLowerCase()}?`}
           activateConfirmMessage={ACTIVATE_CONFIRM_MESSAGE}
-          rows={rows}
+          rows={tableRows}
           columns={columns}
           searchKeys={config.searchKeys}
           filterFields={filterFields}

@@ -39,7 +39,7 @@ export default function Page() {
       ]}
       rows={[
         {
-          primary: "Staffu Core",
+          primary: "PrioHRM Core",
           secondary: "HRMS platform",
           avatar: "/images/avatars/avatar1.jpg",
           c1: "Priya Sharma",

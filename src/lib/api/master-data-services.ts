@@ -225,9 +225,9 @@ export const MASTER_DATA_API_SERVICES: Record<string, MasterDataApiService> = {
   },
   "daily-attendance": {
     list: attendanceService.dailyList,
-    create: async (row: any) => row,
-    update: async (id: any, row: any) => row,
-    remove: async () => ({}),
+    create: attendanceService.create,
+    update: attendanceService.update,
+    remove: attendanceService.remove,
   },
   "employee-status": {
     list: employmentStatusService.list,

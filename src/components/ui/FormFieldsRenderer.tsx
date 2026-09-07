@@ -15,11 +15,12 @@ type FormFieldsRendererProps = {
   values: Record<string, FormValue>;
   errors: Record<string, string>;
   onChange: (name: string, value: FormValue) => void;
+  onBlur?: (name: string, value: FormValue) => void;
   isEdit?: boolean;
 };
 
-function isCheckedValue(value: FormValue): boolean {
-  return value === true || value === "true";
+function isCheckedValue(value: unknown): boolean {
+  return value === true || value === "true" || value === 1 || value === "1";
 }
 
 function asText(value: FormValue): string {
@@ -31,10 +32,15 @@ function asText(value: FormValue): string {
 
 function resolveExistingFileUrl(field: FormField, url: string): string {
   if (!url || /^(https?:|blob:|data:)/i.test(url)) return url;
-  if (field.name === "Photo") {
-    return resolvePublicFileUrl(url, "storage/employees/photos");
+  const trimmed = url.trim();
+  const hasFolder = trimmed.includes("/") || trimmed.includes("\\");
+  if (hasFolder) {
+    return resolvePublicFileUrl(trimmed);
   }
-  return resolvePublicFileUrl(url);
+  if (field.name === "Photo") {
+    return resolvePublicFileUrl(trimmed, "storage/employees/photos");
+  }
+  return resolvePublicFileUrl(trimmed);
 }
 
 export function FormFieldsRenderer({
@@ -42,9 +48,14 @@ export function FormFieldsRenderer({
   values,
   errors,
   onChange,
+  onBlur,
   isEdit = false,
 }: FormFieldsRendererProps) {
-  const visibleFields = fields.filter((field) => !(field.hideOnCreate && !isEdit));
+  const visibleFields = fields.filter((field) => {
+    if (!isEdit && field.hideOnCreate) return false;
+    if (isEdit && field.hideOnEdit) return false;
+    return true;
+  });
 
   return (
     <>
@@ -164,6 +175,7 @@ export function FormFieldsRenderer({
                   value={asText(values[field.name])}
                   placeholder={field.placeholder ?? `Enter ${field.label.toLowerCase()}`}
                   onChange={(event) => onChange(field.name, event.target.value)}
+                  onBlur={(event) => onBlur?.(field.name, event.currentTarget.value)}
                   disabled={isDisabled}
                 />
               )}
@@ -189,12 +201,24 @@ export function buildInitialFormValues(
 
   fields.forEach((field) => {
     if (field.type === "file") {
-      values[field.name] = null;
+      const raw = initialValues?.[field.name];
+      values[field.name] = raw instanceof File ? raw : null;
+
+      const previewFromKey = field.previewKey
+        ? asText(initialValues?.[field.previewKey] as FormValue)
+        : "";
+      const previewFromValue = raw instanceof File ? "" : asText(raw as FormValue);
+      const preview = previewFromKey || previewFromValue;
+
       if (field.previewKey) {
-        values[field.previewKey] = asText(initialValues?.[field.previewKey] as FormValue);
+        values[field.previewKey] = preview;
+      } else if (preview) {
+        values[field.name] = preview;
       }
+
       if (field.fileNameKey) {
-        values[field.fileNameKey] = asText(initialValues?.[field.fileNameKey] as FormValue);
+        values[field.fileNameKey] =
+          asText(initialValues?.[field.fileNameKey] as FormValue) || preview;
       }
       return;
     }

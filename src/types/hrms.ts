@@ -5,6 +5,7 @@ export type HrmsRow = Record<string, string | number | boolean | File | null | u
 export type FormFieldType =
   | "text"
   | "email"
+  | "password"
   | "tel"
   | "date"
   | "time"
@@ -38,6 +39,7 @@ export type FormField = {
   max?: number;
   pattern?: RegExp;
   patternMessage?: string;
+  unique?: boolean;
 };
 
 export type FormSection = {

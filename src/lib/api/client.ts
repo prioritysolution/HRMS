@@ -1,7 +1,9 @@
 import { isAuthPublicPath, SIGN_IN_PATH } from "@/lib/auth/constants";
 import { applyOrgIdToRequestBody } from "@/lib/auth/org-context";
-import { clearAccessToken, getAccessToken } from "@/lib/auth/session";
+import { clearAccessToken, getAccessToken, setAccessToken } from "@/lib/auth/session";
 import { env, getApiUrl } from "@/lib/env";
+import { extractAccessToken } from "@/lib/auth/token";
+import { API_ENDPOINTS } from "@/lib/api/endpoints";
 
 export class ApiError extends Error {
   status: number;
@@ -74,6 +76,60 @@ function getRequestKey(method: string, path: string, auth: boolean, unwrap: bool
   return `${method}:${auth ? "auth" : "public"}:${unwrap ? "unwrap" : "raw"}:${getApiUrl(path)}`;
 }
 
+/** Shared refresh so concurrent 401s only hit the refresh endpoint once. */
+let refreshPromise: Promise<string | null> | null = null;
+
+function normalizeBearerToken(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  if (/^Bearer\s+/i.test(trimmed)) return trimmed.replace(/^Bearer\s+/i, "").trim();
+  return trimmed;
+}
+
+function isSessionExpiredRedirectInProgress(): boolean {
+  if (typeof window === "undefined") return false;
+  return window.location.pathname === SIGN_IN_PATH || isAuthPublicPath(window.location.pathname);
+}
+
+async function refreshAccessToken(): Promise<string | null> {
+  if (refreshPromise) return refreshPromise;
+
+  refreshPromise = (async () => {
+    try {
+      // Refresh is a public session endpoint — do not attach the expired bearer token.
+      const response = await fetch(getApiUrl(API_ENDPOINTS.auth.refreshToken), {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      });
+      const payload = await parseResponseBody(response);
+      if (!response.ok) return null;
+
+      const token = normalizeBearerToken(extractAccessToken(payload));
+      if (!token) return null;
+
+      setAccessToken(token);
+      return token;
+    } catch {
+      return null;
+    } finally {
+      refreshPromise = null;
+    }
+  })();
+
+  return refreshPromise;
+}
+
+function redirectToSignInOnce(): void {
+  if (typeof window === "undefined") return;
+  if (isSessionExpiredRedirectInProgress()) return;
+
+  window.location.assign(SIGN_IN_PATH);
+}
+
 async function request<T>(
   method: string,
   path: string,
@@ -143,10 +199,46 @@ async function sendRequest<T>(
 
     if (!response.ok) {
       if (response.status === 401 && auth) {
-        clearAccessToken();
-        if (typeof window !== "undefined" && !isAuthPublicPath(window.location.pathname)) {
-          window.location.assign(SIGN_IN_PATH);
+        // Prefer a single refresh + retry so expired access tokens can recover
+        // without forcing a full logout when the session is still valid.
+        const refreshedToken = await refreshAccessToken();
+        if (refreshedToken) {
+          // Retry the same request with the new token.
+          const retryHeaders: Record<string, string> = {
+            ...requestHeaders,
+            Authorization: `Bearer ${refreshedToken}`,
+          };
+          const retryResponse = await fetch(getApiUrl(path), {
+            method,
+            headers: retryHeaders,
+            body:
+              requestBody === undefined
+                ? undefined
+                : isFormData
+                  ? (requestBody as FormData)
+                  : JSON.stringify(requestBody),
+            signal: abortSignal,
+          });
+          const retryPayload = await parseResponseBody(retryResponse);
+          if (retryResponse.ok) {
+            return unwrap ? unwrapResponse<T>(retryPayload) : (retryPayload as T);
+          }
         }
+
+        clearAccessToken();
+        redirectToSignInOnce();
+        // Session recovery redirects away. Callers still receive a rejected promise
+        // for the same 401, but we only rethrow when we stay on the page (no navigation).
+        if (typeof window !== "undefined" && !isAuthPublicPath(window.location.pathname)) {
+          // Redirect is already in progress — keep the error for callers, but do not
+          // throw after navigation is queued so the runtime overlay is not left hanging.
+          return undefined as T;
+        }
+        throw new ApiError(
+          extractErrorMessage(payload, `Request failed with status ${response.status}`),
+          response.status,
+          payload,
+        );
       }
       throw new ApiError(
         extractErrorMessage(payload, `Request failed with status ${response.status}`),

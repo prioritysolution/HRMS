@@ -1,7 +1,7 @@
 "use client";
 
 import { CheckCircle2, Circle } from "lucide-react";
-import { ONBOARDING_CHECKLIST_STEPS } from "@/lib/onboarding-checklist";
+import { isOnboardingFlagDone, ONBOARDING_CHECKLIST_STEPS } from "@/lib/onboarding-checklist";
 import { cn } from "@/lib/utils";
 import type { HrmsRow } from "@/types/hrms";
 
@@ -13,8 +13,7 @@ type OnboardingChecklistProps = {
 };
 
 function isStepComplete(values: HrmsRow, doneField: string): boolean {
-  const value = values[doneField];
-  return value === true || value === "true";
+  return isOnboardingFlagDone(values[doneField]);
 }
 
 export function OnboardingChecklist({

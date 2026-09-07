@@ -39,9 +39,9 @@ export default function Page() {
       rows={[
         {
           primary: "MVP feature freeze",
-          secondary: "Staffu Core",
+          secondary: "PrioHRM Core",
           avatar: "/images/avatars/avatar1.jpg",
-          c1: "Staffu Core",
+          c1: "PrioHRM Core",
           c2: "Priya Sharma",
           c3: "02 Sep 2026",
           status: "Upcoming",

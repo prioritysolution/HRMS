@@ -48,7 +48,7 @@ export default function Page() {
         },
         {
           primary: "HR Ops",
-          secondary: "hr@staffu.app",
+          secondary: "hr@priohrm.app",
           avatar: "/images/avatars/avatar5.jpg",
           c1: "August payroll summary",
           c2: "Inbox",

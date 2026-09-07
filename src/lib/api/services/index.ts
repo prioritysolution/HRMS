@@ -18,6 +18,8 @@ export { organizationService } from "@/lib/api/services/organization.service";
 export { holidayService } from "@/lib/api/services/holiday.service";
 export {
   attendanceToRow,
+  filterAttendanceSourceOptions,
+  filterAttendanceStatusOptions,
   punchToRow,
   rowToAttendancePayload,
   rowToPunchPayload,

@@ -591,6 +591,14 @@ export function employeeToRow(
         ]),
       ),
 
+    Branch_Name:
+      optionalText(
+        readValue(source, [
+          "Branch_Name",
+          "branch_name",
+        ]),
+      ) ?? "",
+
     Shift_id:
       Array.isArray(shiftId) 
         ? shiftId.join(",") 
@@ -674,9 +682,29 @@ export function rowToEmployeeCreatePayload(
       optionalText(row.Email) ||
       null,
 
+    father_name:
+      optionalText(
+        row.Father_name,
+      ) || null,
+
+    mother_name:
+      optionalText(
+        row.Mother_name,
+      ) || null,
+
+    spouse_name:
+      optionalText(
+        row.Spouse_name,
+      ) || null,
+
     address_line1:
       optionalText(
         row.Address_line1,
+      ) || null,
+
+    address_line2:
+      optionalText(
+        row.Address_line2,
       ) || null,
 
     city:
@@ -695,6 +723,11 @@ export function rowToEmployeeCreatePayload(
     pincode:
       optionalText(
         row.Pincode,
+      ) || null,
+
+    emergency_contact:
+      optionalText(
+        row.Emergency_contact,
       ) || null,
 
     status:

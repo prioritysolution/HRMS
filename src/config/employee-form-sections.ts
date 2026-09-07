@@ -31,7 +31,7 @@ export const EMPLOYEE_FORM_SECTIONS: FormSection[] = [
       //   type: "select",
       //   required: true,
       // },
-      { name: "Employee_code", label: "Employee ID", required: true, placeholder: "EMP-1001", hideOnCreate: true, readOnlyOnEdit: true },
+      { name: "Employee_code", label: "Employee ID", required: true, placeholder: "EMP-1001", hideOnCreate: true, hideOnEdit: true, readOnlyOnEdit: true },
       { name: "First_name", label: "First Name", required: true, minLength: 2, maxLength: 50, pattern: /^[A-Za-z\s]+$/, patternMessage: "Only letters and spaces are allowed." },
       { name: "Middle_name", label: "Middle Name", maxLength: 50, pattern: /^[A-Za-z\s]*$/, patternMessage: "Only letters and spaces are allowed." },
       { name: "Last_name", label: "Last Name", required: true, minLength: 1, maxLength: 50, pattern: /^[A-Za-z\s]+$/, patternMessage: "Only letters and spaces are allowed." },

@@ -40,9 +40,9 @@ export default function Page() {
       rows={[
         {
           primary: "Wireframe payroll module",
-          secondary: "Staffu Core",
+          secondary: "PrioHRM Core",
           avatar: "/images/avatars/avatar4.jpg",
-          c1: "Staffu Core",
+          c1: "PrioHRM Core",
           c2: "Ava Collins",
           c3: "29 Aug 2026",
           status: "Active",

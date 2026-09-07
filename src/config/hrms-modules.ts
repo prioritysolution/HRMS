@@ -612,7 +612,7 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
     nameKey: "Display_name",
     usesApi: true,
     modalSize: "xl",
-    searchKeys: ["Employee_code", "First_name", "Last_name", "Email", "Mobile", "Org_Name"],
+    searchKeys: ["Employee_code", "First_name", "Last_name", "Branch_Name", "Email", "Mobile", "Org_Name"],
     columns: [
       {
         key: "Display_name",
@@ -621,6 +621,7 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
         subtitleKey: "Employee_code",
         avatarKey: "Photo_path",
       },
+      { key: "Branch_Name", header: "Branch" },
       { key: "Email", header: "Email" },
       { key: "Mobile", header: "Mobile" },
       // { key: "Org_Name", header: "Organization" },
@@ -1068,9 +1069,10 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
     usesApi: true,
     actionLabel: "Mark Attendance",
     nameKey: "Employee_name",
-    searchKeys: ["Employee_name", "Employee_code", "Attendance_date", "Shift_name"],
+    searchKeys: ["Employee_name", "Employee_code", "Branch_Name", "Attendance_date", "Shift_name"],
     columns: [
       { key: "Employee_name", header: "Employee", type: "person", subtitleKey: "Employee_code" },
+      { key: "Branch_Name", header: "Branch" },
       { key: "Attendance_date", header: "Date", type: "date" },
       { key: "Shift_name", header: "Shift", filterable: true },
       { key: "Check_in", header: "Check In", type: "time" },

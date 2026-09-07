@@ -28,7 +28,7 @@ export type NavSection = {
   items: NavItem[];
 };
 
-export const APP_NAME = "Staffu";
+export const APP_NAME = "PrioHRM";
 
 /** Fallback navigation used when the menu API is unavailable. */
 export const navigation: NavSection[] = [

@@ -16,9 +16,12 @@ export const ONBOARDING_CHECKLIST_STEPS: OnboardingChecklistStep[] = [
   { id: "account", title: "Email / User Account Creation", doneField: "Create_user_account" },
 ];
 
+export function isOnboardingFlagDone(value: unknown): boolean {
+  return value === true || value === "true" || value === 1 || value === "1";
+}
+
 function isStepDone(row: HrmsRow, doneField: string): boolean {
-  const value = row[doneField];
-  return value === true || value === "true";
+  return isOnboardingFlagDone(row[doneField]);
 }
 
 export function getChecklistProgress(row: HrmsRow): {
