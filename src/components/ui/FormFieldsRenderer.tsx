@@ -70,7 +70,36 @@ export function FormFieldsRenderer({
             errors[field.name] && "is-invalid",
           )}
         >
-          {field.type === "checkbox" ? (
+          {field.type === "radio" ? (
+            <>
+              <FormFieldLabel htmlFor={field.name} label={field.label} required={field.required} />
+              <div className="radio-row" role="radiogroup" aria-label={field.label}>
+                {(field.options ?? []).map((option) => {
+                  const optionValue = typeof option === "string" ? option : option.value;
+                  const optionLabel = typeof option === "string" ? option : option.label;
+                  return (
+                    <label key={optionValue} className="check-label" htmlFor={`${field.name}-${optionValue}`}>
+                      <input
+                        id={`${field.name}-${optionValue}`}
+                        type="radio"
+                        name={field.name}
+                        value={optionValue}
+                        checked={asText(values[field.name]) === optionValue}
+                        onChange={() => onChange(field.name, optionValue)}
+                        disabled={isDisabled}
+                      />
+                      {optionLabel}
+                    </label>
+                  );
+                })}
+              </div>
+              {errors[field.name] ? (
+                <p className="form-field-error" role="alert">
+                  {errors[field.name]}
+                </p>
+              ) : null}
+            </>
+          ) : field.type === "checkbox" ? (
             <>
               <label className="check-label mt-2">
                 <input
@@ -171,10 +200,46 @@ export function FormFieldsRenderer({
                   id={field.name}
                   name={field.name}
                   type={field.type || "text"}
-                  className="form-control"
+                  className={cn(
+                    "form-control",
+                    field.type === "number" &&
+                      field.min !== undefined &&
+                      field.min >= 0 &&
+                      "no-number-spin",
+                  )}
                   value={asText(values[field.name])}
                   placeholder={field.placeholder ?? `Enter ${field.label.toLowerCase()}`}
-                  onChange={(event) => onChange(field.name, event.target.value)}
+                  min={field.type === "number" ? field.min : undefined}
+                  max={field.type === "number" ? field.max : undefined}
+                  step={field.type === "number" ? 1 : undefined}
+                  inputMode={
+                    field.type === "number" && field.min !== undefined && field.min >= 0
+                      ? "numeric"
+                      : undefined
+                  }
+                  onKeyDown={
+                    field.type === "number" && field.min !== undefined && field.min >= 0
+                      ? (event) => {
+                          if (["-", "+", "e", "E", ".", ","].includes(event.key)) {
+                            event.preventDefault();
+                          }
+                        }
+                      : undefined
+                  }
+                  onWheel={
+                    field.type === "number" && field.min !== undefined && field.min >= 0
+                      ? (event) => {
+                          event.currentTarget.blur();
+                        }
+                      : undefined
+                  }
+                  onChange={(event) => {
+                    if (field.type === "number" && field.min !== undefined && field.min >= 0) {
+                      onChange(field.name, event.target.value.replace(/\D/g, ""));
+                      return;
+                    }
+                    onChange(field.name, event.target.value);
+                  }}
                   onBlur={(event) => onBlur?.(field.name, event.currentTarget.value)}
                   disabled={isDisabled}
                 />

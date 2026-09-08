@@ -40,6 +40,15 @@ import { queueAuditLog, resolveAuditRecordId } from "@/lib/audit-log";
 import { getModuleEmptyIcon } from "@/lib/module-icons";
 import { getRowLabel } from "@/lib/row-label";
 import type { FormField, HrmsRow, TableColumn } from "@/types/hrms";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import {
+  applyConfigFormOptions,
+  enrichConfigRow,
+  getConfigModuleLookups,
+  sortConfigRows,
+  withLeaveEntitlementFilters,
+} from "@/lib/config-module-helpers";
+import { enrichLeaveApprovalRow } from "@/lib/leave-module-utils";
 
 type MasterDataPageProps = {
   moduleId: string;
@@ -49,6 +58,9 @@ type MasterDataPageProps = {
   stats?: any[];
   extraActions?: React.ReactNode;
   fetchParams?: Record<string, any>;
+  modalSubtitle?: string;
+  emptyStateMessage?: string;
+  submitLabel?: string;
 };
 
 function formatCellValue(value: HrmsRow[string], type?: TableColumn["type"]): string {
@@ -101,7 +113,12 @@ function buildColumns(configColumns: TableColumn[]): Column<HrmsRow>[] {
     return {
       key: column.key,
       header: column.header,
-      render: (row) => formatCellValue(row[column.key], column.type),
+      render: (row) =>
+        column.wrap ? (
+          <span className="cell-wrap">{formatCellValue(row[column.key], column.type)}</span>
+        ) : (
+          formatCellValue(row[column.key], column.type)
+        ),
     };
   });
 }
@@ -181,6 +198,9 @@ export function MasterDataPage({
   stats,
   extraActions,
   fetchParams,
+  modalSubtitle,
+  emptyStateMessage,
+  submitLabel,
 }: MasterDataPageProps) {
   const config = useMemo(() => getHrmsModule(moduleId), [moduleId]);
   const toast = useToast();
@@ -235,6 +255,12 @@ export function MasterDataPage({
 
   const isEmployeeModule = moduleId === "employees";
   const isDailyAttendanceModule = moduleId === "daily-attendance";
+  const isLeaveApprovalModule = moduleId === "leave-approval";
+  const configLookups = useMemo(() => getConfigModuleLookups(), []);
+  const [approvalConfirm, setApprovalConfirm] = useState<{
+    row: HrmsRow;
+    status: "Approved" | "Rejected";
+  } | null>(null);
 
   const columns = useMemo(() => buildColumns(config.columns), [config.columns]);
   const filterFields = useMemo(() => {
@@ -257,6 +283,7 @@ export function MasterDataPage({
       }
       return field;
     });
+    return withLeaveEntitlementFilters(moduleId, fields);
   }, [
     attendanceStatusOptions,
     branchOptions,
@@ -267,6 +294,7 @@ export function MasterDataPage({
     isDailyAttendanceModule,
     isEmployeeModule,
     shiftOptions,
+    moduleId,
   ]);
   const apiService = useMemo(
     () => (usesApi ? getMasterDataApiService(moduleId) : undefined),
@@ -360,8 +388,13 @@ export function MasterDataPage({
 
   const modalFields = useMemo(() => {
     if (config.formSections?.length) return undefined;
-    return baseFormFields.map(applyDynamicFieldOptions);
-  }, [applyDynamicFieldOptions, baseFormFields, config.formSections]);
+    return applyConfigFormOptions(
+      moduleId,
+      baseFormFields.map(applyDynamicFieldOptions),
+      configLookups,
+      rows,
+    );
+  }, [applyDynamicFieldOptions, baseFormFields, config.formSections, configLookups, moduleId, rows]);
 
   const employeeApplOptions = useMemo(
     () => ({
@@ -384,11 +417,15 @@ export function MasterDataPage({
 
   const modalSections = useMemo(() => {
     if (!config.formSections?.length) return undefined;
-    return config.formSections.map((section) => ({
+    const sections = config.formSections.map((section) => ({
       ...section,
       fields: section.fields.map(applyDynamicFieldOptions),
     }));
-  }, [applyDynamicFieldOptions, config.formSections]);
+    return sections.map((section) => ({
+      ...section,
+      fields: applyConfigFormOptions(moduleId, section.fields, configLookups, rows),
+    }));
+  }, [applyDynamicFieldOptions, config.formSections, configLookups, moduleId, rows]);
 
   useEffect(() => {
     if (!usesOrganizationSelect) {
@@ -692,11 +729,12 @@ export function MasterDataPage({
   }, [moduleId]);
 
   const fetchModuleRows = useCallback(async (): Promise<HrmsRow[]> => {
-    if (usesApi) {
-      if (apiService) return apiService.list(fetchParams);
-      return [];
-    }
-    return getHrmsMockRows(moduleId);
+    const nextRows = usesApi
+      ? apiService
+        ? await apiService.list(fetchParams)
+        : []
+      : getHrmsMockRows(moduleId);
+    return sortConfigRows(moduleId, nextRows);
   }, [apiService, moduleId, usesApi, fetchParams]);
 
   const loadRows = useCallback(
@@ -929,14 +967,18 @@ export function MasterDataPage({
 
     try {
       let saved: HrmsRow;
-      const payload =
+      const payload = enrichConfigRow(
+        moduleId,
         isEmployeeModule
           ? enrichEmployeeRow(values, organizationOptions, {
               gender: genderOptions,
               bloodGroup: bloodGroupOptions,
               maritalStatus: maritalStatusOptions,
             })
-          : values;
+          : values,
+        configLookups,
+        rows,
+      );
 
       if (usesApi && apiService) {
         const previous = mode === "edit" ? editRow ?? payload : undefined;
@@ -1038,6 +1080,26 @@ export function MasterDataPage({
     }
   };
 
+  const decideApproval = (row: HrmsRow, status: "Approved" | "Rejected") => {
+    const saved = enrichLeaveApprovalRow({ ...row, Approval_status: status }, configLookups.employees);
+    setRows((prev) => prev.map((item) => (item.id === saved.id ? saved : item)));
+    setApprovalConfirm(null);
+    toast.success({
+      title: status === "Approved" ? "Leave approved" : "Leave updated",
+      message: `${String(saved.Application_no || saved.Employee_name)} has been ${status.toLowerCase()}.`,
+    });
+  };
+
+  const requestApprovalChange = (row: HrmsRow, status: "Approved" | "Rejected") => {
+    const current = String(row.Approval_status ?? "Pending");
+    if (current === status) return;
+    if (status === "Approved" || current === "Approved") {
+      setApprovalConfirm({ row, status });
+      return;
+    }
+    decideApproval(row, status);
+  };
+
   const resolvedExtraActions = useMemo(() => {
     if (moduleId === "devices") {
       return (
@@ -1110,10 +1172,40 @@ export function MasterDataPage({
           actionLabel={config.actionLabel}
           onAction={() => setAddOpen(true)}
           showRowActions
-          statusToggle={config.statusToggle ?? usesApi}
-          onRowEdit={handleEdit}
+          statusToggle={isLeaveApprovalModule ? false : (config.statusToggle ?? usesApi)}
+          onRowEdit={isLeaveApprovalModule ? undefined : handleEdit}
           onRowDelete={handleDelete}
-          onRowActivate={handleActivate}
+          onRowActivate={isLeaveApprovalModule ? undefined : handleActivate}
+          renderRowActions={
+            isLeaveApprovalModule
+              ? (row) => {
+                  const status = String(row.Approval_status ?? "Pending");
+                  return (
+                    <div className="leave-approval-actions">
+                      {status !== "Pending" ? <SoftStatus value={status} /> : null}
+                      {status !== "Approved" ? (
+                        <button
+                          type="button"
+                          className="btn btn-primary btn-sm"
+                          onClick={() => requestApprovalChange(row, "Approved")}
+                        >
+                          Approve
+                        </button>
+                      ) : null}
+                      {status !== "Rejected" ? (
+                        <button
+                          type="button"
+                          className="btn btn-outline-danger btn-sm"
+                          onClick={() => requestApprovalChange(row, "Rejected")}
+                        >
+                          {status === "Approved" ? "Change" : "Reject"}
+                        </button>
+                      ) : null}
+                    </div>
+                  );
+                }
+              : undefined
+          }
           deleteConfirmTitle={
             (config.statusToggle ?? usesApi) ? `Deactivate ${config.title.toLowerCase()}?` : `Delete ${config.title.toLowerCase()}?`
           }
@@ -1126,6 +1218,8 @@ export function MasterDataPage({
           filterFields={filterFields}
           getDeleteLabel={deleteName}
           emptyStateIcon={getModuleEmptyIcon(moduleId)}
+          emptyStateTitle={`No ${config.title.toLowerCase()} records yet`}
+          emptyStateMessage={emptyStateMessage}
           loading={loading || editLoading}
           extraActions={resolvedExtraActions}
         />
@@ -1134,8 +1228,9 @@ export function MasterDataPage({
       <MasterDataModal
         open={addOpen}
         onClose={() => setAddOpen(false)}
-        // title={config.actionLabel}
         title={config.actionLabel || `Add ${config.title}`}
+        subtitle={modalSubtitle}
+        submitLabel={submitLabel}
         fields={modalFields}
         sections={modalSections}
         size={config.modalSize}
@@ -1146,12 +1241,38 @@ export function MasterDataPage({
         open={!!editRow}
         onClose={() => setEditRow(null)}
         title={`Edit ${config.title}`}
+        subtitle={modalSubtitle}
+        submitLabel={submitLabel ?? "Save Changes"}
         fields={modalFields}
         sections={modalSections}
         size={config.modalSize}
         initialValues={editInitialValues}
         onSubmit={(values) => handleSave(values, "edit")}
         disableSubmit={config.disableEditSubmit}
+      />
+
+      <ConfirmDialog
+        open={Boolean(approvalConfirm)}
+        onClose={() => setApprovalConfirm(null)}
+        onConfirm={() => {
+          if (!approvalConfirm) return;
+          decideApproval(approvalConfirm.row, approvalConfirm.status);
+        }}
+        title={
+          approvalConfirm?.status === "Approved"
+            ? "Approve this leave request?"
+            : "Change this approved request?"
+        }
+        message={
+          approvalConfirm
+            ? approvalConfirm.status === "Approved"
+              ? `Approve ${String(approvalConfirm.row.Application_no || approvalConfirm.row.Employee_name)}? You can still change it later if this was a mistake.`
+              : `Change ${String(approvalConfirm.row.Application_no || approvalConfirm.row.Employee_name)} from Approved to Rejected?`
+            : ""
+        }
+        confirmLabel={approvalConfirm?.status === "Approved" ? "Approve" : "Change"}
+        cancelLabel="Cancel"
+        variant={approvalConfirm?.status === "Approved" ? "success" : "danger"}
       />
     </>
   );

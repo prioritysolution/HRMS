@@ -51,6 +51,7 @@ export const navigation: NavSection[] = [
           { label: "Employment Status", href: "/organization/employee-status" },
           { label: "Salary Grade", href: "/organization/salary-grades" },
           { label: "Holiday Calendar", href: "/attendance/holidays" },
+          { label: "Yearly Working Calendar", href: "/holiday/yearly-working-calander" },
           { label: "Asset Management", href: "/organization/assets" },
           { label: "Device Setup", href: "/organization/device" },
 
@@ -94,6 +95,8 @@ export const navigation: NavSection[] = [
         icon: "attendance",
         children: [
           { label: "Leave Master", href: "/leave/master" },
+          { label: "Leave Entitlement", href: "/leave/leave-entitlement" },
+          { label: "Leave Requisition", href: "/leave/leave-requisition" },
           { label: "Leave Policy", href: "/leave/policy" },
           { label: "Leave Allocation", href: "/leave/allocation" },
           { label: "Leave Application", href: "/leave/application" },

@@ -1,11 +1,11 @@
 "use client";
 
-import { LeaveModulePage } from "@/components/leave/LeaveModulePage";
+import { MasterDataPage } from "@/components/ui/MasterDataPage";
 import { APPLICATION_STATS } from "@/lib/leave-stats";
 
 export default function LeaveApplicationPage() {
   return (
-    <LeaveModulePage
+    <MasterDataPage
       moduleId="leave-application"
       stats={APPLICATION_STATS}
       modalSubtitle="Employees can apply for leave via web or mobile with supporting documents."

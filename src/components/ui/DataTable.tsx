@@ -56,6 +56,7 @@ type DataTableProps<T extends object> = {
   actionLabel?: string;
   onAction?: () => void;
   showRowActions?: boolean;
+  renderRowActions?: (row: T) => React.ReactNode;
   onRowEdit?: (row: T) => void;
   onRowDelete?: (row: T) => void | Promise<void>;
   onRowActivate?: (row: T) => void | Promise<void>;
@@ -234,6 +235,7 @@ export function DataTable<T extends object>({
   actionLabel,
   onAction,
   showRowActions = false,
+  renderRowActions,
   onRowEdit,
   onRowDelete,
   onRowActivate,
@@ -256,14 +258,10 @@ export function DataTable<T extends object>({
   const [search, setSearch] = useState(() => searchParams?.get("search") ?? "");
   const [filters, setFilters] = useState<Record<string, string>>(() => {
     const initial: Record<string, string> = {};
-    if (searchParams && filterFields.length > 0) {
-      filterFields.forEach((field) => {
-        const value = searchParams.get(field.key);
-        if (value) {
-          initial[field.key] = value;
-        }
-      });
-    }
+    filterFields.forEach((field) => {
+      const value = searchParams?.get(field.key) || field.defaultValue;
+      if (value) initial[field.key] = value;
+    });
     return initial;
   });
   const [page, setPage] = useState(1);
@@ -303,7 +301,13 @@ export function DataTable<T extends object>({
 
   const resetFilters = () => {
     setSearch("");
-    setFilters({});
+    setFilters(
+      Object.fromEntries(
+        filterFields
+          .filter((field) => field.defaultValue)
+          .map((field) => [field.key, field.defaultValue as string]),
+      ),
+    );
   };
 
   const hasActiveFilters =
@@ -439,18 +443,22 @@ export function DataTable<T extends object>({
                     ))}
                     {showRowActions && (
                       <td className="action-col">
-                        <RowActions
-                          row={row}
-                          onEdit={onRowEdit}
-                          onDelete={onRowDelete}
-                          onActivate={onRowActivate}
-                          statusToggle={statusToggle}
-                          deleteConfirmTitle={deleteConfirmTitle}
-                          deleteConfirmMessage={deleteConfirmMessage}
-                          activateConfirmTitle={activateConfirmTitle}
-                          activateConfirmMessage={activateConfirmMessage}
-                          getDeleteLabel={getDeleteLabel}
-                        />
+                        {renderRowActions ? (
+                          renderRowActions(row)
+                        ) : (
+                          <RowActions
+                            row={row}
+                            onEdit={onRowEdit}
+                            onDelete={onRowDelete}
+                            onActivate={onRowActivate}
+                            statusToggle={statusToggle}
+                            deleteConfirmTitle={deleteConfirmTitle}
+                            deleteConfirmMessage={deleteConfirmMessage}
+                            activateConfirmTitle={activateConfirmTitle}
+                            activateConfirmMessage={activateConfirmMessage}
+                            getDeleteLabel={getDeleteLabel}
+                          />
+                        )}
                       </td>
                     )}
                   </tr>

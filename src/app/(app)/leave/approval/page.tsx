@@ -1,15 +1,15 @@
 "use client";
 
-import { LeaveModulePage } from "@/components/leave/LeaveModulePage";
+import { MasterDataPage } from "@/components/ui/MasterDataPage";
 import { APPROVAL_STATS } from "@/lib/leave-stats";
 
 export default function LeaveApprovalPage() {
   return (
-    <LeaveModulePage
+    <MasterDataPage
       moduleId="leave-approval"
       stats={APPROVAL_STATS}
-      modalSubtitle="Review and approve or reject employee leave requests."
-      emptyStateMessage="Pending leave applications from employees will appear here for approval."
+      modalSubtitle="Review the leave request. Use Approve or Reject in the Action column."
+      emptyStateMessage="Pending leave requisitions will appear here for approval."
     />
   );
 }

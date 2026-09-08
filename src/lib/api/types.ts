@@ -378,6 +378,8 @@ export type HolidayRecord = {
   Holiday_date: string;
   Holiday_name: string;
   Holiday_type: string;
+  Remarks?: string | null;
+  remarks?: string | null;
 };
 
 export type HolidayWritePayload = {
@@ -385,6 +387,7 @@ export type HolidayWritePayload = {
   holiday_date: string;
   holiday_name: string;
   holiday_type: string;
+  remarks?: string;
   month_sl?: number;
   year_sl?: number;
 };

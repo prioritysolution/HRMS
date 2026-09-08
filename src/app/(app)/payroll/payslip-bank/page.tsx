@@ -1,11 +1,11 @@
 "use client";
 
-import { PayrollModulePage } from "@/components/payroll/PayrollModulePage";
+import { MasterDataPage } from "@/components/ui/MasterDataPage";
 import { PAYSLIP_STATS } from "@/lib/payroll-stats";
 
 export default function PayslipBankPage() {
   return (
-    <PayrollModulePage
+    <MasterDataPage
       moduleId="payroll-payslip-bank"
       stats={PAYSLIP_STATS}
       modalSubtitle="Generate payslips, bank payment files, and track salary disbursements."

@@ -4,6 +4,7 @@ export type TableFilterDef = {
   key: string;
   label: string;
   options?: Array<string | { value: string; label: string }>;
+  defaultValue?: string;
 };
 
 // export function getFilterOptions<T extends object>(rows: T[], key: string): string[] {

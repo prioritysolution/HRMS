@@ -1176,6 +1176,19 @@ textarea {
   color: #15803d;
 }
 
+.leave-approval-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.leave-approval-actions .btn {
+  min-height: 32px;
+  padding: 0.28rem 0.7rem;
+  font-size: 0.78rem;
+}
+
 .data-table .action-col {
   width: 1%;
   white-space: nowrap;
@@ -1299,6 +1312,19 @@ textarea {
   text-align: left;
   border-bottom: 1px solid var(--border);
   white-space: nowrap;
+}
+
+.data-table td:has(.cell-wrap) {
+  white-space: normal;
+  max-width: 280px;
+  vertical-align: top;
+}
+
+.data-table .cell-wrap {
+  display: block;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.4;
 }
 
 .data-table th {
@@ -2984,6 +3010,17 @@ textarea {
 .form-control:focus {
   border-color: rgba(var(--primary-rgb), 0.55);
   box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.12);
+}
+
+.no-number-spin {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.no-number-spin::-webkit-outer-spin-button,
+.no-number-spin::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .form-field-label {
@@ -5911,3 +5948,4 @@ input:-webkit-autofill:active {
   margin-top: 1.5rem;
   padding-top: 0.35rem;
 }
+

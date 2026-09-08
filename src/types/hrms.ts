@@ -13,6 +13,7 @@ export type FormFieldType =
   | "select"
   |  "multi-select"
   | "textarea"
+  | "radio"
   | "checkbox"
   | "file";
 
@@ -58,6 +59,7 @@ export type TableColumn = {
   subtitleKey?: string;
   avatarKey?: string;
   filterable?: boolean;
+  wrap?: boolean;
 };
 
 export type StatCardConfig = {

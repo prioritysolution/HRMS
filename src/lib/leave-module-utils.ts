@@ -39,6 +39,39 @@ export function selectOptionsFromLeaveTypes(
     .filter((option): option is { value: string; label: string } => option !== null);
 }
 
+export function withBranchSelectOptions(fields: FormField[]): FormField[] {
+  const options = getHrmsMockRows("branches")
+    .map((row) => String(row.Branch_Name ?? "").trim())
+    .filter(Boolean)
+    .map((branch) => ({ value: branch, label: branch }));
+
+  if (options.length === 0) return fields;
+
+  return fields.map((field) => (field.name === "Branch_Name" ? { ...field, options } : field));
+}
+
+export function nextLeaveRequisitionNo(rows: HrmsRow[]): string {
+  const highest = rows.reduce((max, row) => {
+    const match = String(row.Application_no ?? "").match(/(\d+)$/);
+    return match ? Math.max(max, Number(match[1])) : max;
+  }, 0);
+  return `LR-${new Date().getFullYear()}-${String(highest + 1).padStart(3, "0")}`;
+}
+
+export function lookupLeaveBalance(employeeCode: string, leaveType: string): number {
+  const allocation = getHrmsMockRows("leave-allocation").find(
+    (row) =>
+      String(row.Employee_code ?? "").trim() === employeeCode &&
+      String(row.Leave_type ?? "").trim() === leaveType,
+  );
+  if (allocation) return Number(allocation.Balance_days ?? 0);
+
+  const leaveMaster = getActiveLeaveTypes().find(
+    (row) => String(row.Leave_name ?? "").trim() === leaveType,
+  );
+  return Number(leaveMaster?.Leaves_per_year ?? 0);
+}
+
 export function withLeaveTypeOptions(fields: FormField[], leaveTypes: HrmsRow[]): FormField[] {
   const options = selectOptionsFromLeaveTypes(leaveTypes);
   if (options.length === 0) return fields;
@@ -60,20 +93,28 @@ export function withEmployeeAndLeaveTypeOptions(
 }
 
 export function enrichLeaveMasterRow(values: HrmsRow): HrmsRow {
-  const code = String(values.Leave_code ?? "").trim().toUpperCase();
+  const shortName = String(values.Short_name ?? values.Leave_code ?? "").trim().toUpperCase();
   const name = String(values.Leave_name ?? "").trim();
+  const documentRequired = String(values.Document_required ?? values.Requires_document ?? "No");
+  const isActive =
+    values.Is_active === true ||
+    values.Is_active === "true" ||
+    values.Is_active === 1 ||
+    values.Is_active === "1";
 
   return {
     ...values,
     id: String(values.id ?? `lm-${Date.now()}`),
-    Leave_code: code,
     Leave_name: name,
-    Leave_category: String(values.Leave_category ?? "Paid"),
-    Annual_quota: Number(values.Annual_quota ?? 0),
-    Carry_forward: String(values.Carry_forward ?? "No"),
-    Encashable: String(values.Encashable ?? "No"),
-    Requires_document: String(values.Requires_document ?? "No"),
-    Status: String(values.Status ?? "Active"),
+    Short_name: shortName,
+    Leave_code: shortName,
+    Document_required: documentRequired,
+    Requires_document: documentRequired,
+    Leaves_per_year: Number(values.Leaves_per_year ?? 0),
+    Validity: String(values.Validity ?? "Within Year"),
+    Days_number: Number(values.Days_number ?? 0),
+    Is_active: isActive,
+    Status: isActive ? "Active" : "Inactive",
   };
 }
 
@@ -122,6 +163,85 @@ export function enrichLeaveAllocationRow(
   };
 }
 
+export function currentFinancialYear(date = new Date()): string {
+  const year = date.getFullYear();
+  const start = date.getMonth() >= 3 ? year : year - 1;
+  return `${start}-${String(start + 1).slice(-2)}`;
+}
+
+export function sortFinancialYears(years: string[]): string[] {
+  return [...new Set(years.map((year) => year.trim()).filter(Boolean))].sort((left, right) =>
+    right.localeCompare(left, undefined, { numeric: true }),
+  );
+}
+
+export function latestFinancialYear(years: string[], fallback = currentFinancialYear()): string {
+  return sortFinancialYears(years)[0] ?? fallback;
+}
+
+export function enrichLeaveEntitlementRow(values: HrmsRow, leaveTypes: HrmsRow[]): HrmsRow {
+  const leaveType = String(values.Leave_type ?? "").trim();
+  const matched = leaveTypes.find((row) => String(row.Leave_name ?? "").trim() === leaveType);
+  const allocation = Number(values.Allocation ?? 0);
+
+  return {
+    ...values,
+    id: String(values.id ?? `lent-${Date.now()}`),
+    Financial_year: String(values.Financial_year ?? "").trim(),
+    Leave_type: leaveType,
+    Leave_code: String(matched?.Leave_code ?? values.Leave_code ?? ""),
+    Allocation: allocation < 0 ? 0 : allocation,
+  };
+}
+
+export function enrichLeaveRequisitionRow(
+  values: HrmsRow,
+  employees: HrmsRow[],
+  leaveTypes: HrmsRow[],
+  existingRows: HrmsRow[] = [],
+): HrmsRow {
+  const base = enrichEmployeeAttendanceRow(values, employees);
+  const employeeCode = String(base.Employee_code ?? "").trim();
+  const employee = employees.find((row) => String(row.Employee_code ?? "").trim() === employeeCode);
+  const leaveType = String(values.Leave_type ?? "").trim();
+  const matched = leaveTypes.find((row) => String(row.Leave_name ?? "").trim() === leaveType);
+  const fromDate = String(values.From_date ?? "");
+  const toDate = String(values.To_date ?? "");
+  const halfDay = String(values.Half_day ?? "").trim();
+  const dayCount = countLeaveDays(fromDate, toDate);
+  const numberOfDays = halfDay && dayCount === 1 ? 0.5 : dayCount;
+  const documentRequired = String(matched?.Document_required ?? matched?.Requires_document ?? "No") === "Yes";
+  const documentFile = values.Supporting_document;
+  const documentName =
+    documentFile instanceof File
+      ? documentFile.name
+      : String(values.Document_name ?? values.Supporting_document_name ?? "").trim();
+
+  if (documentRequired && !documentName) {
+    throw new Error("Attachment is required for this leave type.");
+  }
+
+  const applicationNo =
+    String(values.Application_no ?? "").trim() || nextLeaveRequisitionNo(existingRows);
+
+  return {
+    ...base,
+    id: String(values.id ?? `lreq-${Date.now()}`),
+    Application_no: applicationNo,
+    Branch_Name: String(values.Branch_Name ?? employee?.Branch_Name ?? "").trim(),
+    Leave_type: leaveType,
+    Leave_code: String(matched?.Leave_code ?? values.Leave_code ?? ""),
+    Balance_leave: lookupLeaveBalance(employeeCode, leaveType),
+    From_date: fromDate,
+    To_date: toDate,
+    Number_of_days: numberOfDays,
+    Half_day: halfDay,
+    Reason: String(values.Reason ?? "").trim(),
+    Document_name: documentName || undefined,
+    Requires_document: documentRequired ? "Yes" : "No",
+  };
+}
+
 export function enrichLeaveApplicationRow(
   values: HrmsRow,
   employees: HrmsRow[],
@@ -159,16 +279,19 @@ export function enrichLeaveApplicationRow(
 
 export function enrichLeaveApprovalRow(values: HrmsRow, employees: HrmsRow[]): HrmsRow {
   const base = enrichEmployeeAttendanceRow(values, employees);
+  const status = String(values.Approval_status ?? "Pending").trim() || "Pending";
 
   return {
     ...base,
     id: String(values.id ?? `lappr-${Date.now()}`),
+    Application_no: String(values.Application_no ?? "").trim(),
     Leave_type: String(values.Leave_type ?? "").trim(),
     From_date: String(values.From_date ?? ""),
     To_date: String(values.To_date ?? ""),
     Number_of_days: Number(values.Number_of_days ?? 0),
+    Reason: String(values.Reason ?? "").trim(),
     Applied_on: String(values.Applied_on ?? ""),
-    Approval_status: String(values.Approval_status ?? "Pending"),
+    Approval_status: status,
     Approver_name: String(values.Approver_name ?? "Reporting Manager"),
     Remarks: String(values.Remarks ?? "").trim(),
   };

@@ -1,11 +1,11 @@
 "use client";
 
-import { PayrollModulePage } from "@/components/payroll/PayrollModulePage";
+import { MasterDataPage } from "@/components/ui/MasterDataPage";
 import { PROCESSING_STATS } from "@/lib/payroll-stats";
 
 export default function PayrollProcessingPage() {
   return (
-    <PayrollModulePage
+    <MasterDataPage
       moduleId="payroll-processing"
       stats={PROCESSING_STATS}
       submitLabel="Run Payroll"

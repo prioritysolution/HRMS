@@ -17,6 +17,7 @@ type MasterDataModalProps = {
   title: string;
   subtitle?: string;
   submitLabel?: string;
+  cancelLabel?: string;
   fields?: FormField[];
   sections?: FormSection[];
   size?: "sm" | "md" | "lg" | "xl";
@@ -40,6 +41,7 @@ export function MasterDataModal({
   title,
   subtitle,
   submitLabel = "Save & Continue",
+  cancelLabel = "Close",
   fields,
   sections,
   size = "lg",
@@ -227,7 +229,7 @@ export function MasterDataModal({
             onClick={handleClose}
             disabled={submitting}
           >
-            Close
+            {cancelLabel}
           </button>
         </>
       }

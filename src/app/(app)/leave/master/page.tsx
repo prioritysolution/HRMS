@@ -1,12 +1,12 @@
 "use client";
 
-import { LeaveModulePage } from "@/components/leave/LeaveModulePage";
+import { MasterDataPage } from "@/components/ui/MasterDataPage";
 
 export default function LeaveMasterPage() {
   return (
-    <LeaveModulePage
+    <MasterDataPage
       moduleId="leave-master"
-      modalSubtitle="Configure leave types available for your organization."
+      modalSubtitle="Configure leave types available for your organization. Demo data is used until the leave master API is connected."
       emptyStateMessage="Add leave types such as Casual Leave, Sick Leave, or Earned Leave."
     />
   );

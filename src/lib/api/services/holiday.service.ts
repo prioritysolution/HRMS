@@ -6,6 +6,7 @@ import type {
     HolidayRecord,
     HolidayWritePayload,
 } from "@/lib/api/types";
+import { lookupHolidayDescription } from "@/data/holiday-remarks";
 import type { HrmsRow } from "@/types/hrms";
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -87,11 +88,39 @@ function normalizeDate(value: unknown): string {
     return String(value).trim();
 }
 
+function readText(source: Record<string, unknown>, keys: string[]): string {
+    for (const key of keys) {
+        const value = source[key];
+        if (value === undefined || value === null) continue;
+        const text = String(value).trim();
+        if (text) return text;
+    }
+    return "";
+}
+
 function holidayToRow(
     holiday: HolidayRecord,
+    fallback?: HrmsRow,
 ): HrmsRow {
+    const source = holiday as HolidayRecord & Record<string, unknown>;
+    const purpose = readText(source, ["Purpose", "purpose", "Holiday_type", "holiday_type"]);
+    const holidayDate = normalizeDate(holiday.Holiday_date ?? fallback?.Holiday_date);
+    const holidayName = String(holiday.Holiday_name ?? fallback?.Holiday_name ?? "");
+    const remarks = readText(source, [
+        "Remarks",
+        "remarks",
+        "Remark",
+        "remark",
+        "Description",
+        "description",
+        "holiday_description",
+        "Holiday_description",
+        "holiday_remarks",
+        "Holiday_remarks",
+    ]) || String(fallback?.Remarks ?? "").trim() || lookupHolidayDescription(holidayDate, holidayName);
+
     return {
-        id: String(holiday.Holiday_id),
+        id: String(holiday.Holiday_id ?? fallback?.id ?? ""),
 
         Holiday_id: holiday.Holiday_id,
 
@@ -99,13 +128,15 @@ function holidayToRow(
 
         Year_Sl: holiday.Year_Sl,
 
-        Holiday_date: normalizeDate(
-            holiday.Holiday_date,
-        ),
+        Holiday_date: holidayDate,
 
-        Holiday_name: holiday.Holiday_name ?? "",
+        Holiday_name: holidayName,
 
-        Holiday_type: holiday.Holiday_type ?? "",
+        Holiday_type: holiday.Holiday_type ?? purpose,
+
+        Purpose: purpose || String(fallback?.Purpose ?? ""),
+
+        Remarks: remarks,
     };
 }
 
@@ -126,8 +157,10 @@ function rowToPayload(
         ).trim(),
 
         holiday_type: String(
-            row.Holiday_type ?? "",
+            row.Purpose ?? row.Holiday_type ?? "",
         ).trim(),
+
+        remarks: String(row.Remarks ?? "").trim(),
     };
 
     if (includeDerivedFields && holidayDate) {
@@ -178,6 +211,7 @@ export const holidayService = {
 
         return holidayToRow(
             getSingle(payload),
+            row,
         );
     },
 
@@ -192,6 +226,7 @@ export const holidayService = {
 
         return holidayToRow(
             getSingle(payload),
+            row,
         );
     },
 

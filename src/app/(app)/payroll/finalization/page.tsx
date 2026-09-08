@@ -1,11 +1,11 @@
 "use client";
 
-import { PayrollModulePage } from "@/components/payroll/PayrollModulePage";
+import { MasterDataPage } from "@/components/ui/MasterDataPage";
 import { FINALIZATION_STATS } from "@/lib/payroll-stats";
 
 export default function PayrollFinalizationPage() {
   return (
-    <PayrollModulePage
+    <MasterDataPage
       moduleId="payroll-finalization"
       stats={FINALIZATION_STATS}
       submitLabel="Finalize"
