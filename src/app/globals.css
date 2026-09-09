@@ -2720,6 +2720,34 @@ textarea {
     margin-left: 0;
   }
 
+  html:has(.page-layout.sidebar-open),
+  body:has(.page-layout.sidebar-open) {
+    overflow: hidden;
+    height: 100%;
+    overscroll-behavior: none;
+  }
+
+  .page-layout.sidebar-open {
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+  }
+
+  .page-layout.sidebar-open .page-wrapper {
+    overflow: hidden;
+    touch-action: none;
+  }
+
+  .page-layout.sidebar-open .left-sidebar,
+  .page-layout.sidebar-open .leftbar-menu {
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .page-layout.sidebar-open .mobile-overlay {
+    touch-action: none;
+  }
+
   .mobile-overlay {
     display: block;
     position: fixed;
@@ -5254,8 +5282,8 @@ input:-webkit-autofill:active {
   position: relative;
   flex: 1 1 auto;
   align-self: center;
-  width: min(100%, 820px);
-  height: min(58vh, 640px);
+  width: min(100%, 900px);
+  height: min(64vh, 720px);
   max-height: 100%;
   margin-inline: auto;
 }
@@ -5263,7 +5291,7 @@ input:-webkit-autofill:active {
 .login-showcase-art-image {
   object-fit: contain;
   object-position: center center;
-  transform: translateY(-2%) scale(0.92);
+  transform: translateY(-6%) scale(1.08);
   transform-origin: center center;
 }
 
@@ -5420,6 +5448,8 @@ input:-webkit-autofill:active {
 }
 
 .login-eye-button {
+  position: relative;
+  z-index: 1;
   width: 34px;
   height: 34px;
 
@@ -5437,6 +5467,8 @@ input:-webkit-autofill:active {
   color: #55719e;
 
   cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
 
   transition:
     background 0.16s ease,
@@ -5643,12 +5675,12 @@ input:-webkit-autofill:active {
 
 @media (min-width: 1400px) {
   .login-showcase-art {
-    width: min(100%, 860px);
-    height: min(60vh, 680px);
+    width: min(100%, 960px);
+    height: min(68vh, 780px);
   }
 
   .login-showcase-art-image {
-    transform: scale(0.96);
+    transform: translateY(-6%) scale(1.1);
     transform-origin: center center;
   }
 }
@@ -5665,7 +5697,7 @@ input:-webkit-autofill:active {
   }
 
   .login-showcase-art-image {
-    transform: none;
+    transform: translateY(-4%) scale(1.04);
   }
 
   .login-showcase-footer {
@@ -5680,12 +5712,12 @@ input:-webkit-autofill:active {
   }
 
   .login-showcase-art {
-    width: min(100%, 740px);
-    height: min(54vh, 580px);
+    width: min(100%, 840px);
+    height: min(62vh, 680px);
   }
 
   .login-showcase-art-image {
-    transform: scale(0.9);
+    transform: translateY(-5%) scale(1.05);
   }
 
   .login-card-brand-image {

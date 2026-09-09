@@ -2,8 +2,8 @@
 
 import { useEffect, useRef } from "react";
 
-const SLOW_MOTION_RATE = 0.38;
-const CROSSFADE_MS = 1400;
+const SLOW_MOTION_RATE = 0.30;
+const CROSSFADE_MS = 1200;
 
 export function LoginBackgroundVideo() {
   const primaryRef = useRef<HTMLVideoElement>(null);
@@ -103,7 +103,7 @@ export function LoginBackgroundVideo() {
         preload="auto"
         poster="/images/login-hero-background.png"
       >
-        <source src="/images/login-hero-background-video.mp4" type="video/mp4" />
+        <source src="/images/login-hero-background-video1.mp4" type="video/mp4" />
       </video>
       <video
         ref={secondaryRef}
@@ -113,7 +113,7 @@ export function LoginBackgroundVideo() {
         preload="auto"
         poster="/images/login-hero-background.png"
       >
-        <source src="/images/login-hero-background-video.mp4" type="video/mp4" />
+        <source src="/images/login-hero-background-video1.mp4" type="video/mp4" />
       </video>
     </>
   );

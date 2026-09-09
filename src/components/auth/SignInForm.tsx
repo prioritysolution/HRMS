@@ -177,8 +177,10 @@ export function SignInForm() {
           <button
             type="button"
             className="login-eye-button"
+            onPointerDown={(event) => event.preventDefault()}
             onClick={() => setShowPassword((current) => !current)}
             aria-label={showPassword ? "Hide password" : "Show password"}
+            aria-pressed={showPassword}
           >
             {showPassword ? (
               <EyeOff size={20} strokeWidth={2} />

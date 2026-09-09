@@ -47,9 +47,43 @@ export function UIProvider({ children }: { children: React.ReactNode }) {
   }, [theme]);
 
   useEffect(() => {
-    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    if (!mobileOpen) return;
+
+    const html = document.documentElement;
+    const body = document.body;
+    const scrollY = window.scrollY;
+    const previous = {
+      htmlOverflow: html.style.overflow,
+      bodyOverflow: body.style.overflow,
+      bodyPosition: body.style.position,
+      bodyTop: body.style.top,
+      bodyWidth: body.style.width,
+    };
+
+    html.style.overflow = "hidden";
+    body.style.overflow = "hidden";
+    body.style.position = "fixed";
+    body.style.top = `-${scrollY}px`;
+    body.style.width = "100%";
+
+    const allowSidebarScroll = (target: EventTarget | null) =>
+      target instanceof Node && Boolean(document.getElementById("app-sidebar")?.contains(target));
+
+    const preventBackgroundScroll = (event: TouchEvent) => {
+      if (allowSidebarScroll(event.target)) return;
+      event.preventDefault();
+    };
+
+    document.addEventListener("touchmove", preventBackgroundScroll, { passive: false });
+
     return () => {
-      document.body.style.overflow = "";
+      html.style.overflow = previous.htmlOverflow;
+      body.style.overflow = previous.bodyOverflow;
+      body.style.position = previous.bodyPosition;
+      body.style.top = previous.bodyTop;
+      body.style.width = previous.bodyWidth;
+      window.scrollTo(0, scrollY);
+      document.removeEventListener("touchmove", preventBackgroundScroll);
     };
   }, [mobileOpen]);
 

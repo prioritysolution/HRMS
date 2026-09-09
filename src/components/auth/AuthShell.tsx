@@ -19,7 +19,7 @@ export function AuthShell({ title, subtitle, children }: AuthShellProps) {
           sizes="100vw"
           className="login-background-image"
         />
-        {/* <LoginBackgroundVideo /> */}
+        <LoginBackgroundVideo />
       </div>
 
       <div className="login-shell">
