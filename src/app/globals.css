@@ -352,7 +352,7 @@ textarea {
     position: relative;
   }
 
-  .page-layout.sidebar-collapsed .nav-item.is-flyout-open > .sub-menu {
+  .page-layout.sidebar-collapsed .nav-item.is-flyout-open>.sub-menu {
     display: block !important;
     position: absolute;
     left: 100%;
@@ -372,7 +372,7 @@ textarea {
     scrollbar-width: thin;
   }
 
-  .page-layout.sidebar-collapsed .nav-item.is-flyout-open > .sub-menu::before {
+  .page-layout.sidebar-collapsed .nav-item.is-flyout-open>.sub-menu::before {
     content: "";
     display: block;
     background: var(--card-bg);
@@ -384,12 +384,12 @@ textarea {
     z-index: -1;
   }
 
-  .page-layout.sidebar-collapsed .nav-item.is-flyout-open > .sub-menu .menu-text,
-  .page-layout.sidebar-collapsed .nav-item.is-flyout-open > .sub-menu .collapsed-flyout-title {
+  .page-layout.sidebar-collapsed .nav-item.is-flyout-open>.sub-menu .menu-text,
+  .page-layout.sidebar-collapsed .nav-item.is-flyout-open>.sub-menu .collapsed-flyout-title {
     display: block !important;
   }
 
-  .page-layout.sidebar-collapsed .nav-item.is-flyout-open > .sub-menu .collapsed-flyout-title {
+  .page-layout.sidebar-collapsed .nav-item.is-flyout-open>.sub-menu .collapsed-flyout-title {
     padding: 0.45rem 0.65rem 0.35rem;
     margin-bottom: 0.15rem;
     font-size: 0.72rem;
@@ -400,7 +400,7 @@ textarea {
     border-bottom: 1px solid var(--border);
   }
 
-  .page-layout.sidebar-collapsed .nav-item.is-flyout-open > .sub-menu .nav-link {
+  .page-layout.sidebar-collapsed .nav-item.is-flyout-open>.sub-menu .nav-link {
     justify-content: flex-start;
     text-align: left;
     padding: 0.5rem 0.65rem;
@@ -5144,114 +5144,141 @@ input:-webkit-autofill:active {
 
 /* =========================================================
    PrioHRM Login Page
-   Page-wide hero artwork with the login card sitting on it
+   Background wave + left artwork, login card on the right
    Scoped only to .auth-page--login
    ========================================================= */
 
 .auth-page--login {
-  --login-backdrop:
-    linear-gradient(
-      180deg,
-      #f4fbff 0%,
-      #eef7ff 55%,
-      #d9effc 100%
-    );
+  --login-backdrop: #eef6ff;
+  --login-navy: #102f70;
+  --login-blue: #1a4f9c;
+  --login-muted: #5a759f;
 
   position: relative;
+  display: block;
   min-height: 100vh;
   min-height: 100dvh;
+  height: auto;
   padding: 0;
   overflow: hidden;
-  color: #102f70;
+  color: var(--login-navy);
+  background: var(--login-backdrop);
+}
 
-  /* Artwork spans the full page width, continuing behind the login card.
-     Anchored bottom-left so the dark blue wave stays flush with the edge. */
-  background-image:
-    url("/images/login-hero2.png"),
-    var(--login-backdrop);
+.login-background {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
 
-  background-repeat: no-repeat;
-
-  background-position:
-    left bottom,
-    center;
-
-  /* login-hero2.png is 1448×1086 (4:3). Illustration / wordmark / feature
-     icons end at ~65% of the file width; the tagline starts ~5.7% from the
-     top. Exact height-fit is 133.3vh. 136vh is a light rightward push — only
-     ~2% of the top is cropped, still clear of the tagline. The 100% cap
-     stops it overflowing on very tall windows. */
-  background-size:
-    min(100%, 136vh) auto,
-    cover;
+.login-background-image {
+  object-fit: cover;
+  object-position: left bottom;
 }
 
 .login-shell {
   position: relative;
-  z-index: 2;
-
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1.28fr) minmax(420px, 500px);
+  align-items: stretch;
   width: 100%;
   min-height: 100vh;
   min-height: 100dvh;
-  margin: 0 auto;
-
-  display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(430px, 1.1fr);
 }
 
-/* Open spacer — the page-wide artwork shows through */
 .login-showcase-panel {
-  min-height: 100%;
-  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  padding: clamp(1.35rem, 2.6vw, 2.4rem) clamp(0.5rem, 1.4vw, 1.25rem)
+    clamp(1.1rem, 2.2vw, 1.8rem) clamp(1.4rem, 3vw, 2.8rem);
+}
+
+.login-showcase-headline {
+  flex: 0 0 auto;
+  max-width: 22rem;
+}
+
+.login-showcase-headline h2 {
+  margin: 0;
+  color: var(--login-blue);
+  font-size: clamp(1.35rem, 2.1vw, 2rem);
+  font-weight: 600;
+  font-style: italic;
+  line-height: 1.28;
+  letter-spacing: 0.01em;
+}
+
+.login-showcase-rule {
+  display: block;
+  width: 3.15rem;
+  height: 3px;
+  margin-top: 0.7rem;
+  border-radius: 999px;
+  background: var(--login-blue);
+}
+
+.login-showcase-art {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+}
+
+.login-showcase-art-image {
+  object-fit: contain;
+  object-position: center center;
+  transform: scale(1.18);
+  transform-origin: center center;
+}
+
+.login-showcase-footer {
+  flex: 0 0 auto;
+  margin: 0;
+  color: #ffffff;
+  font-size: clamp(0.92rem, 1.15vw, 1.05rem);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-shadow: 0 1px 8px rgba(12, 62, 140, 0.28);
+}
+
+.login-showcase-footer span {
+  margin: 0 0.7rem;
+  opacity: 0.72;
+  font-weight: 500;
 }
 
 .login-form-panel {
   position: relative;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   min-width: 0;
-
-  padding: clamp(1rem, 2vw, 2rem);
-
-  /* Clear, so the page-wide artwork continues behind the card */
+  padding: clamp(1rem, 2vw, 1.75rem) clamp(1rem, 2.4vw, 2.25rem)
+    clamp(1rem, 2vw, 1.75rem) 0.35rem;
   background: transparent;
 }
 
 .login-form-card {
   position: relative;
-
-  width: min(770px, 100%);
-
-  /* 4rem is twice the panel's maximum padding, so the card never makes the
-     row taller than the viewport and push the artwork out of alignment. */
-  min-height:
-    min(
-      930px,
-      calc(100vh - 4rem)
-    );
-
-  padding:
-    clamp(1.7rem, 3.5vw, 3rem)
-    clamp(1.55rem, 3.5vw, 3.4rem)
-    clamp(1.2rem, 2.8vw, 2rem);
-
   display: flex;
   flex-direction: column;
-
+  width: min(480px, 100%);
+  max-height: calc(100dvh - 2rem);
+  overflow: auto;
+  padding: clamp(1.35rem, 2.4vw, 1.85rem) clamp(1.35rem, 2.6vw, 2.15rem)
+    clamp(1.05rem, 2vw, 1.45rem);
   background: #ffffff;
-
-  border:
-    1px solid
-    rgba(102, 170, 236, 0.18);
-
-  border-radius: 20px;
-
-  box-shadow:
-    0 26px 70px
-    rgba(34, 100, 159, 0.12);
+  border: 1px solid rgba(102, 170, 236, 0.16);
+  border-radius: 22px;
+  box-shadow: 0 22px 60px rgba(28, 92, 168, 0.14);
 }
 
 .login-card-brand {
@@ -5264,56 +5291,38 @@ input:-webkit-autofill:active {
 
 .login-card-brand-image {
   display: block;
-
-  width: min(390px, 80%);
+  width: min(280px, 78%);
   height: auto;
-
   object-fit: contain;
 }
 
 .login-welcome {
-  margin-top:
-    clamp(1.8rem, 3.5vw, 2.7rem);
+  margin-top: clamp(1.15rem, 2.4vw, 1.7rem);
 }
 
 .login-welcome h1 {
   margin: 0;
-
   color: #102f70;
-
-  font-size:
-    clamp(
-      2rem,
-      3.5vw,
-      3rem
-    );
-
-  line-height: 1.12;
-
+  font-size: clamp(1.7rem, 2.4vw, 2.15rem);
+  line-height: 1.15;
   font-weight: 800;
-
   letter-spacing: -0.03em;
 }
 
 .login-welcome p {
   margin:
-    0.45rem
-    0
-    0;
+    0.45rem 0 0;
 
   color: #5271a2;
 
   font-size:
-    clamp(
-      0.95rem,
+    clamp(0.95rem,
       1.5vw,
-      1.08rem
-    );
+      1.08rem);
 }
 
 .login-form-content {
-  margin-top:
-    clamp(1.8rem, 3.5vw, 2.4rem);
+  margin-top: clamp(1.15rem, 2.2vw, 1.7rem);
 }
 
 .login-form {
@@ -5343,8 +5352,7 @@ input:-webkit-autofill:active {
   color: #5876a2;
 
   border:
-    1px solid
-    #c9dcf4;
+    1px solid #c9dcf4;
 
   border-radius: 10px;
 
@@ -5362,8 +5370,7 @@ input:-webkit-autofill:active {
   background: #ffffff;
 
   box-shadow:
-    0 0 0 4px
-    rgba(50, 134, 227, 0.1);
+    0 0 0 4px rgba(50, 134, 227, 0.1);
 }
 
 .login-input-wrap input {
@@ -5466,8 +5473,7 @@ input:-webkit-autofill:active {
   flex-shrink: 0;
 
   border:
-    1px solid
-    #abc5e7;
+    1px solid #abc5e7;
 
   border-radius: 5px;
 
@@ -5485,20 +5491,19 @@ input:-webkit-autofill:active {
   font-weight: 900;
 }
 
-.login-remember input:checked + .login-checkmark {
+.login-remember input:checked+.login-checkmark {
   border-color: #1d76dc;
 
   background: #1d76dc;
 }
 
-.login-remember input:checked + .login-checkmark::after {
+.login-remember input:checked+.login-checkmark::after {
   opacity: 1;
 }
 
-.login-remember input:focus-visible + .login-checkmark {
+.login-remember input:focus-visible+.login-checkmark {
   outline:
-    3px solid
-    rgba(50, 134, 227, 0.18);
+    3px solid rgba(50, 134, 227, 0.18);
 }
 
 .login-forgot-link {
@@ -5534,16 +5539,13 @@ input:-webkit-autofill:active {
   color: #ffffff;
 
   background:
-    linear-gradient(
-      90deg,
+    linear-gradient(90deg,
       #1c78df 0%,
       #1673d9 48%,
-      #1c83ed 100%
-    );
+      #1c83ed 100%);
 
   box-shadow:
-    0 12px 24px
-    rgba(26, 113, 213, 0.18);
+    0 12px 24px rgba(26, 113, 213, 0.18);
 
   font-size: 1.08rem;
 
@@ -5563,8 +5565,7 @@ input:-webkit-autofill:active {
   filter: brightness(1.03);
 
   box-shadow:
-    0 16px 30px
-    rgba(26, 113, 213, 0.24);
+    0 16px 30px rgba(26, 113, 213, 0.24);
 }
 
 .login-submit:disabled {
@@ -5577,9 +5578,7 @@ input:-webkit-autofill:active {
   display: grid;
 
   grid-template-columns:
-    1fr
-    auto
-    1fr;
+    1fr auto 1fr;
 
   align-items: center;
 
@@ -5614,141 +5613,81 @@ input:-webkit-autofill:active {
   text-decoration: underline;
 }
 
-/* =========================================================
-   RESPONSIVE — TABLET
-   ========================================================= */
-
-@media (max-width: 1250px) {
-  .login-shell {
-    grid-template-columns:
-      minmax(0, 0.85fr)
-      minmax(420px, 1.15fr);
-  }
-
-  .auth-page--login {
-    background-size:
-      min(92%, 134vh) auto,
-      cover;
-  }
-
+@media (min-width: 1280px) and (min-height: 820px) {
   .login-form-card {
-    width: min(660px, 100%);
-  }
-
-  .login-card-brand-image {
-    width: min(330px, 80%);
+    min-height: min(720px, calc(100dvh - 3rem));
   }
 }
 
-/* =========================================================
-   RESPONSIVE — SMALL TABLET
-   The form stays in the right column — the artwork column
-   gives up width instead of the layout stacking.
-   ========================================================= */
-
-@media (max-width: 1050px) {
-  .auth-page--login {
-    overflow-y: auto;
-    overflow-x: hidden;
-
-    background-size:
-      min(70%, 130vh) auto,
-      cover;
+@media (min-width: 981px) and (max-height: 760px) {
+  .login-showcase-headline h2 {
+    font-size: 1.2rem;
   }
 
-  .login-shell {
-    grid-template-columns:
-      minmax(0, 0.85fr)
-      minmax(360px, 1.15fr);
+  .login-showcase-art-image {
+    transform: none;
   }
 
-  .login-form-panel {
-    padding: clamp(1rem, 2.5vw, 2rem);
-  }
-
-  .login-form-card {
-    width: min(560px, 100%);
-
-    min-height: auto;
-
-    padding:
-      clamp(1.4rem, 3vw, 2.2rem)
-      clamp(1.25rem, 3vw, 2.4rem)
-      clamp(1.1rem, 2.4vw, 1.6rem);
-  }
-
-  .login-card-brand-image {
-    width: min(290px, 78%);
+  .login-showcase-footer {
+    font-size: 0.86rem;
   }
 }
 
-/* =========================================================
-   RESPONSIVE — NARROW TABLET
-   ========================================================= */
-
-@media (max-width: 860px) {
-  .auth-page--login {
-    background-size:
-      min(56%, 128vh) auto,
-      cover;
+/* Laptop / small desktop — keep the split, tighten the card */
+@media (max-width: 1280px) {
+  .login-shell {
+    grid-template-columns: minmax(0, 1.05fr) minmax(380px, 440px);
   }
 
+  .login-showcase-art-image {
+    transform: scale(1.08);
+  }
+
+  .login-card-brand-image {
+    width: min(250px, 76%);
+  }
+}
+
+/* Tablet landscape — form stays usable, artwork scales down */
+@media (max-width: 1100px) {
   .login-shell {
-    grid-template-columns:
-      minmax(0, 0.6fr)
-      minmax(320px, 1.4fr);
+    grid-template-columns: minmax(0, 0.9fr) minmax(340px, 400px);
+  }
+
+  .login-showcase-headline h2 {
+    font-size: 1.25rem;
+  }
+
+  .login-showcase-footer {
+    font-size: 0.86rem;
   }
 
   .login-form-card {
     width: 100%;
-  }
-
-  .login-card-brand-image {
-    width: min(250px, 74%);
-  }
-
-  .login-welcome {
-    margin-top: 1.4rem;
+    padding: 1.25rem 1.2rem 1.05rem;
   }
 
   .login-welcome h1 {
-    font-size: 1.9rem;
-  }
-
-  .login-form-content {
-    margin-top: 1.4rem;
-  }
-
-  .login-input-wrap {
-    min-height: 54px;
-  }
-
-  .login-submit {
-    min-height: 56px;
-  }
-
-  .login-card-footer {
-    padding-top: 1.4rem;
+    font-size: 1.7rem;
   }
 }
 
-/* =========================================================
-   RESPONSIVE — MOBILE
-   Below this there is no room for two columns, so the
-   artwork drops away and the form takes the full screen.
-   ========================================================= */
-
-@media (max-width: 640px) {
+/* Tablet portrait and below — form first, artwork hidden */
+@media (max-width: 980px) {
   .auth-page--login {
-    overflow-y: auto;
     overflow-x: hidden;
+    overflow-y: auto;
+  }
 
-    background-image: var(--login-backdrop);
-    background-size: cover;
+  .login-background-image {
+    object-position: center bottom;
   }
 
   .login-shell {
-    grid-template-columns: 1fr;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100dvh;
   }
 
   .login-showcase-panel {
@@ -5756,69 +5695,64 @@ input:-webkit-autofill:active {
   }
 
   .login-form-panel {
-    min-height: 100vh;
-
-    padding: 0;
-
-    background: #eef7ff;
+    width: 100%;
+    max-width: 460px;
+    padding: 1.25rem 1rem;
   }
 
   .login-form-card {
     width: 100%;
-
-    min-height: 100vh;
-
-    border: 0;
-
-    border-radius: 0;
-
-    box-shadow: none;
-
-    padding:
-      1.6rem
-      1.15rem
-      1.2rem;
-  }
-
-  .login-card-brand-image {
-    width: min(330px, 84%);
-  }
-
-  .login-welcome {
-    margin-top: 1.75rem;
-  }
-
-  .login-welcome h1 {
-    font-size: 2rem;
-  }
-
-  .login-input-wrap {
-    min-height: 54px;
-  }
-
-  .login-submit {
-    min-height: 58px;
+    max-height: none;
   }
 }
 
-/* =========================================================
-   RESPONSIVE — VERY SMALL MOBILE
-   ========================================================= */
+/* Phone — floating card on the same background */
+@media (max-width: 640px) {
+  .login-form-panel {
+    max-width: none;
+    padding: 1rem 0.85rem 1.25rem;
+  }
 
-@media (max-width: 460px) {
+  .login-form-card {
+    border-radius: 18px;
+    padding: 1.35rem 1.05rem 1.1rem;
+  }
+
+  .login-card-brand-image {
+    width: min(240px, 78%);
+  }
+
+  .login-welcome {
+    margin-top: 1.15rem;
+  }
+
+  .login-welcome h1 {
+    font-size: 1.75rem;
+  }
+
+  .login-form-content {
+    margin-top: 1.15rem;
+  }
+
+  .login-input-wrap {
+    min-height: 52px;
+  }
+
+  .login-submit {
+    min-height: 54px;
+  }
+}
+
+@media (max-width: 420px) {
   .login-form-options {
     align-items: flex-start;
-
     flex-direction: column;
-
     gap: 0.7rem;
   }
 
   .login-card-footer {
     grid-template-columns: 1fr;
-
     text-align: center;
-
     gap: 0.55rem;
   }
 
@@ -5948,4 +5882,3 @@ input:-webkit-autofill:active {
   margin-top: 1.5rem;
   padding-top: 0.35rem;
 }
-

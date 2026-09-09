@@ -9,19 +9,45 @@ type AuthShellProps = {
 export function AuthShell({ title, subtitle, children }: AuthShellProps) {
   return (
     <section className="auth-page auth-page--login">
-      <div className="login-shell">
-        {/* =========================
-            LEFT SHOWCASE — full artwork, no crop
-           ========================= */}
-        <div
-          className="login-showcase-panel"
-          role="img"
-          aria-label="PrioHRM — Human Resource Management System. Employee management, attendance and leave, payroll and performance, multi-branch support, and mobile access."
+      <div className="login-background" aria-hidden="true">
+        <Image
+          src="/images/login-hero-background.png"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="login-background-image"
         />
+      </div>
 
-        {/* =========================
-            RIGHT LOGIN SECTION
-           ========================= */}
+      <div className="login-shell">
+        <div className="login-showcase-panel">
+          <header className="login-showcase-headline">
+            <h2>
+              Empowering People.
+              <br />
+              Driving Performance.
+            </h2>
+            <span className="login-showcase-rule" aria-hidden="true" />
+          </header>
+
+          <div className="login-showcase-art">
+            <Image
+              src="/images/login-hero-left-logo.png"
+              alt="PrioHRM — employee management, attendance, payroll, and mobile access"
+              fill
+              priority
+              sizes="(max-width: 980px) 0px, 58vw"
+              className="login-showcase-art-image"
+            />
+          </div>
+
+          <p className="login-showcase-footer">
+            Smarter HR <span aria-hidden="true">|</span> Better Teams{" "}
+            <span aria-hidden="true">|</span> Greater Success
+          </p>
+        </div>
+
         <div className="login-form-panel">
           <div className="login-form-card">
             <div className="login-card-brand">
