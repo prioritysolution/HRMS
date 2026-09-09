@@ -322,7 +322,7 @@ export function DatePicker({
       <div className="date-picker-grid">
         {calendarDays.map(({ date, inMonth }) => {
           const iso = dateToIso(date);
-          const isDisabled = (min && iso < min) || (max && iso > max);
+          const isDisabled = Boolean((min && iso < min) || (max && iso > max));
           const isSelected = selectedDate ? isSameDay(date, selectedDate) : false;
           const isToday = isSameDay(date, today);
 

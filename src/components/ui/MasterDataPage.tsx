@@ -857,17 +857,6 @@ export function MasterDataPage({
   };
 
   const handleActivate = async (row: HrmsRow) => {
-    if (moduleId === "devices") {
-      const existingActive = rows.find((r) => {
-        if (String(r.id) === String(row.id)) return false;
-        return String(r.Status).toLowerCase() === "active" || String(r.Status) === "1";
-      });
-
-      if (existingActive) {
-        throw new Error("Only one device can be active at a time. Please deactivate the existing active device first.");
-      }
-    }
-
     if (usesApi && apiService) {
       if (isEmployeeModule) {
         const employeeId = row.Employee_id;
@@ -950,21 +939,6 @@ export function MasterDataPage({
     values: HrmsRow,
     mode: "add" | "edit",
   ) => {
-    if (moduleId === "devices") {
-      const isStatusActive = String(values.Status).toLowerCase() === "active" || String(values.Status) === "1";
-      if (isStatusActive) {
-        const idToCheck = mode === "edit" ? String(editRow?.id ?? values.id) : null;
-        const existingActive = rows.find((r) => {
-          if (idToCheck && String(r.id) === idToCheck) return false;
-          return String(r.Status).toLowerCase() === "active" || String(r.Status) === "1";
-        });
-
-        if (existingActive) {
-          throw new Error("Only one device can be active at a time. Please deactivate the existing active device first, or add this device in Inactive mode.");
-        }
-      }
-    }
-
     try {
       let saved: HrmsRow;
       const payload = enrichConfigRow(
@@ -1234,6 +1208,7 @@ export function MasterDataPage({
         fields={modalFields}
         sections={modalSections}
         size={config.modalSize}
+        existingRows={moduleId === "devices" ? rows : undefined}
         onSubmit={(values) => handleSave(values, "add")}
       />
 
@@ -1247,6 +1222,7 @@ export function MasterDataPage({
         sections={modalSections}
         size={config.modalSize}
         initialValues={editInitialValues}
+        existingRows={moduleId === "devices" ? rows : undefined}
         onSubmit={(values) => handleSave(values, "edit")}
         disableSubmit={config.disableEditSubmit}
       />

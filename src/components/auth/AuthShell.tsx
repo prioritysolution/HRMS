@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { LoginBackgroundVideo } from "@/components/auth/LoginBackgroundVideo";
 
 type AuthShellProps = {
   title: string;
@@ -18,6 +19,7 @@ export function AuthShell({ title, subtitle, children }: AuthShellProps) {
           sizes="100vw"
           className="login-background-image"
         />
+        {/* <LoginBackgroundVideo /> */}
       </div>
 
       <div className="login-shell">
@@ -33,7 +35,7 @@ export function AuthShell({ title, subtitle, children }: AuthShellProps) {
 
           <div className="login-showcase-art">
             <Image
-              src="/images/login-hero-left-logo.png"
+              src="/images/login-hero-left-trans.png"
               alt="PrioHRM — employee management, attendance, payroll, and mobile access"
               fill
               priority

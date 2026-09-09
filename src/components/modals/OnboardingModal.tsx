@@ -504,7 +504,7 @@ export function OnboardingModal({
         }
       }
 
-      if (name === "User_already_created" && (value === true || value === "true" || value === 1 || value === "1")) {
+      if (name === "User_already_created" && (value === true || value === "true" || value === "1")) {
         next.Create_user_account = false;
       }
 
@@ -557,7 +557,7 @@ export function OnboardingModal({
       if (field.type === "checkbox") {
         const value = values[field.name];
         payload[field.name] =
-          value === true || value === "true" || value === 1 || value === "1";
+          value === true || value === "true" || value === "1";
         return;
       }
       payload[field.name] = values[field.name] as HrmsRow[string];

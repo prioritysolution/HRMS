@@ -183,9 +183,7 @@ export const holidayService = {
             buildListUrl(query),
         );
 
-        return getList(payload).map(
-            holidayToRow,
-        );
+        return getList(payload).map((holiday) => holidayToRow(holiday));
     },
 
     getById: async (

@@ -426,13 +426,13 @@ export function employeeToRow(
   );
 
   const employmentStatus =
-    readValue(
+    nullableNumber(readValue(
       source,
       [
         "Employment_status",
         "employment_status",
       ],
-    );
+    ));
 
   return {
     id: String(employeeId ?? ""),
@@ -638,6 +638,14 @@ export function rowToEmployeeCreatePayload(
       displayName: row.Display_name,
     });
 
+  const branchId = extractId(row.Branch, row.Branch_Id) ?? 0;
+  const deptId = extractId(row.Department, row.Dept_Id) ?? 0;
+  const desigId = extractId(row.Designation, row.Desig_Id) ?? 0;
+  const gradeId = extractId(row.Grade, row.Grade_Id) ?? 0;
+  const shiftIds = extractIds(row.Shift, row.Shift_id ?? row.Shift_Id);
+  const empTypeId = extractId(row.Employment_type, row.Emp_type_id) ?? 0;
+  const employmentStatus = nullableNumber(row.Employment_status) ?? 0;
+
   const payload: EmployeeCreatePayload = {
     employee_code:
       String(
@@ -729,6 +737,15 @@ export function rowToEmployeeCreatePayload(
       optionalText(
         row.Emergency_contact,
       ) || null,
+
+    branch_id: branchId,
+    dept_id: deptId,
+    desig_id: desigId,
+    grade_id: gradeId,
+    shift_id: shiftIds,
+    emp_type_id: empTypeId,
+    date_of_joining: optionalText(row.Date_of_joining),
+    employment_status: employmentStatus,
 
     status:
       Number(row.Status ?? 1),

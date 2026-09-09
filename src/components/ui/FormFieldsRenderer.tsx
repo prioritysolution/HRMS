@@ -23,6 +23,33 @@ function isCheckedValue(value: unknown): boolean {
   return value === true || value === "true" || value === 1 || value === "1";
 }
 
+function numberFloor(field: FormField): number | undefined {
+  if (field.type !== "number" || field.allowNegative) return undefined;
+  return field.min ?? 0;
+}
+
+function clampNumberValue(raw: string, min?: number, max?: number): string {
+  if (raw === "") return "";
+  const parsed = Number(raw);
+  if (!Number.isFinite(parsed)) return "";
+
+  let next = Math.trunc(parsed);
+  if (min !== undefined && next < min) next = min;
+  if (max !== undefined && next > max) next = max;
+  return String(next);
+}
+
+function sanitizeNonNegativeInput(raw: string, min: number, max?: number): string {
+  if (raw === "" || raw === "-" || raw === ".") return raw === "." ? raw : "";
+  if (raw.endsWith(".") && /^\d+\.$/.test(raw)) return raw;
+
+  const parsed = Number(raw);
+  if (!Number.isFinite(parsed)) return "";
+  if (parsed < min) return String(min);
+  if (max !== undefined && parsed > max) return String(max);
+  return raw;
+}
+
 function asText(value: FormValue): string {
   if (value === undefined || value === null || typeof value === "boolean" || value instanceof File) {
     return "";
@@ -61,6 +88,7 @@ export function FormFieldsRenderer({
     <>
       {visibleFields.map((field) => {
         const isDisabled = field.readOnlyOnEdit && isEdit;
+        const floor = numberFloor(field);
         return (
           <div
           key={field.name}
@@ -202,40 +230,46 @@ export function FormFieldsRenderer({
                   type={field.type || "text"}
                   className={cn(
                     "form-control",
-                    field.type === "number" &&
-                      field.min !== undefined &&
-                      field.min >= 0 &&
-                      "no-number-spin",
+                    field.min !== undefined && field.min >= 0 && "no-number-spin",
                   )}
                   value={asText(values[field.name])}
                   placeholder={field.placeholder ?? `Enter ${field.label.toLowerCase()}`}
-                  min={field.type === "number" ? field.min : undefined}
+                  min={field.type === "number" ? (floor ?? field.min) : undefined}
                   max={field.type === "number" ? field.max : undefined}
                   step={field.type === "number" ? 1 : undefined}
-                  inputMode={
-                    field.type === "number" && field.min !== undefined && field.min >= 0
-                      ? "numeric"
-                      : undefined
-                  }
+                  inputMode={floor !== undefined ? "decimal" : undefined}
                   onKeyDown={
-                    field.type === "number" && field.min !== undefined && field.min >= 0
+                    floor !== undefined
                       ? (event) => {
-                          if (["-", "+", "e", "E", ".", ","].includes(event.key)) {
+                          if (["-", "+", "e", "E"].includes(event.key)) {
                             event.preventDefault();
                           }
                         }
                       : undefined
                   }
                   onWheel={
-                    field.type === "number" && field.min !== undefined && field.min >= 0
+                    floor !== undefined
                       ? (event) => {
-                          event.currentTarget.blur();
+                          event.preventDefault();
+                          const current =
+                            event.currentTarget.value === ""
+                              ? floor
+                              : Number(event.currentTarget.value);
+                          const base = Number.isFinite(current) ? current : floor;
+                          const next = base + (event.deltaY < 0 ? 1 : -1);
+                          onChange(
+                            field.name,
+                            clampNumberValue(String(next), floor, field.max),
+                          );
                         }
                       : undefined
                   }
                   onChange={(event) => {
-                    if (field.type === "number" && field.min !== undefined && field.min >= 0) {
-                      onChange(field.name, event.target.value.replace(/\D/g, ""));
+                    if (floor !== undefined) {
+                      onChange(
+                        field.name,
+                        sanitizeNonNegativeInput(event.target.value, floor, field.max),
+                      );
                       return;
                     }
                     onChange(field.name, event.target.value);

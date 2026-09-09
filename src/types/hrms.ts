@@ -38,6 +38,7 @@ export type FormField = {
   maxLength?: number;
   min?: number;
   max?: number;
+  allowNegative?: boolean;
   pattern?: RegExp;
   patternMessage?: string;
   unique?: boolean;

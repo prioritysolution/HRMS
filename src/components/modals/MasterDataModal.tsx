@@ -7,7 +7,12 @@ import {
   buildInitialFormValues,
   FormFieldsRenderer,
 } from "@/components/ui/FormFieldsRenderer";
-import { validateFormField, validateFormFields, type FormValue } from "@/lib/form-validation";
+import {
+  getUniqueFieldWarning,
+  validateFormField,
+  validateFormFields,
+  type FormValue,
+} from "@/lib/form-validation";
 import { cn } from "@/lib/utils";
 import type { FormField, FormSection, HrmsRow } from "@/types/hrms";
 
@@ -22,6 +27,7 @@ type MasterDataModalProps = {
   sections?: FormSection[];
   size?: "sm" | "md" | "lg" | "xl";
   initialValues?: HrmsRow;
+  existingRows?: HrmsRow[];
   onSubmit: (values: HrmsRow) => void | Promise<void>;
   disableSubmit?: boolean;
 };
@@ -46,6 +52,7 @@ export function MasterDataModal({
   sections,
   size = "lg",
   initialValues,
+  existingRows = [],
   onSubmit,
   disableSubmit = false,
 }: MasterDataModalProps) {
@@ -86,6 +93,12 @@ export function MasterDataModal({
     onClose();
   };
 
+  const excludeId = initialValues?.id ? String(initialValues.id) : undefined;
+
+  const fieldError = (field: FormField, value: FormValue) =>
+    validateFormField(field, value) ??
+    getUniqueFieldWarning(field, value, existingRows, excludeId);
+
   const handleFieldChange = (name: string, value: FormValue) => {
     setValues((prev) => ({ ...prev, [name]: value }));
     const field = resolvedFields.find((item) => item.name === name);
@@ -93,7 +106,7 @@ export function MasterDataModal({
 
     setErrors((prev) => {
       const next = { ...prev };
-      const error = validateFormField(field, value);
+      const error = fieldError(field, value);
       if (error) next[name] = error;
       else delete next[name];
       return next;
@@ -122,6 +135,11 @@ export function MasterDataModal({
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const nextErrors = validateFormFields(activeFields, values);
+    activeFields.forEach((field) => {
+      if (nextErrors[field.name]) return;
+      const uniqueError = getUniqueFieldWarning(field, values[field.name], existingRows, excludeId);
+      if (uniqueError) nextErrors[field.name] = uniqueError;
+    });
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors);
       if (sections?.length) {

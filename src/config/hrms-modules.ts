@@ -108,8 +108,8 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
       { name: "Pincode", label: "Pincode" },
       { name: "Contact", label: "Contact", type: "tel" },
       { name: "Email", label: "Email", type: "email" },
-      { name: "Latitude", label: "Latitude", type: "number" },
-      { name: "Longitude", label: "Longitude", type: "number" },
+      { name: "Latitude", label: "Latitude", type: "number", allowNegative: true },
+      { name: "Longitude", label: "Longitude", type: "number", allowNegative: true },
       {
         name: "Status",
         label: "Status",
@@ -134,7 +134,7 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
     columns: [
       { key: "Dept_Cd", header: "Dept Code" },
       { key: "Dept_Name", header: "Department Name" },
-      { key: "Org_Name", header: "Organization" },
+      // { key: "Org_Name", header: "Organization" },
       { key: "Status", header: "Status", type: "status" },
     ],
     formFields: [
@@ -183,7 +183,7 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
       // },
       // { name: "Desig_Code", label: "Designation Code", required: true },
       { name: "Desig_Name", label: "Designation Name", required: true },
-      { name: "Level_No", label: "Level No", type: "number" },
+      { name: "Level_No", label: "Level No", type: "number", min: 0 },
       {
         name: "Status",
         label: "Status",
@@ -590,6 +590,7 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
         name: "Serial_no",
         label: "Serial Number",
         placeholder: "e.g. NYU7253500318",
+        unique: true,
       },
       {
         name: "Status",

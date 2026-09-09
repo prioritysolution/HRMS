@@ -53,8 +53,9 @@ export function validateFormField(field: FormField, value: FormValue): string | 
     if (Number.isNaN(num)) {
       return "Please enter a valid number.";
     }
-    if (field.min !== undefined && num < field.min) {
-      return `${field.label} must be at least ${field.min}.`;
+    const min = field.allowNegative ? field.min : (field.min ?? 0);
+    if (min !== undefined && num < min) {
+      return `${field.label} must be at least ${min}.`;
     }
     if (field.max !== undefined && num > field.max) {
       return `${field.label} must be at most ${field.max}.`;
@@ -66,6 +67,27 @@ export function validateFormField(field: FormField, value: FormValue): string | 
   }
 
   return undefined;
+}
+
+export function getUniqueFieldWarning(
+  field: FormField,
+  value: FormValue,
+  rows: Array<Record<string, unknown>>,
+  excludeId?: string,
+): string | undefined {
+  if (!field.unique) return undefined;
+
+  const text = typeof value === "boolean" || value instanceof File ? "" : String(value ?? "").trim();
+  if (!text) return undefined;
+
+  const normalized = text.toLowerCase();
+  const conflict = rows.find((row) => {
+    if (excludeId && String(row.id ?? "") === excludeId) return false;
+    return String(row[field.name] ?? "").trim().toLowerCase() === normalized;
+  });
+
+  if (!conflict) return undefined;
+  return `This ${field.label} is already used by another device.`;
 }
 
 export function validateFormFields(
