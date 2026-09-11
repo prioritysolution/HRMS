@@ -34,6 +34,7 @@ export {
   LEAVE_HALF_DAY_FALLBACK,
   LEAVE_HALF_DAY_OPT_GRP_ID,
   attendanceService,
+  myAttendanceService,
   toFormRow,
   gradeService,
   gradeSalaryService,
@@ -44,6 +45,7 @@ export {
   workShiftService,
   codeSeriesService,
   emailConfigService,
+  toEmailConfigWritePayload,
   notificationSettingsService,
 } from "@/lib/api/services";
 export { env, getApiUrl } from "@/lib/env";

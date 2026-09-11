@@ -84,14 +84,14 @@ export const API_ENDPOINTS = {
     delete: (id: string | number) => `/api/v1/leave-master/delete/${id}`,
   },
   leaveApplication: {
-    list: "/api/v1/leave-application/list",
-    balance: "/api/v1/leave-application/balance",
-    create: "/api/v1/leave-application/create",
-    update: (id: string | number) => `/api/v1/leave-application/update/${id}`,
-    status: (id: string | number) => `/api/v1/leave-application/status/${id}`,
-    delete: (id: string | number) => `/api/v1/leave-application/delete/${id}`,
+    list: "/api/v1/leave-requisition/list",
+    balance: "/api/v1/leave-requisition/balance",
+    create: "/api/v1/leave-requisition/create",
+    update: (id: string | number) => `/api/v1/leave-requisition/update/${id}`,
+    status: (id: string | number) => `/api/v1/leave-requisition/status/${id}`,
+    delete: (id: string | number) => `/api/v1/leave-requisition/delete/${id}`,
     file: (employeeId: string | number, filename: string) =>
-      `/api/v1/leave-application/file/${encodeURIComponent(String(employeeId))}/${encodeURIComponent(filename)}`,
+      `/api/v1/leave-requisition/file/${encodeURIComponent(String(employeeId))}/${encodeURIComponent(filename)}`,
   },
   leaveApproval: {
     list: "/api/v1/leave-approval/list",
@@ -186,6 +186,7 @@ export const API_ENDPOINTS = {
   },
   dashboard: {
     overview: "/api/v1/dashboard/overview",
+    empDashboard: "/api/v1/dashboard/empDashboard",
     analytics: "/dashboard/analytics",
     sales: "/dashboard/sales",
     attendance: "/dashboard/attendance",
@@ -212,6 +213,9 @@ export const API_ENDPOINTS = {
     delete: (id: string | number) => `/api/v1/attendance/delete/${id}`,
     punchList: "/api/v1/attendance/punch/list",
     punchCreate: "/api/v1/attendance/punch/create",
+  },
+  myAttendance: {
+    calendar: "/api/v1/my-attendance/calendar",
   },
   clients: {
     leads: "/clients/leads",
@@ -251,8 +255,9 @@ export const API_ENDPOINTS = {
     update: "/api/v1/code-series/update",
   },
   emailConfig: {
-    get: "/api/v1/email-config",
-    update: "/api/v1/email-config",
+    list: "/api/v1/email-config/list",
+    get: "/api/v1/email-config/list",
+    update: "/api/v1/email-config/update",
     test: "/api/v1/email-config/test",
   },
   notificationSettings: {

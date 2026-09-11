@@ -67,6 +67,8 @@ import {
 } from "@/lib/config-module-helpers";
 import { leaveApprovalService } from "@/lib/api/services/leave-approval.service";
 import { finYearService } from "@/lib/api/services/fin-year.service";
+import { authService } from "@/lib/api/services/auth.service";
+import type { AuthMeProfile } from "@/lib/api/types";
 
 type MasterDataPageProps = {
   moduleId: string;
@@ -293,6 +295,9 @@ export function MasterDataPage({
   const isLeaveRequisitionModule = moduleId === "leave-requisition";
   const isLeaveApprovalModule = moduleId === "leave-approval";
   const isLeaveEntitlementModule = moduleId === "leave-entitlement";
+  const [meProfile, setMeProfile] = useState<AuthMeProfile | null>(null);
+  const isLeaveRequisitionAdmin = Boolean(meProfile?.isAdmin);
+  const leaveRequisitionEmployeeId = meProfile?.employeeId ?? null;
   const configLookups = useMemo(() => getConfigModuleLookups(), []);
   const [approvalConfirm, setApprovalConfirm] = useState<{
     row: HrmsRow;
@@ -303,15 +308,30 @@ export function MasterDataPage({
     const base = buildColumns(config.columns);
     if (!isLeaveRequisitionModule && !isLeaveApprovalModule) return base;
 
-    return base.map((column) => {
-      if (isLeaveApprovalModule && column.key === "Employee_name") {
+    return base
+      .filter((column) => {
+        if (
+          isLeaveRequisitionModule &&
+          !isLeaveRequisitionAdmin &&
+          (column.key === "Employee_name" || column.key === "Employee_code")
+        ) {
+          return false;
+        }
+        return true;
+      })
+      .map((column) => {
+      if (
+        (isLeaveApprovalModule || (isLeaveRequisitionModule && isLeaveRequisitionAdmin)) &&
+        column.key === "Employee_name"
+      ) {
         return {
           ...column,
           render: (row: HrmsRow) => {
             const name = String(row.Employee_name ?? "").trim();
             const code = String(row.Employee_code ?? "").trim();
             const post = String(row.Designation ?? "").trim();
-            const subtitle = [code, post].filter(Boolean).join(" · ");
+            const branch = String(row.Branch_Name ?? "").trim();
+            const subtitle = [code, post || branch].filter(Boolean).join(" · ");
             return (
               <PersonCell
                 name={name || code || "—"}
@@ -351,7 +371,7 @@ export function MasterDataPage({
         },
       };
     });
-  }, [config.columns, isLeaveApprovalModule, isLeaveRequisitionModule]);
+  }, [config.columns, isLeaveApprovalModule, isLeaveRequisitionAdmin, isLeaveRequisitionModule]);
   const filterFields = useMemo(() => {
     const fields = isEmployeeModule || isDailyAttendanceModule
       ? [...getModuleFilterFields(config), { key: "Branch_Id", label: "Branch" }]
@@ -990,6 +1010,22 @@ export function MasterDataPage({
   ]);
 
   useEffect(() => {
+    if (!isLeaveRequisitionModule) {
+      setMeProfile(null);
+      return;
+    }
+
+    let cancelled = false;
+    void authService.getMeProfile().then((profile) => {
+      if (!cancelled) setMeProfile(profile);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isLeaveRequisitionModule]);
+
+  useEffect(() => {
     if (!isLeaveRequisitionModule && !isLeaveApprovalModule && !isLeaveEntitlementModule) {
       setLeaveHalfDayOptions([...LEAVE_HALF_DAY_FALLBACK]);
       setLeaveAppStatusOptions([...LEAVE_APP_STATUS_FALLBACK]);
@@ -1022,26 +1058,22 @@ export function MasterDataPage({
         }
 
         const needsApplOptions = isLeaveRequisitionModule || isLeaveApprovalModule;
-        const [halfDayOptions, statusOptions, leaveTypes, branches, employees] =
-          await Promise.all([
-            needsApplOptions
-              ? applOptionService.list({
-                  opt_grp_id: LEAVE_HALF_DAY_OPT_GRP_ID,
-                  is_active: 1,
-                })
-              : Promise.resolve([]),
-            needsApplOptions
-              ? applOptionService.list({
-                  opt_grp_id: LEAVE_APP_STATUS_OPT_GRP_ID,
-                  is_active: 1,
-                })
-              : Promise.resolve([]),
-            leaveMasterService.list({ status: 1 }),
-            branchService.list({ status: 1 }),
-            isLeaveRequisitionModule
-              ? employeeService.list({ status: 1 })
-              : Promise.resolve([] as HrmsRow[]),
-          ]);
+        const [halfDayOptions, statusOptions, leaveTypes, branches] = await Promise.all([
+          needsApplOptions
+            ? applOptionService.list({
+                opt_grp_id: LEAVE_HALF_DAY_OPT_GRP_ID,
+                is_active: 1,
+              })
+            : Promise.resolve([]),
+          needsApplOptions
+            ? applOptionService.list({
+                opt_grp_id: LEAVE_APP_STATUS_OPT_GRP_ID,
+                is_active: 1,
+              })
+            : Promise.resolve([]),
+          leaveMasterService.list({ status: 1 }),
+          branchService.list({ status: 1 }),
+        ]);
 
         if (cancelled) return;
 
@@ -1065,8 +1097,9 @@ export function MasterDataPage({
             .filter((option) => option.value && option.label),
         );
 
+        // Admin picks branch first, then employees load by branch_id.
         if (isLeaveRequisitionModule) {
-          setRequisitionEmployees(employees);
+          setRequisitionEmployees([]);
         }
       } catch {
         if (cancelled) return;
@@ -1122,6 +1155,7 @@ export function MasterDataPage({
             ...prev,
             Balance_leave: Number(matched.Balance_leave ?? matched.Balance_Days ?? 0),
             Requires_document: String(matched.Requires_document ?? prev.Requires_document ?? "No"),
+            Is_half_day_allowed: matched.Is_half_day_allowed ?? prev.Is_half_day_allowed ?? 1,
             Leave_type: String(matched.Leave_name ?? prev.Leave_type ?? ""),
             Leave_code: String(matched.Leave_code ?? prev.Leave_code ?? ""),
           };
@@ -1135,6 +1169,59 @@ export function MasterDataPage({
       cancelled = true;
     };
   }, [activeFinYearId, editRow?.id, editRow?.Employee_id, editRow?.Leave_id, isLeaveRequisitionModule]);
+
+  /** Employee self-service: preload own leave balance when opening create form. */
+  useEffect(() => {
+    if (!isLeaveRequisitionModule || !addOpen || isLeaveRequisitionAdmin) return;
+    if (!leaveRequisitionEmployeeId) {
+      setLeaveBalanceRows([]);
+      return;
+    }
+
+    let cancelled = false;
+    void leaveApplicationService
+      .balance({
+        employee_id: leaveRequisitionEmployeeId,
+        ...(activeFinYearId ? { fin_year: activeFinYearId } : {}),
+      })
+      .then((rows) => {
+        if (!cancelled) setLeaveBalanceRows(rows);
+      })
+      .catch(() => {
+        if (!cancelled) setLeaveBalanceRows([]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    activeFinYearId,
+    addOpen,
+    isLeaveRequisitionAdmin,
+    isLeaveRequisitionModule,
+    leaveRequisitionEmployeeId,
+  ]);
+
+  /** Admin edit: load branch employees so employee select has options. */
+  useEffect(() => {
+    if (!isLeaveRequisitionModule || !isLeaveRequisitionAdmin || !editRow) return;
+    const branchId = Number(editRow.Branch_Id ?? 0);
+    if (!branchId) return;
+
+    let cancelled = false;
+    void employeeService
+      .list({ branch_id: branchId, status: 1 })
+      .then((employees) => {
+        if (!cancelled) setRequisitionEmployees(employees);
+      })
+      .catch(() => {
+        if (!cancelled) setRequisitionEmployees([]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [editRow?.Branch_Id, editRow?.id, isLeaveRequisitionAdmin, isLeaveRequisitionModule]);
 
   useEffect(() => {
     if (!usesGradeSelect || !usesApi) {
@@ -1347,7 +1434,23 @@ export function MasterDataPage({
         })
         .filter((option) => option.value && option.label);
 
-      const leaveOptions = leaveTypeRows
+      const balanceLeaveOptions = leaveBalanceRows
+        .map((row) => {
+          const id = String(row.Leave_Id ?? row.id ?? "").trim();
+          const name = String(row.Leave_name ?? "").trim();
+          const code = String(row.Leave_code ?? "").trim();
+          const balance = Number(row.Balance_leave ?? row.Balance_Days ?? 0);
+          if (!id || !name) return null;
+          return {
+            value: id,
+            label: code
+              ? `${name} (${code}) · Bal ${balance}`
+              : `${name} · Bal ${balance}`,
+          };
+        })
+        .filter((option): option is { value: string; label: string } => option !== null);
+
+      const masterLeaveOptions = leaveTypeRows
         .map((row) => {
           const id = String(row.Leave_Id ?? row.id ?? "").trim();
           const name = String(row.Leave_name ?? "").trim();
@@ -1360,8 +1463,27 @@ export function MasterDataPage({
         })
         .filter((option): option is { value: string; label: string } => option !== null);
 
+      const leaveOptions =
+        balanceLeaveOptions.length > 0 ? balanceLeaveOptions : masterLeaveOptions;
+
+      const selectedLeaveId = String(values.Leave_id ?? "").trim();
+      const selectedBalance = leaveBalanceRows.find(
+        (row) => String(row.Leave_Id ?? row.id ?? "").trim() === selectedLeaveId,
+      );
+      const halfDayAllowed =
+        selectedBalance == null
+          ? true
+          : Number(selectedBalance.Is_half_day_allowed ?? 1) !== 0;
+
       return fields
         .filter((field) => {
+          if (
+            !isLeaveRequisitionAdmin &&
+            (field.name === "Branch_Id" || field.name === "Employee_id")
+          ) {
+            return false;
+          }
+          if (field.name === "Half_day" && !halfDayAllowed) return false;
           if (field.name !== "Supporting_document") return true;
           const requiresDocument =
             values.Requires_document === "Yes" ||
@@ -1381,7 +1503,13 @@ export function MasterDataPage({
             return {
               ...field,
               options: leaveOptions,
-              placeholder: "Select Leave Type",
+              placeholder: isLeaveRequisitionAdmin
+                ? branchId
+                  ? String(values.Employee_id ?? "").trim()
+                    ? "Select Leave Type"
+                    : "Select employee first"
+                  : "Select branch first"
+                : "Select Leave Type",
             };
           }
           if (field.name === "Half_day") {
@@ -1408,7 +1536,9 @@ export function MasterDataPage({
     },
     [
       branchOptions,
+      isLeaveRequisitionAdmin,
       isLeaveRequisitionModule,
+      leaveBalanceRows,
       leaveHalfDayOptions,
       leaveTypeRows,
       requisitionEmployees,
@@ -1429,16 +1559,21 @@ export function MasterDataPage({
           matchedType?.Document_required ??
           "No",
       );
+      const halfDayAllowed = Number(
+        matchedBalance?.Is_half_day_allowed ?? matchedType?.Is_half_day_allowed ?? 1,
+      );
 
       return {
         Balance_leave: String(
           matchedBalance?.Balance_leave ?? matchedBalance?.Balance_Days ?? 0,
         ),
         Requires_document: requiresDocument === "Yes" || requiresDocument === "1" ? "Yes" : "No",
+        Is_half_day_allowed: halfDayAllowed,
         Leave_type: String(matchedType?.Leave_name ?? matchedBalance?.Leave_name ?? ""),
         Leave_code: String(
           matchedType?.Leave_code ?? matchedType?.Short_name ?? matchedBalance?.Leave_code ?? "",
         ),
+        ...(halfDayAllowed === 0 ? { Half_day: "" } : {}),
       };
     },
     [],
@@ -1462,7 +1597,23 @@ export function MasterDataPage({
         next.Supporting_document = "";
         next.Document_name = "";
         next.Document_Url = "";
+        next.Half_day = "";
         setLeaveBalanceRows([]);
+
+        const branchId = Number(value ?? 0);
+        if (branchId > 0) {
+          try {
+            const employees = await employeeService.list({
+              branch_id: branchId,
+              status: 1,
+            });
+            setRequisitionEmployees(employees);
+          } catch {
+            setRequisitionEmployees([]);
+          }
+        } else {
+          setRequisitionEmployees([]);
+        }
       }
 
       if (name === "Employee_id") {
@@ -1472,6 +1623,7 @@ export function MasterDataPage({
         next.Supporting_document = "";
         next.Document_name = "";
         next.Document_Url = "";
+        next.Half_day = "";
         const employeeId = Number(value ?? 0);
         if (employeeId > 0) {
           try {
@@ -1487,6 +1639,8 @@ export function MasterDataPage({
                 next.Document_name = "";
                 next.Document_Url = "";
               }
+            } else {
+              next.Leave_id = "";
             }
           } catch {
             setLeaveBalanceRows([]);
@@ -1623,15 +1777,32 @@ export function MasterDataPage({
   ) => {
     try {
       let saved: HrmsRow;
+      const requisitionValues =
+        isLeaveRequisitionModule && !isLeaveRequisitionAdmin && leaveRequisitionEmployeeId
+          ? {
+              ...values,
+              Employee_id: String(leaveRequisitionEmployeeId),
+              Branch_Id: String(
+                values.Branch_Id || meProfile?.branchId || "",
+              ),
+              Employee_name: String(
+                values.Employee_name || meProfile?.displayName || "",
+              ),
+              Employee_code: String(
+                values.Employee_code || meProfile?.employeeCode || "",
+              ),
+            }
+          : values;
+
       const payload = enrichConfigRow(
         moduleId,
         isEmployeeModule
-          ? enrichEmployeeRow(values, organizationOptions, {
+          ? enrichEmployeeRow(requisitionValues, organizationOptions, {
               gender: genderOptions,
               bloodGroup: bloodGroupOptions,
               maritalStatus: maritalStatusOptions,
             })
-          : values,
+          : requisitionValues,
         configLookups,
         rows,
       );
@@ -1932,12 +2103,28 @@ export function MasterDataPage({
           if (isLeaveRequisitionModule) setLeaveBalanceRows([]);
         }}
         title={config.actionLabel || `Add ${config.title}`}
-        subtitle={modalSubtitle}
+        subtitle={
+          isLeaveRequisitionModule
+            ? isLeaveRequisitionAdmin
+              ? "Select branch and employee, then apply leave. New applications are saved as Pending."
+              : "Apply for leave. Your employee profile is used automatically. New applications are saved as Pending."
+            : modalSubtitle
+        }
         submitLabel={submitLabel}
         fields={modalFields}
         sections={modalSections}
         size={config.modalSize}
         existingRows={moduleId === "devices" ? rows : undefined}
+        defaultValues={
+          isLeaveRequisitionModule && !isLeaveRequisitionAdmin && leaveRequisitionEmployeeId
+            ? {
+                Employee_id: String(leaveRequisitionEmployeeId),
+                Branch_Id: meProfile?.branchId ? String(meProfile.branchId) : "",
+                Employee_name: meProfile?.displayName ?? "",
+                Employee_code: meProfile?.employeeCode ?? "",
+              }
+            : undefined
+        }
         onSubmit={(values) => handleSave(values, "add")}
         adaptFields={isLeaveRequisitionModule ? adaptLeaveRequisitionFields : undefined}
         deriveValues={isLeaveRequisitionModule ? deriveLeaveRequisitionValues : undefined}
@@ -1964,7 +2151,13 @@ export function MasterDataPage({
           if (isLeaveRequisitionModule) setLeaveBalanceRows([]);
         }}
         title={`Edit ${config.title}`}
-        subtitle={modalSubtitle}
+        subtitle={
+          isLeaveRequisitionModule
+            ? isLeaveRequisitionAdmin
+              ? "Update a pending leave requisition for the selected employee."
+              : "Update your pending leave requisition."
+            : modalSubtitle
+        }
         submitLabel={submitLabel ?? "Save Changes"}
         fields={modalFields}
         sections={modalSections}

@@ -27,6 +27,8 @@ type MasterDataModalProps = {
   sections?: FormSection[];
   size?: "sm" | "md" | "lg" | "xl";
   initialValues?: HrmsRow;
+  /** Seed create form without treating the modal as edit. */
+  defaultValues?: Partial<HrmsRow>;
   existingRows?: HrmsRow[];
   onSubmit: (values: HrmsRow) => void | Promise<void>;
   disableSubmit?: boolean;
@@ -66,6 +68,7 @@ export function MasterDataModal({
   sections,
   size = "lg",
   initialValues,
+  defaultValues,
   existingRows = [],
   onSubmit,
   disableSubmit = false,
@@ -108,13 +111,20 @@ export function MasterDataModal({
       setOpenSectionId(null);
       return;
     }
-    const initial = buildInitialFormValues(resolvedFields, initialValues);
+    const seedRow = {
+      ...(defaultValues ?? {}),
+      ...(initialValues ?? {}),
+    } as HrmsRow | undefined;
+    const initial = buildInitialFormValues(
+      resolvedFields,
+      seedRow && Object.keys(seedRow).length > 0 ? seedRow : undefined,
+    );
     valuesRef.current = initial;
     setValues(initial);
     setErrors({});
     setSubmitError("");
     setOpenSectionId(sections?.[0]?.id ?? null);
-  }, [open, resolvedFields, initialValues?.id, sections]);
+  }, [open, resolvedFields, initialValues?.id, defaultValues, sections]);
 
   // Hydrate balance (and related read-only fields) after async balance API returns on edit.
   useEffect(() => {
@@ -190,7 +200,9 @@ export function MasterDataModal({
   const buildPayload = (): HrmsRow => {
     const current = valuesRef.current;
     const payload: HrmsRow = {
+      ...(defaultValues ?? {}),
       ...(initialValues ?? {}),
+      ...current,
       id: initialValues?.id ?? `new-${Date.now()}`,
     };
 

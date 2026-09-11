@@ -65,15 +65,17 @@ export function StatCard({
               {value}
             </h3>
             <div className="mt-1 flex items-center justify-end gap-1">
-              <span
-                className={cn(
-                  "badge",
-                  positive ? "bg-soft-success" : "bg-soft-danger",
-                )}
-              >
-                {positive ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
-                {change}
-              </span>
+              {change ? (
+                <span
+                  className={cn(
+                    "badge",
+                    positive ? "bg-soft-success" : "bg-soft-danger",
+                  )}
+                >
+                  {positive ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+                  {change}
+                </span>
+              ) : null}
               <small className="text-muted">{hint}</small>
             </div>
           </div>

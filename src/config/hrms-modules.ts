@@ -1888,6 +1888,8 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
     modalSize: "lg",
     searchKeys: [
       "Application_no",
+      "Employee_name",
+      "Employee_code",
       "Leave_code",
       "Leave_type",
       "Reason",
@@ -1895,6 +1897,7 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
       "Remarks",
     ],
     columns: [
+      { key: "Employee_name", header: "Employee", type: "person", subtitleKey: "Employee_code" },
       { key: "Application_no", header: "Application No." },
       { key: "Leave_code", header: "Leave", filterable: true },
       { key: "From_date", header: "From", type: "date" },

@@ -1417,7 +1417,84 @@ export type DashboardOverviewQuery = {
   limit?: number;
 };
 
+export type EmpDashboardQuery = {
+  employee_id: number;
+  as_of_date?: string;
+};
+
+export type EmpDashboardHeader = {
+  greeting: string;
+  employee_id: number;
+  employee_code: string;
+  employee_name: string;
+  display_name: string;
+  as_of_date: string;
+  display_date: string;
+  subtitle: string;
+};
+
+export type EmpDashboardSummary = {
+  attendance_status: number;
+  attendance_status_name: string;
+  attendance_status_label: string;
+  scheduled_check_out: string;
+  working_minutes: number;
+  working_hours: string;
+  working_hours_label: string;
+  total_leaves_left: number;
+  total_leaves_left_label: string;
+};
+
+export type EmpDashboardTimelineItem = {
+  Punch_id: number;
+  Event_time_display: string;
+  Event_label: string;
+  Punch_type: number;
+};
+
+export type EmpDashboardLeaveBalance = {
+  Leave_Id: number;
+  Leave_Name: string;
+  Used_Days: number;
+  Total_Days: number;
+  Balance_Days: number;
+  Used_Percent: number;
+};
+
+export type EmpDashboardLastPayslip = {
+  period: string;
+  net_salary: number;
+  paid_on: string;
+  status: string;
+};
+
+export type EmpDashboardSalaryHistoryItem = {
+  month: string;
+  net_pay: number;
+};
+
+export type EmpDashboardMonthlyAttendance = {
+  Year_no: number;
+  Month_no: number;
+  Month_name: string;
+  Present_count: number;
+  Absent_count: number;
+  Leave_count: number;
+  Holiday_count: number;
+};
+
+export type EmpDashboard = {
+  header: EmpDashboardHeader;
+  summary: EmpDashboardSummary;
+  timeline: EmpDashboardTimelineItem[];
+  leave_balances: EmpDashboardLeaveBalance[];
+  last_payslip: EmpDashboardLastPayslip | null;
+  salary_history: EmpDashboardSalaryHistoryItem[];
+  monthly_attendance: EmpDashboardMonthlyAttendance | null;
+};
+
 export type EmailConfigRecord = {
+  config_id?: number | null;
   mailer: string;
   host: string;
   port: number | string;
@@ -1428,15 +1505,15 @@ export type EmailConfigRecord = {
   from_name: string;
 };
 
+/** PUT /api/v1/email-config/update body */
 export type EmailConfigWritePayload = {
-  mailer: string;
-  host: string;
-  port: number;
-  username: string;
-  password: string;
-  encryption: string;
-  from_address: string;
-  from_name: string;
+  config_host: string;
+  config_port: string;
+  config_username: string;
+  config_password: string;
+  config_encryption: string;
+  config_from_email: string;
+  config_from_name: string;
 };
 
 export type EmailConfigTestPayload = EmailConfigWritePayload & {
@@ -1453,3 +1530,65 @@ export type NotificationSettingsRecord = {
 };
 
 export type NotificationSettingsWritePayload = NotificationSettingsRecord;
+export type MyAttendanceCalendarQuery = {
+  year: number;
+  month: number;
+  employee_id?: number;
+};
+
+export type MyAttendanceCalendarSummary = {
+  Present_count: number;
+  Absent_count: number;
+  Leave_count: number;
+  Holiday_count: number;
+  Late_count: number;
+  Half_day_count: number;
+  Weekly_off_count: number;
+};
+
+export type MyAttendanceCalendarDay = {
+  Day_no: number;
+  Attendance_date: string;
+  Weekday: number;
+  Day_name: string;
+  Is_weekend: number;
+  Is_holiday: number;
+  Holiday_id: number | null;
+  Holiday_name: string | null;
+  Holiday_type: number | null;
+  Holiday_type_name: string | null;
+  Is_leave: number;
+  Leave_Application_Id: number | null;
+  Leave_Id: number | null;
+  Leave_Name: string | null;
+  Half_Day: number | null;
+  Attendance_id: number | null;
+  Shift_id: number | null;
+  Check_in: string | null;
+  Check_out: string | null;
+  Working_minutes: number | null;
+  Overtime_minutes: number | null;
+  Late_minutes: number | null;
+  Early_leave_minutes: number | null;
+  Attendance_status: number | null;
+  Attendance_status_name: string | null;
+  Source: string | null;
+  Remarks: string | null;
+  Day_status: number | null;
+  Day_status_name: string | null;
+  Day_label: string | null;
+};
+
+export type MyAttendanceCalendar = {
+  employee_id: number;
+  employee_code: string;
+  employee_name: string;
+  display_name: string;
+  year: number;
+  month: number;
+  month_name: string;
+  month_start: string;
+  month_end: string;
+  summary: MyAttendanceCalendarSummary;
+  days: MyAttendanceCalendarDay[];
+};

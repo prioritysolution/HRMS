@@ -279,6 +279,10 @@ export function enrichLeaveRequisitionRow(
   existingRows: HrmsRow[] = [],
 ): HrmsRow {
   const employeeId = String(values.Employee_id ?? values.Employee_Id ?? "").trim();
+  if (!employeeId) {
+    throw new Error("Employee is required.");
+  }
+
   const employeeCode = String(values.Employee_code ?? "").trim();
   const employee =
     employees.find((row) => String(row.Employee_id ?? row.id ?? "").trim() === employeeId) ||

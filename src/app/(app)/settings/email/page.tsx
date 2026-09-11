@@ -8,7 +8,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { RoundLoader } from "@/components/ui/RoundLoader";
 import { TableSectionHeader } from "@/components/ui/TableSectionHeader";
 import { useToast } from "@/components/ui/ToastProvider";
-import { emailConfigService } from "@/lib/api/services/email-config.service";
+import { emailConfigService, toEmailConfigWritePayload } from "@/lib/api/services/email-config.service";
 import { validateFormField, validateFormFields, type FormValue } from "@/lib/form-validation";
 import { cn } from "@/lib/utils";
 import type { FormField } from "@/types/hrms";
@@ -20,14 +20,10 @@ const smtpFieldsTop: FormField[] = [
   {
     label: "Mailer",
     name: "mailer",
-    type: "select",
+    type: "text",
     required: true,
-    defaultValue: "smtp",
-    options: [
-      { value: "smtp", label: "SMTP" },
-      { value: "sendmail", label: "Sendmail" },
-      { value: "log", label: "Log" },
-    ],
+    defaultValue: "SMTP",
+    readOnly: true,
   },
   {
     label: "Host",
@@ -43,10 +39,10 @@ const smtpFieldsTop: FormField[] = [
     name: "port",
     type: "number",
     required: true,
-    defaultValue: "465",
+    defaultValue: "587",
     min: 1,
     max: 65535,
-    placeholder: "465",
+    placeholder: "587",
   },
   {
     label: "Username",
@@ -129,16 +125,15 @@ const testFields: FormField[] = [
 ];
 
 function asWritePayload(values: Record<string, FormValue>) {
-  return {
-    mailer: String(values.mailer ?? "").trim(),
+  return toEmailConfigWritePayload({
     host: String(values.host ?? "").trim(),
-    port: Number(values.port),
+    port: String(values.port ?? "").trim(),
     username: String(values.username ?? "").trim(),
     password: String(values.password ?? ""),
     encryption: String(values.encryption ?? "").trim(),
     from_address: String(values.from_address ?? "").trim(),
     from_name: String(values.from_name ?? "").trim(),
-  };
+  });
 }
 
 export default function EmailConfigPage() {
@@ -165,10 +160,14 @@ export default function EmailConfigPage() {
           buildInitialFormValues(smtpFields, {
             id: "email-config",
             ...(result.data ?? {}),
+            mailer: "SMTP",
+            // Never seed masked API password into the input
+            password: "",
           }),
         );
         setErrors({});
-        if (!result.ok) {
+        // First-time empty config is normal — don't toast an error
+        if (!result.ok && !result.empty) {
           toast.error({
             title: "Unable to load settings",
             message: result.message,
@@ -241,7 +240,9 @@ export default function EmailConfigPage() {
         ...buildInitialFormValues(smtpFields, {
           id: "email-config",
           ...(result.data ?? {}),
-          password: String(values.password ?? result.data?.password ?? ""),
+          mailer: "SMTP",
+          // Keep typed password; never show API mask after save
+          password: String(values.password ?? ""),
         }),
       }));
       toast.success({ title: "Saved", message: result.message });

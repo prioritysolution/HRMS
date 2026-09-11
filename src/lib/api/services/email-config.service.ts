@@ -14,6 +14,8 @@ export type EmailConfigActionResult<T> = {
   data?: T;
   message: string;
   missingRoute?: boolean;
+  /** True when API returned an empty list (first-time setup). */
+  empty?: boolean;
 };
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -33,8 +35,16 @@ function asText(value: unknown): string {
   return String(value).trim();
 }
 
+function optionalNumber(value: unknown): number | null {
+  if (value === undefined || value === null || value === "") return null;
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : null;
+}
+
+/** API returns masked secrets like ******** — never put those in the form. */
 function isMaskedPassword(value: string): boolean {
-  return /^\*+$|^•+$|^x+$/i.test(value);
+  if (!value) return false;
+  return /^\*+$|^•+$|^x+$/i.test(value) || /^[*•x]{4,}$/i.test(value);
 }
 
 function isMissingRoute(status: number, message: string, payload?: unknown): boolean {
@@ -65,7 +75,12 @@ function toUserMessage(status: number, message: string, action: "load" | "save" 
   return message || "Something went wrong. Please try again.";
 }
 
-function fail<T>(action: "load" | "save" | "test", status: number, message: string, payload?: unknown): EmailConfigActionResult<T> {
+function fail<T>(
+  action: "load" | "save" | "test",
+  status: number,
+  message: string,
+  payload?: unknown,
+): EmailConfigActionResult<T> {
   return {
     ok: false,
     message: toUserMessage(status, message, action),
@@ -74,29 +89,112 @@ function fail<T>(action: "load" | "save" | "test", status: number, message: stri
 }
 
 function emptyConfig(): EmailConfigRecord {
-  return asEmailConfig({});
+  return {
+    config_id: null,
+    mailer: "smtp",
+    host: "",
+    port: "587",
+    username: "",
+    password: "",
+    encryption: "tls",
+    from_address: "",
+    from_name: "",
+  };
 }
 
-function asEmailConfig(payload: unknown): EmailConfigRecord {
-  const record = asRecord(payload);
-  const nested = record ? asRecord(record.data) : null;
-  const source = nested ?? record ?? {};
+/** Prefer first list row from GET /email-config/list envelope. */
+function pickConfigSource(payload: unknown): Record<string, unknown> {
+  if (Array.isArray(payload)) {
+    return asRecord(payload[0]) ?? {};
+  }
 
-  const password = asText(
-    readValue(source, ["password", "Password", "mail_password", "MAIL_PASSWORD"]),
+  const record = asRecord(payload);
+  if (!record) return {};
+
+  const data = record.data;
+  if (Array.isArray(data)) {
+    return asRecord(data[0]) ?? {};
+  }
+
+  const nested = asRecord(data);
+  if (nested) {
+    if (Array.isArray(nested.data)) {
+      return asRecord(nested.data[0]) ?? {};
+    }
+    return nested;
+  }
+
+  return record;
+}
+
+export function asEmailConfig(payload: unknown): EmailConfigRecord {
+  const source = pickConfigSource(payload);
+
+  const passwordRaw = asText(
+    readValue(source, [
+      "Config_Password",
+      "config_password",
+      "password",
+      "Password",
+      "mail_password",
+      "MAIL_PASSWORD",
+    ]),
   );
 
   return {
-    mailer: asText(readValue(source, ["mailer", "Mailer", "mail_mailer", "MAIL_MAILER"])) || "smtp",
-    host: asText(readValue(source, ["host", "Host", "mail_host", "MAIL_HOST"])),
-    port: asText(readValue(source, ["port", "Port", "mail_port", "MAIL_PORT"])) || "465",
-    username: asText(readValue(source, ["username", "Username", "mail_username", "MAIL_USERNAME"])),
-    password: password && !isMaskedPassword(password) ? password : "",
+    config_id: optionalNumber(
+      readValue(source, ["Config_Id", "config_id", "id"]),
+    ),
+    mailer:
+      asText(readValue(source, ["mailer", "Mailer", "mail_mailer", "MAIL_MAILER"])) || "smtp",
+    host: asText(
+      readValue(source, [
+        "Config_Host",
+        "config_host",
+        "host",
+        "Host",
+        "mail_host",
+        "MAIL_HOST",
+      ]),
+    ),
+    port:
+      asText(
+        readValue(source, [
+          "Config_Port",
+          "config_port",
+          "port",
+          "Port",
+          "mail_port",
+          "MAIL_PORT",
+        ]),
+      ) || "587",
+    username: asText(
+      readValue(source, [
+        "Config_Username",
+        "config_username",
+        "username",
+        "Username",
+        "mail_username",
+        "MAIL_USERNAME",
+      ]),
+    ),
+    // Never show API-masked password (********) in the input
+    password: passwordRaw && !isMaskedPassword(passwordRaw) ? passwordRaw : "",
     encryption:
-      asText(readValue(source, ["encryption", "Encryption", "mail_encryption", "MAIL_ENCRYPTION"])) ||
-      "tls",
+      asText(
+        readValue(source, [
+          "Config_Encryption",
+          "config_encryption",
+          "encryption",
+          "Encryption",
+          "mail_encryption",
+          "MAIL_ENCRYPTION",
+        ]),
+      ) || "tls",
     from_address: asText(
       readValue(source, [
+        "Config_From_Email",
+        "config_from_email",
         "from_address",
         "From_address",
         "fromAddress",
@@ -105,14 +203,47 @@ function asEmailConfig(payload: unknown): EmailConfigRecord {
       ]),
     ),
     from_name: asText(
-      readValue(source, ["from_name", "From_name", "fromName", "mail_from_name", "MAIL_FROM_NAME"]),
+      readValue(source, [
+        "Config_From_Name",
+        "config_from_name",
+        "from_name",
+        "From_name",
+        "fromName",
+        "mail_from_name",
+        "MAIL_FROM_NAME",
+      ]),
     ),
   };
 }
 
+/** Map UI SMTP fields → PUT /email-config/update body. */
+export function toEmailConfigWritePayload(input: {
+  host: string;
+  port: number | string;
+  username: string;
+  password: string;
+  encryption: string;
+  from_address: string;
+  from_name: string;
+}): EmailConfigWritePayload {
+  return {
+    config_host: asText(input.host),
+    config_port: asText(input.port) || "587",
+    config_username: asText(input.username),
+    config_password: String(input.password ?? ""),
+    config_encryption: asText(input.encryption) || "tls",
+    config_from_email: asText(input.from_address),
+    config_from_name: asText(input.from_name),
+  };
+}
+
 export const emailConfigService = {
+  /**
+   * GET /api/v1/email-config/list
+   * Returns the single config row (or empty defaults for first-time setup).
+   */
   get: async (): Promise<EmailConfigActionResult<EmailConfigRecord>> => {
-    const payload = await apiClient.get<unknown>(API_ENDPOINTS.emailConfig.get, SOFT_REQUEST);
+    const payload = await apiClient.get<unknown>(API_ENDPOINTS.emailConfig.list, SOFT_REQUEST);
     if (isSoftApiError(payload)) {
       return {
         ...fail("load", payload.status, payload.message, payload.data),
@@ -122,17 +253,28 @@ export const emailConfigService = {
     if (payload === undefined) {
       return fail("load", 401, "Your session expired. Please sign in again.");
     }
+
+    const source = pickConfigSource(payload);
+    const empty = Object.keys(source).length === 0;
+
     return {
       ok: true,
-      data: asEmailConfig(payload),
-      message: "SMTP configuration loaded.",
+      data: empty ? emptyConfig() : asEmailConfig(payload),
+      empty,
+      message: empty
+        ? "No email configuration saved yet."
+        : asText(asRecord(payload)?.message) || "SMTP configuration loaded.",
     };
   },
 
   update: async (
     data: EmailConfigWritePayload,
   ): Promise<EmailConfigActionResult<EmailConfigRecord>> => {
-    const payload = await apiClient.put<unknown>(API_ENDPOINTS.emailConfig.update, data, SOFT_REQUEST);
+    const payload = await apiClient.put<unknown>(
+      API_ENDPOINTS.emailConfig.update,
+      data,
+      SOFT_REQUEST,
+    );
     if (isSoftApiError(payload)) {
       return fail("save", payload.status, payload.message, payload.data);
     }
@@ -142,7 +284,7 @@ export const emailConfigService = {
     return {
       ok: true,
       data: asEmailConfig(payload),
-      message: "SMTP configuration saved.",
+      message: asText(asRecord(payload)?.message) || "SMTP configuration saved.",
     };
   },
 

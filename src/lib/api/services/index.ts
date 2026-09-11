@@ -42,13 +42,27 @@ export {
   toFormRow,
 } from "@/lib/api/services/attendance.service";
 export { attendanceService } from "@/lib/api/services/attendance.service";
+export {
+  myAttendanceService,
+  myAttendanceDayLabel,
+  myAttendanceDayTone,
+} from "@/lib/api/services/my-attendance.service";
+export type { AttendanceDayTone } from "@/lib/api/services/my-attendance.service";
 export { codeSeriesService } from "@/lib/api/services/code-series.service";
-export { emailConfigService } from "@/lib/api/services/email-config.service";
+export {
+  asEmailConfig,
+  emailConfigService,
+  toEmailConfigWritePayload,
+} from "@/lib/api/services/email-config.service";
+export type { EmailConfigActionResult } from "@/lib/api/services/email-config.service";
 export { notificationSettingsService } from "@/lib/api/services/notification-settings.service";
 export { employeeOnboardingService } from "@/lib/api/services/employee-onboarding.service";
 export {
   attendanceTrendToPercentages,
   dashboardService,
+  empLeaveBalanceColor,
+  empMonthlyAttendanceChartItems,
+  empTimelineMarkerType,
 } from "@/lib/api/services/dashboard.service";
 
 import { apiClient } from "@/lib/api/client";

@@ -16,10 +16,17 @@ import {
 } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { RoundLoader } from "@/components/ui/RoundLoader";
-import { getEssDashboardData } from "@/data/ess-mock";
+import { useToast } from "@/components/ui/ToastProvider";
+import { ApiError } from "@/lib/api/client";
+import {
+  dashboardService,
+  empLeaveBalanceColor,
+  empMonthlyAttendanceChartItems,
+  empTimelineMarkerType,
+} from "@/lib/api/services/dashboard.service";
 import { authService } from "@/lib/api/services/auth.service";
-import { getEssEmployeeCode, getEssEmployeeName } from "@/lib/ess-utils";
-import type { AuthMeProfile } from "@/lib/api/types";
+import { getEssEmployeeName } from "@/lib/ess-utils";
+import type { AuthMeProfile, EmpDashboard } from "@/lib/api/types";
 
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
@@ -30,48 +37,95 @@ const quickLinks = [
   { label: "Submit Request", href: "/ess/requests", icon: ListTodo },
 ];
 
-function getGreeting(hour: number) {
-  if (hour < 12) return "Good Morning";
-  if (hour < 17) return "Good Afternoon";
-  return "Good Evening";
+function formatDayNumber(value: number): string {
+  const text = String(value);
+  if (text.includes(".")) {
+    const trimmed = text.replace(/\.?0+$/, "");
+    return trimmed || "0";
+  }
+  return text;
+}
+
+type PresenceTone = "success" | "danger" | "warning" | "orange" | "muted";
+
+function getPresenceTone(
+  statusLabel: string,
+  statusName?: string,
+  statusCode?: number,
+): PresenceTone {
+  const text = `${statusLabel} ${statusName ?? ""}`.toLowerCase();
+  if (text.includes("absent") || statusCode === 2) return "danger";
+  if (text.includes("leave") || statusCode === 3) return "warning";
+  if (text.includes("late") || statusCode === 4) return "orange";
+  if (text.includes("present") || statusCode === 1) return "success";
+  if (text.includes("holiday") || text.includes("week")) return "muted";
+  return "muted";
 }
 
 export function EssDashboard() {
+  const { error: toastError } = useToast();
   const [profile, setProfile] = useState<AuthMeProfile | null>(null);
+  const [dashboard, setDashboard] = useState<EmpDashboard | null>(null);
   const [loading, setLoading] = useState(true);
-  const [now] = useState(() => new Date());
+  const [error, setError] = useState<string | null>(null);
 
-  const loadProfile = useCallback(async () => {
+  const loadDashboard = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const me = await authService.getMeProfile();
+      console.log("me", me);
       setProfile(me);
+
+      if (!me?.employeeId) {
+        setDashboard(null);
+        setError("Employee profile is not linked to this login.");
+        return;
+      }
+
+      const data = await dashboardService.empDashboard({
+        employee_id: me.employeeId,
+      });
+      setDashboard(data);
+    } catch (err) {
+      const message =
+        err instanceof ApiError
+          ? err.message
+          : err instanceof Error
+            ? err.message
+            : "Failed to load employee dashboard.";
+      setDashboard(null);
+      setError(message);
+      toastError(message);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [toastError]);
 
   useEffect(() => {
-    void loadProfile();
-  }, [loadProfile]);
+    void loadDashboard();
+  }, [loadDashboard]);
 
-  const employeeCode = getEssEmployeeCode(null, profile);
-  const employeeName = getEssEmployeeName(profile);
-  const firstName = employeeName.split(" ")[0] || "there";
-  const data = getEssDashboardData(employeeCode);
-  const mock = data.mock;
+  const header = dashboard?.header;
+  const summary = dashboard?.summary;
+  const firstName =
+    header?.employee_name ||
+    getEssEmployeeName(profile).split(" ")[0] ||
+    "there";
+  const greeting = header?.greeting || "Hello";
+  const dateLabel = header?.display_date || "";
+  const subtitle =
+    header?.subtitle || "Your attendance, leave, and payslip snapshot for today.";
 
-  const dateLabel = now.toLocaleDateString("en-IN", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-
-  const leaveRemaining = useMemo(
-    () => mock.leaveBalances.reduce((sum, item) => sum + (item.total - item.used), 0),
-    [mock.leaveBalances],
+  const attendanceItems = useMemo(
+    () => empMonthlyAttendanceChartItems(dashboard?.monthly_attendance ?? null),
+    [dashboard?.monthly_attendance],
   );
+
+  const salaryHistory = dashboard?.salary_history ?? [];
+  const leaveBalances = dashboard?.leave_balances ?? [];
+  const timeline = dashboard?.timeline ?? [];
+  const lastPayslip = dashboard?.last_payslip ?? null;
 
   const salaryChartOptions = useMemo(
     () => ({
@@ -98,7 +152,7 @@ export function EssDashboard() {
         padding: { left: 4, right: 8 },
       },
       xaxis: {
-        categories: mock.salaryTrend.map((p) => p.month),
+        categories: salaryHistory.map((p) => p.month),
         axisBorder: { show: false },
         axisTicks: { show: false },
         labels: { style: { colors: "#65688a", fontWeight: 600 } },
@@ -111,8 +165,7 @@ export function EssDashboard() {
       },
       tooltip: {
         y: {
-          formatter: (val: number) =>
-            `₹${val.toLocaleString("en-IN")}`,
+          formatter: (val: number) => `₹${val.toLocaleString("en-IN")}`,
         },
       },
       colors: ["#4666e1"],
@@ -123,11 +176,12 @@ export function EssDashboard() {
         strokeWidth: 2,
       },
     }),
-    [mock.salaryTrend],
+    [salaryHistory],
   );
 
-  const attendanceChartOptions = useMemo(
-    () => ({
+  const attendanceChartOptions = useMemo(() => {
+    const maxValue = Math.max(...attendanceItems.map((i) => i.value), 0);
+    return {
       chart: {
         type: "bar" as const,
         toolbar: { show: false },
@@ -155,8 +209,8 @@ export function EssDashboard() {
         yaxis: { lines: { show: false } },
       },
       xaxis: {
-        categories: mock.monthlyAttendance.items.map((i) => i.label),
-        max: Math.max(...mock.monthlyAttendance.items.map((i) => i.value)) + 4,
+        categories: attendanceItems.map((i) => i.label),
+        max: maxValue + 4,
         labels: { style: { colors: "#65688a", fontWeight: 600 } },
         axisBorder: { show: false },
         axisTicks: { show: false },
@@ -165,13 +219,12 @@ export function EssDashboard() {
         labels: { style: { colors: "#0d2042", fontWeight: 700 } },
       },
       legend: { show: false },
-      colors: mock.monthlyAttendance.items.map((i) => i.color),
+      colors: attendanceItems.map((i) => i.color),
       tooltip: {
         y: { formatter: (val: number) => `${val} days` },
       },
-    }),
-    [mock.monthlyAttendance.items],
-  );
+    };
+  }, [attendanceItems]);
 
   if (loading) {
     return (
@@ -187,6 +240,31 @@ export function EssDashboard() {
     );
   }
 
+  if (error || !dashboard || !summary) {
+    return (
+      <>
+        <PageHeader title="My Dashboard" section="Employee Self Service" />
+        <div className="container-fluid">
+          <div className="card">
+            <div className="card-body ess-dashboard-empty">
+              <p className="mb-3">{error || "No dashboard data available."}</p>
+              <button type="button" className="btn btn-primary" onClick={() => void loadDashboard()}>
+                Retry
+              </button>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  const monthLabel = dashboard.monthly_attendance?.Month_name || "This month";
+  const presenceTone = getPresenceTone(
+    summary.attendance_status_label,
+    summary.attendance_status_name,
+    summary.attendance_status,
+  );
+
   return (
     <>
       <PageHeader title="My Dashboard" section="Employee Self Service" />
@@ -194,28 +272,29 @@ export function EssDashboard() {
         <div className="ess-welcome-banner mb-4">
           <div>
             <h2>
-              {getGreeting(now.getHours())}, {firstName}{" "}
+              {greeting}, {firstName}{" "}
               <span aria-hidden="true">👋</span>
             </h2>
-            <p>Your attendance, leave, and payslip snapshot for today.</p>
+            <p>{subtitle}</p>
           </div>
-          <div className="ess-welcome-date">
-            <CalendarDays size={18} />
-            <span>{dateLabel}</span>
-          </div>
+          {dateLabel ? (
+            <div className="ess-welcome-date">
+              <CalendarDays size={18} />
+              <span>{dateLabel}</span>
+            </div>
+          ) : null}
         </div>
 
-        {/* Top summary cards */}
         <div className="ess-stat-grid ess-stat-grid--three mb-4">
-          <div className="ess-stat-card ess-stat-card--success">
-            <div className="ess-stat-card-icon ess-presence-dot-wrap">
-              <span className="ess-presence-dot" />
+          <div className={`ess-stat-card ess-stat-card--${presenceTone}`}>
+            <div className={`ess-stat-card-icon ess-presence-dot-wrap ess-presence-dot-wrap--${presenceTone}`}>
+              <span className={`ess-presence-dot ess-presence-dot--${presenceTone}`} />
             </div>
             <div className="ess-stat-card-body">
-              <strong className="ess-stat-card-value ess-presence-status">
-                {mock.presenceStatus}
+              <strong className={`ess-stat-card-value ess-presence-status ess-presence-status--${presenceTone}`}>
+                {summary.attendance_status_label}
               </strong>
-              <small>Check-out · {mock.expectedCheckout}</small>
+              <small>Check-out · {summary.scheduled_check_out}</small>
             </div>
           </div>
 
@@ -224,7 +303,7 @@ export function EssDashboard() {
               <Clock3 size={24} />
             </div>
             <div className="ess-stat-card-body">
-              <strong className="ess-stat-card-value">{mock.workingTodayHours} Hrs</strong>
+              <strong className="ess-stat-card-value">{summary.working_hours_label}</strong>
               <span className="ess-stat-card-label">Working Today</span>
             </div>
           </div>
@@ -234,14 +313,12 @@ export function EssDashboard() {
               <Briefcase size={24} />
             </div>
             <div className="ess-stat-card-body">
-              <strong className="ess-stat-card-value">{mock.leaveLeftDays} Days</strong>
+              <strong className="ess-stat-card-value">{summary.total_leaves_left_label}</strong>
               <span className="ess-stat-card-label">Leave Left</span>
-              <small>{leaveRemaining} days remaining across types</small>
             </div>
           </Link>
         </div>
 
-        {/* Attendance log + Leave balance */}
         <div className="ess-dashboard-grid ess-dashboard-grid--two mb-4">
           <div className="card ess-dashboard-card">
             <div className="card-body">
@@ -252,17 +329,24 @@ export function EssDashboard() {
                 </Link>
               </div>
 
-              <ul className="ess-attendance-timeline">
-                {mock.attendanceLog.map((item) => (
-                  <li key={`${item.time}-${item.label}`} className={`ess-timeline-item ess-timeline-item--${item.type}`}>
-                    <span className="ess-timeline-marker" />
-                    <div className="ess-timeline-content">
-                      <strong>{item.time}</strong>
-                      <span>{item.label}</span>
-                    </div>
-                  </li>
-                ))}
-              </ul>
+              {timeline.length > 0 ? (
+                <ul className="ess-attendance-timeline">
+                  {timeline.map((item) => (
+                    <li
+                      key={item.Punch_id}
+                      className={`ess-timeline-item ess-timeline-item--${empTimelineMarkerType(item)}`}
+                    >
+                      <span className="ess-timeline-marker" />
+                      <div className="ess-timeline-content">
+                        <strong>{item.Event_time_display}</strong>
+                        <span>{item.Event_label}</span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-muted mb-0">No attendance punches for today.</p>
+              )}
             </div>
           </div>
 
@@ -275,27 +359,36 @@ export function EssDashboard() {
                 </Link>
               </div>
 
-              <div className="ess-leave-bars">
-                {mock.leaveBalances.map((leave) => {
-                  const pct = Math.min(100, Math.round((leave.used / leave.total) * 100));
-                  return (
-                    <div key={leave.code} className="ess-leave-bar-row">
-                      <div className="ess-leave-bar-meta">
-                        <span>{leave.type}</span>
-                        <strong>
-                          {leave.used} / {leave.total}
-                        </strong>
+              {leaveBalances.length > 0 ? (
+                <div className="ess-leave-bars">
+                  {leaveBalances.map((leave, index) => {
+                    const pct =
+                      leave.Used_Percent > 0
+                        ? Math.min(100, Math.round(leave.Used_Percent))
+                        : leave.Total_Days > 0
+                          ? Math.min(100, Math.round((leave.Used_Days / leave.Total_Days) * 100))
+                          : 0;
+                    return (
+                      <div key={leave.Leave_Id} className="ess-leave-bar-row">
+                        <div className="ess-leave-bar-meta">
+                          <span>{leave.Leave_Name}</span>
+                          <strong>
+                            {formatDayNumber(leave.Used_Days)} / {formatDayNumber(leave.Total_Days)}
+                          </strong>
+                        </div>
+                        <div className="ess-leave-bar-track">
+                          <div
+                            className="ess-leave-bar-fill"
+                            style={{ width: `${pct}%`, background: empLeaveBalanceColor(index) }}
+                          />
+                        </div>
                       </div>
-                      <div className="ess-leave-bar-track">
-                        <div
-                          className="ess-leave-bar-fill"
-                          style={{ width: `${pct}%`, background: leave.color }}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-muted mb-3">No leave balance available.</p>
+              )}
 
               <Link href="/leave/leave-requisition" className="btn btn-primary ess-card-action w-100">
                 <CalendarDays size={16} />
@@ -305,7 +398,6 @@ export function EssDashboard() {
           </div>
         </div>
 
-        {/* Payslip trend + Monthly attendance chart */}
         <div className="ess-dashboard-grid ess-dashboard-grid--two mb-4">
           <div className="card ess-dashboard-card">
             <div className="card-body">
@@ -316,88 +408,97 @@ export function EssDashboard() {
                 </Link>
               </div>
 
-              <div className="ess-payslip-hero">
-                <div>
-                  <span className="ess-payslip-period">{mock.lastPayslip.period}</span>
-                  <p className="ess-payslip-label">Net Salary</p>
-                  <strong className="ess-payslip-amount">
-                    ₹ {mock.lastPayslip.netSalary.toLocaleString("en-IN")}
-                  </strong>
-                  <small className="ess-payslip-paid">
-                    Paid on: {mock.lastPayslip.paidOn}
-                  </small>
-                </div>
-                <span className="ess-payslip-badge">{mock.lastPayslip.status}</span>
-              </div>
+              {lastPayslip ? (
+                <>
+                  <div className="ess-payslip-hero">
+                    <div>
+                      <span className="ess-payslip-period">{lastPayslip.period}</span>
+                      <p className="ess-payslip-label">Net Salary</p>
+                      <strong className="ess-payslip-amount">
+                        ₹ {lastPayslip.net_salary.toLocaleString("en-IN")}
+                      </strong>
+                      <small className="ess-payslip-paid">Paid on: {lastPayslip.paid_on}</small>
+                    </div>
+                    <span className="ess-payslip-badge">{lastPayslip.status}</span>
+                  </div>
 
-              <div className="ess-chart-wrap ess-chart-wrap--salary">
-                <Chart
-                  type="area"
-                  height={180}
-                  width="100%"
-                  options={salaryChartOptions}
-                  series={[
-                    {
-                      name: "Net Pay",
-                      data: mock.salaryTrend.map((p) => p.netPay),
-                    },
-                  ]}
-                />
-              </div>
+                  {salaryHistory.length > 0 ? (
+                    <div className="ess-chart-wrap ess-chart-wrap--salary">
+                      <Chart
+                        type="area"
+                        height={180}
+                        width="100%"
+                        options={salaryChartOptions}
+                        series={[
+                          {
+                            name: "Net Pay",
+                            data: salaryHistory.map((p) => p.net_pay),
+                          },
+                        ]}
+                      />
+                    </div>
+                  ) : null}
 
-              <div className="ess-payslip-actions">
-                <Link href="/ess/payslips" className="btn btn-outline-primary ess-card-action">
-                  <FileText size={16} />
-                  View Payslip
-                </Link>
-                <button type="button" className="btn btn-primary ess-card-action">
-                  <Download size={16} />
-                  Download
-                </button>
-              </div>
+                  <div className="ess-payslip-actions">
+                    <Link href="/ess/payslips" className="btn btn-outline-primary ess-card-action">
+                      <FileText size={16} />
+                      View Payslip
+                    </Link>
+                    <Link href="/ess/payslips" className="btn btn-primary ess-card-action">
+                      <Download size={16} />
+                      Download
+                    </Link>
+                  </div>
+                </>
+              ) : (
+                <p className="text-muted mb-0">No payslip available yet.</p>
+              )}
             </div>
           </div>
 
           <div className="card ess-dashboard-card">
             <div className="card-body">
               <div className="ess-card-header">
-                <h5 className="card-title mb-0">
-                  Attendance — {mock.monthlyAttendance.monthLabel}
-                </h5>
+                <h5 className="card-title mb-0">Attendance — {monthLabel}</h5>
                 <Link href="/ess/attendance" className="ess-link-sm">
                   Details <ArrowRight size={14} />
                 </Link>
               </div>
 
-              <div className="ess-chart-wrap">
-                <Chart
-                  type="bar"
-                  height={260}
-                  width="100%"
-                  options={attendanceChartOptions}
-                  series={[
-                    {
-                      name: "Days",
-                      data: mock.monthlyAttendance.items.map((i) => i.value),
-                    },
-                  ]}
-                />
-              </div>
-
-              <div className="ess-attendance-legend">
-                {mock.monthlyAttendance.items.map((item) => (
-                  <div key={item.label} className="ess-attendance-legend-item">
-                    <span style={{ background: item.color }} />
-                    <em>{item.label}</em>
-                    <strong>{item.value}</strong>
+              {attendanceItems.length > 0 ? (
+                <>
+                  <div className="ess-chart-wrap">
+                    <Chart
+                      type="bar"
+                      height={260}
+                      width="100%"
+                      options={attendanceChartOptions}
+                      series={[
+                        {
+                          name: "Days",
+                          data: attendanceItems.map((i) => i.value),
+                        },
+                      ]}
+                    />
                   </div>
-                ))}
-              </div>
+
+                  <div className="ess-attendance-legend">
+                    {attendanceItems.map((item) => (
+                      <div key={item.label} className="ess-attendance-legend-item">
+                        <span style={{ background: item.color }} />
+                        <em>{item.label}</em>
+                        <strong>{item.value}</strong>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <p className="text-muted mb-0">No monthly attendance data available.</p>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Quick links */}
         <div className="card">
           <div className="card-body">
             <h5 className="card-title mb-3">Employee Services</h5>
