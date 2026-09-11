@@ -13,8 +13,6 @@ import {
   enrichLeaveRequisitionRow,
   getActiveLeaveTypes,
   latestFinancialYear,
-  sortFinancialYears,
-  withBranchSelectOptions,
   withLeaveTypeOptions,
 } from "@/lib/leave-module-utils";
 import {
@@ -35,7 +33,6 @@ const LEAVE_TYPE_OPTION_MODULES = new Set([
   "leave-policy",
   "leave-allocation",
   "leave-application",
-  "leave-requisition",
   "leave-approval",
   "leave-calendar",
   "leave-encashment",
@@ -44,7 +41,6 @@ const LEAVE_TYPE_OPTION_MODULES = new Set([
 const LEAVE_EMPLOYEE_SELECT_MODULES = new Set([
   "leave-allocation",
   "leave-application",
-  "leave-requisition",
   "leave-approval",
   "leave-calendar",
   "leave-encashment",
@@ -71,18 +67,27 @@ export function applyConfigFormOptions(
   fields: FormField[],
   lookups: ConfigModuleLookups,
   rows: HrmsRow[],
+  financialYearOptions?: Array<{ value: string; label: string }>,
 ): FormField[] {
   let next = fields;
 
   if (moduleId === "leave-entitlement") {
-    const latest = latestFinancialYear(rows.map((row) => String(row.Financial_year ?? "")));
+    const years =
+      financialYearOptions && financialYearOptions.length > 0
+        ? financialYearOptions.map((option) => option.value)
+        : rows.map((row) => String(row.Financial_year ?? ""));
+    const latest = latestFinancialYear(years);
     next = next.map((field) =>
-      field.name === "Financial_year" ? { ...field, defaultValue: latest } : field,
+      field.name === "Financial_year"
+        ? {
+            ...field,
+            options: financialYearOptions?.length
+              ? financialYearOptions
+              : field.options,
+            defaultValue: latest,
+          }
+        : field,
     );
-  }
-
-  if (moduleId === "leave-requisition") {
-    next = withBranchSelectOptions(next);
   }
 
   if (LEAVE_EMPLOYEE_SELECT_MODULES.has(moduleId)) {
@@ -150,19 +155,36 @@ export function enrichConfigRow(
   }
 }
 
-export function withLeaveEntitlementFilters<T extends { key: string }>(
+export function withLeaveEntitlementFilters<T extends { key: string; options?: unknown; defaultValue?: unknown }>(
   moduleId: string,
   fields: T[],
+  financialYearOptions?: Array<{ value: string; label: string }>,
 ): T[] {
   if (moduleId !== "leave-entitlement") return fields;
 
-  const years = sortFinancialYears(
-    getHrmsMockRows("leave-entitlement").map((row) => String(row.Financial_year ?? "")),
-  );
-  const latest = latestFinancialYear(years);
+  // Wait for API year options — mock defaults break filtering against real Year_Name values.
+  if (!financialYearOptions?.length) {
+    return fields.map((field) =>
+      field.key === "Financial_year"
+        ? { ...field, options: [], defaultValue: undefined }
+        : field,
+    );
+  }
+
+  const yearNameOptions = financialYearOptions.map((option) => ({
+    value: option.label,
+    label: option.label,
+  }));
+  const latest = latestFinancialYear(yearNameOptions.map((option) => option.value));
 
   return fields.map((field) =>
-    field.key === "Financial_year" ? { ...field, options: years, defaultValue: latest } : field,
+    field.key === "Financial_year"
+      ? {
+          ...field,
+          options: yearNameOptions,
+          defaultValue: latest,
+        }
+      : field,
   );
 }
 

@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import {
   Bell,
@@ -16,22 +17,80 @@ import {
   X,
 } from "lucide-react";
 import { notifications } from "@/data/mock";
+import { navigation, type NavSection } from "@/config/navigation";
 import { LogoutButton } from "@/components/layout/LogoutButton";
 import { useAuth } from "@/lib/auth/AuthProvider";
+import { menuService } from "@/lib/api/services/menu.service";
+import { menuTreeToNavigation } from "@/lib/menu/map-menu-tree";
+import { readMenuCache, writeMenuCache } from "@/lib/menu/menu-cache";
 import { useUIStore } from "@/components/layout/UIProvider";
 import { BrandLogo } from "@/components/ui/BrandLogo";
 
+type SearchResult = {
+  label: string;
+  parent?: string;
+  href: string;
+};
+
+function flattenNavigation(sections: NavSection[]): SearchResult[] {
+  return sections.flatMap((section) =>
+    section.items.flatMap((item) => {
+      const itemResult = item.href ? [{ label: item.label, href: item.href }] : [];
+      const childResults = (item.children ?? []).map((child) => ({
+        label: child.label,
+        parent: item.label,
+        href: child.href,
+      }));
+      return [...itemResult, ...childResults];
+    }),
+  );
+}
+
 export function Topbar() {
+  const router = useRouter();
   const { theme, toggleTheme, toggleSidebar, mobileOpen } = useUIStore();
   const { user } = useAuth();
   const [openNoti, setOpenNoti] = useState(false);
   const [openUser, setOpenUser] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
+  const [menuSections, setMenuSections] = useState<NavSection[]>(navigation);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [highlightedResult, setHighlightedResult] = useState(0);
   const notiRef = useRef<HTMLDivElement>(null);
   const userRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
   const displayName = user?.name ?? "PrioHRM User";
   const displayEmail = user?.email ?? "";
   const displayRole = user?.role ?? "Admin";
+
+  const searchResults = flattenNavigation(menuSections).filter((item) => {
+    const query = searchQuery.trim().toLowerCase();
+    return query && `${item.label} ${item.parent ?? ""}`.toLowerCase().includes(query);
+  });
+
+  useEffect(() => {
+    let active = true;
+    const cached = readMenuCache();
+    if (cached?.length) {
+      Promise.resolve().then(() => {
+        if (active) setMenuSections(cached);
+      });
+    }
+
+    menuService
+      .tree({ status: 1 })
+      .then((tree) => {
+        const mapped = menuTreeToNavigation(tree);
+        if (!active || !mapped[0]?.items.length) return;
+        setMenuSections(mapped);
+        writeMenuCache(mapped);
+      })
+      .catch(() => undefined);
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     const onClick = (event: MouseEvent) => {
@@ -41,6 +100,19 @@ export function Topbar() {
     document.addEventListener("mousedown", onClick);
     return () => document.removeEventListener("mousedown", onClick);
   }, []);
+
+  useEffect(() => {
+    const onClick = (event: MouseEvent) => {
+      if (!searchRef.current?.contains(event.target as Node)) setSearchQuery("");
+    };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, []);
+
+  const goToSearchResult = (result: SearchResult) => {
+    setSearchQuery("");
+    router.push(result.href);
+  };
 
   const toggleFullscreen = async () => {
     if (!document.fullscreenElement) {
@@ -75,9 +147,59 @@ export function Topbar() {
         </div>
 
         <div className="top-right-content">
-          <div className="topbar-search">
+          <div className="topbar-search" ref={searchRef}>
             <Search size={16} className="topbar-search-icon" />
-            <input placeholder="Search anything..." />
+            <input
+              placeholder="Search anything..."
+              value={searchQuery}
+              onChange={(event) => {
+                setSearchQuery(event.target.value);
+                setHighlightedResult(0);
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "ArrowDown") {
+                  event.preventDefault();
+                  setHighlightedResult((current) =>
+                    Math.min(current + 1, Math.max(searchResults.length - 1, 0)),
+                  );
+                } else if (event.key === "ArrowUp") {
+                  event.preventDefault();
+                  setHighlightedResult((current) => Math.max(current - 1, 0));
+                } else if (event.key === "Enter" && searchResults[highlightedResult]) {
+                  event.preventDefault();
+                  goToSearchResult(searchResults[highlightedResult]);
+                } else if (event.key === "Escape") {
+                  setSearchQuery("");
+                  event.currentTarget.blur();
+                }
+              }}
+              role="combobox"
+              aria-expanded={Boolean(searchQuery)}
+              aria-controls="topbar-search-results"
+              autoComplete="off"
+            />
+            {searchQuery && (
+              <div id="topbar-search-results" className="topbar-search-results" role="listbox">
+                {searchResults.length > 0 ? (
+                  searchResults.slice(0, 8).map((result, index) => (
+                    <button
+                      type="button"
+                      key={`${result.href}-${result.label}`}
+                      className={index === highlightedResult ? "is-highlighted" : ""}
+                      onMouseDown={(event) => event.preventDefault()}
+                      onClick={() => goToSearchResult(result)}
+                      role="option"
+                      aria-selected={index === highlightedResult}
+                    >
+                      <span>{result.label}</span>
+                      {result.parent && <small>{result.parent}</small>}
+                    </button>
+                  ))
+                ) : (
+                  <div className="topbar-search-empty">No menu found</div>
+                )}
+              </div>
+            )}
           </div>
 
           <button

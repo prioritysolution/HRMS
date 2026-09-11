@@ -8,6 +8,10 @@ import { designationService } from "@/lib/api/services/designation.service";
 import { employmentTypeService } from "@/lib/api/services/employment-type.service";
 import { employmentStatusService } from "@/lib/api/services/employment-status.service";
 import { holidayService } from "./services/holiday.service";
+import { leaveAllocationService } from "@/lib/api/services/leave-allocation.service";
+import { leaveMasterService } from "@/lib/api/services/leave-master.service";
+import { leaveApplicationService } from "@/lib/api/services/leave-application.service";
+import { leaveApprovalService } from "@/lib/api/services/leave-approval.service";
 import { gradeSalaryService } from "@/lib/api/services/grade-salary.service";
 import { gradeService } from "@/lib/api/services/grade.service";
 import { organizationService } from "@/lib/api/services/organization.service";
@@ -237,6 +241,34 @@ export const MASTER_DATA_API_SERVICES: Record<string, MasterDataApiService> = {
   },
 
   holidays: holidayService,
+
+  "leave-master": {
+    list: leaveMasterService.list,
+    create: leaveMasterService.create,
+    update: leaveMasterService.update,
+    remove: leaveMasterService.remove,
+  },
+
+  "leave-entitlement": {
+    list: leaveAllocationService.list,
+    create: leaveAllocationService.create,
+    update: leaveAllocationService.update,
+    remove: leaveAllocationService.remove,
+  },
+
+  "leave-requisition": {
+    list: leaveApplicationService.list,
+    create: leaveApplicationService.create,
+    update: leaveApplicationService.update,
+    remove: leaveApplicationService.remove,
+  },
+
+  "leave-approval": {
+    list: leaveApprovalService.list,
+    create: leaveApprovalService.create,
+    update: leaveApprovalService.update,
+    remove: leaveApprovalService.remove,
+  },
 
   shifts: {
     list: listWorkShifts,

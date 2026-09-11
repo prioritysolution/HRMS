@@ -34,6 +34,8 @@ export type FormField = {
   hideOnCreate?: boolean;
   hideOnEdit?: boolean;
   readOnlyOnEdit?: boolean;
+  /** Always disabled in the form (create + edit). */
+  readOnly?: boolean;
   minLength?: number;
   maxLength?: number;
   min?: number;

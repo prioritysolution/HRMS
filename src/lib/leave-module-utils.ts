@@ -69,7 +69,7 @@ export function lookupLeaveBalance(employeeCode: string, leaveType: string): num
   const leaveMaster = getActiveLeaveTypes().find(
     (row) => String(row.Leave_name ?? "").trim() === leaveType,
   );
-  return Number(leaveMaster?.Leaves_per_year ?? 0);
+  return Number(leaveMaster?.Leave_days ?? leaveMaster?.Leaves_per_year ?? 0);
 }
 
 export function withLeaveTypeOptions(fields: FormField[], leaveTypes: HrmsRow[]): FormField[] {
@@ -93,27 +93,87 @@ export function withEmployeeAndLeaveTypeOptions(
 }
 
 export function enrichLeaveMasterRow(values: HrmsRow): HrmsRow {
-  const shortName = String(values.Short_name ?? values.Leave_code ?? "").trim().toUpperCase();
+  const leaveCode = String(values.Leave_code ?? values.Short_name ?? "")
+    .trim()
+    .toUpperCase();
   const name = String(values.Leave_name ?? "").trim();
   const documentRequired = String(values.Document_required ?? values.Requires_document ?? "No");
-  const isActive =
-    values.Is_active === true ||
-    values.Is_active === "true" ||
-    values.Is_active === 1 ||
-    values.Is_active === "1";
+  const leaveDays = Number(values.Leave_days ?? values.Leaves_per_year ?? 0);
+  const validityRaw = String(values.Validity ?? "1").trim();
+  const validityCode =
+    validityRaw === "2" || validityRaw.toLowerCase().includes("day")
+      ? "2"
+      : validityRaw === "3" || validityRaw.toLowerCase().includes("carry")
+        ? "3"
+        : validityRaw === "1" || validityRaw.toLowerCase().includes("year")
+          ? "1"
+          : validityRaw || "1";
+  const validityLabel =
+    validityCode === "2"
+      ? "Within Days"
+      : validityCode === "3"
+        ? "Carry Forwarded"
+        : "Within Year";
+  const genderRaw = String(values.Applicable_gender ?? "A").trim().toUpperCase();
+  const gender = genderRaw === "M" || genderRaw === "F" ? genderRaw : "A";
+  const genderLabel = gender === "M" ? "Male" : gender === "F" ? "Female" : "All";
+  const isActive = !(
+    values.Status === "Inactive" ||
+    values.Status === 0 ||
+    values.Status === "0" ||
+    values.Is_active === false ||
+    values.Is_active === 0 ||
+    values.Is_active === "0"
+  );
 
   return {
     ...values,
     id: String(values.id ?? `lm-${Date.now()}`),
     Leave_name: name,
-    Short_name: shortName,
-    Leave_code: shortName,
-    Document_required: documentRequired,
-    Requires_document: documentRequired,
-    Leaves_per_year: Number(values.Leaves_per_year ?? 0),
-    Validity: String(values.Validity ?? "Within Year"),
+    Leave_code: leaveCode,
+    Short_name: leaveCode,
+    Leave_days: leaveDays,
+    Leaves_per_year: leaveDays,
+    Document_required: documentRequired === "Yes" || documentRequired === "1" ? "Yes" : "No",
+    Requires_document: documentRequired === "Yes" || documentRequired === "1" ? "Yes" : "No",
+    Is_paid: values.Is_paid === false || values.Is_paid === 0 || values.Is_paid === "0" ? 0 : 1,
+    Is_half_day_allowed:
+      values.Is_half_day_allowed === false ||
+      values.Is_half_day_allowed === 0 ||
+      values.Is_half_day_allowed === "0"
+        ? 0
+        : 1,
+    Is_carry_forward:
+      values.Is_carry_forward === true ||
+      values.Is_carry_forward === 1 ||
+      values.Is_carry_forward === "1" ||
+      validityCode === "3"
+        ? 1
+        : 0,
+    Max_carry_forward_days: Number(values.Max_carry_forward_days ?? 0),
+    Is_encashable:
+      values.Is_encashable === true || values.Is_encashable === 1 || values.Is_encashable === "1"
+        ? 1
+        : 0,
+    Max_encash_days: Number(values.Max_encash_days ?? 0),
+    Requires_approval:
+      values.Requires_approval === false ||
+      values.Requires_approval === 0 ||
+      values.Requires_approval === "0"
+        ? 0
+        : 1,
+    Minimum_days: Number(values.Minimum_days ?? 1),
+    Maximum_days:
+      values.Maximum_days === undefined || values.Maximum_days === null || values.Maximum_days === ""
+        ? null
+        : Number(values.Maximum_days),
+    Applicable_gender: gender,
+    Applicable_gender_label: genderLabel,
+    Applicable_employee_type: String(values.Applicable_employee_type ?? "").trim(),
+    Validity: validityCode,
+    Validity_label: validityLabel,
     Days_number: Number(values.Days_number ?? 0),
-    Is_active: isActive,
+    Is_active: Boolean(isActive),
     Status: isActive ? "Active" : "Inactive",
   };
 }
@@ -180,17 +240,35 @@ export function latestFinancialYear(years: string[], fallback = currentFinancial
 }
 
 export function enrichLeaveEntitlementRow(values: HrmsRow, leaveTypes: HrmsRow[]): HrmsRow {
-  const leaveType = String(values.Leave_type ?? "").trim();
-  const matched = leaveTypes.find((row) => String(row.Leave_name ?? "").trim() === leaveType);
-  const allocation = Number(values.Allocation ?? 0);
+  const leavesJson = typeof values.Leaves === "string" ? values.Leaves.trim() : "";
+  if (leavesJson.startsWith("[")) {
+    return {
+      ...values,
+      id: String(values.id ?? ""),
+      Fin_year: String(values.Fin_year ?? values.Year_Id ?? "").trim(),
+      Year_Id: Number(values.Year_Id ?? values.Fin_year ?? 0) || undefined,
+      Leaves: leavesJson,
+    };
+  }
+
+  const leaveType = String(values.Leave_type ?? values.Leave_name ?? "").trim();
+  const matched =
+    leaveTypes.find(
+      (row) => String(row.Leave_Id ?? row.id ?? "").trim() === String(values.Leave_id ?? "").trim(),
+    ) || leaveTypes.find((row) => String(row.Leave_name ?? "").trim() === leaveType);
+  const allocation = Number(values.Allocated_days ?? values.Allocation ?? 0);
 
   return {
     ...values,
-    id: String(values.id ?? `lent-${Date.now()}`),
+    id: String(values.id ?? values.Employee_Leave_Id ?? `lent-${Date.now()}`),
+    Employee_Leave_Id: values.Employee_Leave_Id ?? values.id,
     Financial_year: String(values.Financial_year ?? "").trim(),
+    Leave_id: String(values.Leave_id ?? matched?.Leave_Id ?? matched?.id ?? "").trim(),
     Leave_type: leaveType,
     Leave_code: String(matched?.Leave_code ?? values.Leave_code ?? ""),
+    Allocated_days: allocation < 0 ? 0 : allocation,
     Allocation: allocation < 0 ? 0 : allocation,
+    Status: String(values.Status ?? "Active"),
   };
 }
 
@@ -200,17 +278,29 @@ export function enrichLeaveRequisitionRow(
   leaveTypes: HrmsRow[],
   existingRows: HrmsRow[] = [],
 ): HrmsRow {
-  const base = enrichEmployeeAttendanceRow(values, employees);
-  const employeeCode = String(base.Employee_code ?? "").trim();
-  const employee = employees.find((row) => String(row.Employee_code ?? "").trim() === employeeCode);
-  const leaveType = String(values.Leave_type ?? "").trim();
-  const matched = leaveTypes.find((row) => String(row.Leave_name ?? "").trim() === leaveType);
+  const employeeId = String(values.Employee_id ?? values.Employee_Id ?? "").trim();
+  const employeeCode = String(values.Employee_code ?? "").trim();
+  const employee =
+    employees.find((row) => String(row.Employee_id ?? row.id ?? "").trim() === employeeId) ||
+    employees.find((row) => String(row.Employee_code ?? "").trim() === employeeCode);
+
+  const leaveId = String(values.Leave_id ?? values.Leave_Id ?? "").trim();
+  const leaveTypeName = String(values.Leave_type ?? values.Leave_name ?? "").trim();
+  const matched =
+    leaveTypes.find((row) => String(row.Leave_Id ?? row.id ?? "").trim() === leaveId) ||
+    leaveTypes.find((row) => String(row.Leave_name ?? "").trim() === leaveTypeName);
+
   const fromDate = String(values.From_date ?? "");
   const toDate = String(values.To_date ?? "");
   const halfDay = String(values.Half_day ?? "").trim();
   const dayCount = countLeaveDays(fromDate, toDate);
-  const numberOfDays = halfDay && dayCount === 1 ? 0.5 : dayCount;
-  const documentRequired = String(matched?.Document_required ?? matched?.Requires_document ?? "No") === "Yes";
+  const numberOfDays =
+    Number(values.Number_of_days) || (halfDay && dayCount === 1 ? 0.5 : dayCount);
+  const documentRequired =
+    String(values.Requires_document ?? matched?.Document_required ?? matched?.Requires_document ?? "No") ===
+      "Yes" ||
+    values.Requires_document === 1 ||
+    values.Requires_document === "1";
   const documentFile = values.Supporting_document;
   const documentName =
     documentFile instanceof File
@@ -221,17 +311,26 @@ export function enrichLeaveRequisitionRow(
     throw new Error("Attachment is required for this leave type.");
   }
 
-  const applicationNo =
-    String(values.Application_no ?? "").trim() || nextLeaveRequisitionNo(existingRows);
+  const applicationNo = String(values.Application_no ?? "").trim();
 
   return {
-    ...base,
+    ...values,
     id: String(values.id ?? `lreq-${Date.now()}`),
     Application_no: applicationNo,
+    Branch_Id: String(values.Branch_Id ?? employee?.Branch_Id ?? "").trim(),
     Branch_Name: String(values.Branch_Name ?? employee?.Branch_Name ?? "").trim(),
-    Leave_type: leaveType,
+    Employee_id: employeeId || String(employee?.Employee_id ?? employee?.id ?? ""),
+    Employee_code: String(employee?.Employee_code ?? employeeCode),
+    Employee_name: String(
+      employee?.Display_name ?? employee?.Employee_name ?? values.Employee_name ?? "",
+    ),
+    Leave_id: leaveId || String(matched?.Leave_Id ?? matched?.id ?? ""),
+    Leave_type: leaveTypeName || String(matched?.Leave_name ?? ""),
+    Leave_name: leaveTypeName || String(matched?.Leave_name ?? ""),
     Leave_code: String(matched?.Leave_code ?? values.Leave_code ?? ""),
-    Balance_leave: lookupLeaveBalance(employeeCode, leaveType),
+    Balance_leave: Number(
+      values.Balance_leave ?? matched?.Balance_leave ?? matched?.Leaves_per_year ?? 0,
+    ),
     From_date: fromDate,
     To_date: toDate,
     Number_of_days: numberOfDays,
@@ -239,6 +338,8 @@ export function enrichLeaveRequisitionRow(
     Reason: String(values.Reason ?? "").trim(),
     Document_name: documentName || undefined,
     Requires_document: documentRequired ? "Yes" : "No",
+    Application_status: String(values.Application_status ?? values.Status ?? "Pending"),
+    Application_status_code: Number(values.Application_status_code ?? 1),
   };
 }
 

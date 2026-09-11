@@ -5,6 +5,14 @@ export function formatAttendanceCell(value: HrmsRow[string]): string {
   return String(value);
 }
 
+/** Standard employee dropdown label: `EMP-00017 - Subhendu Samanta` */
+export function formatEmployeeOptionLabel(code: string, name?: string): string {
+  const empCode = String(code ?? "").trim();
+  const empName = String(name ?? "").trim();
+  if (empCode && empName) return `${empCode} - ${empName}`;
+  return empCode || empName;
+}
+
 export function selectOptionsFromEmployees(
   employees: HrmsRow[],
 ): Array<{ value: string; label: string }> {
@@ -12,8 +20,8 @@ export function selectOptionsFromEmployees(
     .map((row) => {
       const code = String(row.Employee_code ?? "").trim();
       if (!code) return null;
-      const name = String(row.Display_name ?? code).trim();
-      return { value: code, label: `${name} (${code})` };
+      const name = String(row.Display_name ?? row.Employee_name ?? "").trim();
+      return { value: code, label: formatEmployeeOptionLabel(code, name) };
     })
     .filter((option): option is { value: string; label: string } => option !== null);
 }

@@ -233,6 +233,73 @@ export function getEssMockRows(moduleId: string, employeeCode?: string | null): 
   return [];
 }
 
+/** Mock ESS dashboard snapshot — replace with API once backend is ready. */
+export type EssAttendanceLogItem = {
+  time: string;
+  label: string;
+  type: "check-in" | "break" | "break-end" | "check-out";
+};
+
+export type EssLeaveBalanceItem = {
+  type: string;
+  code: string;
+  used: number;
+  total: number;
+  color: string;
+};
+
+export type EssMonthlyAttendanceItem = {
+  label: string;
+  value: number;
+  color: string;
+};
+
+export type EssSalaryTrendPoint = {
+  month: string;
+  netPay: number;
+};
+
+export function getEssDashboardMock() {
+  return {
+    presenceStatus: "PRESENT" as const,
+    expectedCheckout: "06:30 PM",
+    workingTodayHours: "07:42",
+    leaveLeftDays: 12,
+    attendanceLog: [
+      { time: "09:12 AM", label: "Check-in", type: "check-in" },
+      { time: "01:05 PM", label: "Break", type: "break" },
+      { time: "01:45 PM", label: "Break End", type: "break-end" },
+    ] satisfies EssAttendanceLogItem[],
+    leaveBalances: [
+      { type: "Casual Leave", code: "CL", used: 5, total: 7, color: "#4666e1" },
+      { type: "Sick Leave", code: "SL", used: 3, total: 5, color: "#e17846" },
+      { type: "Earned Leave", code: "EL", used: 4, total: 12, color: "#28adbb" },
+    ] satisfies EssLeaveBalanceItem[],
+    lastPayslip: {
+      period: "August 2026",
+      netSalary: 42850,
+      paidOn: "31 Aug 2026",
+      status: "Paid",
+    },
+    salaryTrend: [
+      { month: "Apr", netPay: 41200 },
+      { month: "May", netPay: 41850 },
+      { month: "Jun", netPay: 42100 },
+      { month: "Jul", netPay: 42500 },
+      { month: "Aug", netPay: 42850 },
+    ] satisfies EssSalaryTrendPoint[],
+    monthlyAttendance: {
+      monthLabel: "September",
+      items: [
+        { label: "Present", value: 18, color: "#28adbb" },
+        { label: "Absent", value: 2, color: "#e25867" },
+        { label: "Leave", value: 3, color: "#4666e1" },
+        { label: "Holiday", value: 4, color: "#e17846" },
+      ] satisfies EssMonthlyAttendanceItem[],
+    },
+  };
+}
+
 export function getEssDashboardData(employeeCode?: string | null) {
   const code = employeeCode ?? "EMP-1001";
   const todayAttendance = getHrmsMockRows("daily-attendance").find(
@@ -256,6 +323,7 @@ export function getEssDashboardData(employeeCode?: string | null) {
   const announcements = getEssMockRows("ess-announcements");
   const tasks = getEssMockRows("ess-tasks");
   const performance = getEssMockRows("ess-performance")[0];
+  const mock = getEssDashboardMock();
 
   const totalLeaveBalance = leaveBalance.reduce(
     (sum, l) => sum + Number(l.Balance_days ?? 0),
@@ -273,5 +341,7 @@ export function getEssDashboardData(employeeCode?: string | null) {
     announcements,
     tasks,
     performance,
+    /** Dedicated ESS dashboard mock (presence, leave bars, charts). Swap for API later. */
+    mock,
   };
 }

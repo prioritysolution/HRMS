@@ -76,6 +76,37 @@ export const API_ENDPOINTS = {
     delete: (id: string | number) =>
       `/api/v1/holiday/delete/${id}`,
   },
+  leaveMaster: {
+    list: "/api/v1/leave-master/list",
+    create: "/api/v1/leave-master/create",
+    update: (id: string | number) => `/api/v1/leave-master/update/${id}`,
+    status: (id: string | number) => `/api/v1/leave-master/status/${id}`,
+    delete: (id: string | number) => `/api/v1/leave-master/delete/${id}`,
+  },
+  leaveApplication: {
+    list: "/api/v1/leave-application/list",
+    balance: "/api/v1/leave-application/balance",
+    create: "/api/v1/leave-application/create",
+    update: (id: string | number) => `/api/v1/leave-application/update/${id}`,
+    status: (id: string | number) => `/api/v1/leave-application/status/${id}`,
+    delete: (id: string | number) => `/api/v1/leave-application/delete/${id}`,
+    file: (employeeId: string | number, filename: string) =>
+      `/api/v1/leave-application/file/${encodeURIComponent(String(employeeId))}/${encodeURIComponent(filename)}`,
+  },
+  leaveApproval: {
+    list: "/api/v1/leave-approval/list",
+    approve: (id: string | number) => `/api/v1/leave-approval/approve/${id}`,
+    reject: (id: string | number) => `/api/v1/leave-approval/reject/${id}`,
+  },
+  finYear: {
+    list: "/api/v1/fin-year/list",
+  },
+  leaveAllocation: {
+    list: "/api/v1/leave-allocation/list",
+    create: "/api/v1/leave-allocation/create",
+    update: (id: string | number) => `/api/v1/leave-allocation/update/${id}`,
+    delete: (id: string | number) => `/api/v1/leave-allocation/delete/${id}`,
+  },
   workShift: {
     list: "/api/v1/work-shift/list",
     get: (id: string | number) => `/api/v1/work-shift/get/${id}`,

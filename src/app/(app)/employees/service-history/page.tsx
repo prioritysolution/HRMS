@@ -16,6 +16,7 @@ import {
 import { queueAuditLog, resolveAuditRecordId } from "@/lib/audit-log";
 import { formatDateDisplay } from "@/lib/date-utils";
 import { getModuleEmptyIcon } from "@/lib/module-icons";
+import { formatEmployeeOptionLabel } from "@/lib/attendance-module-utils";
 import type { ApplOptionRecord } from "@/lib/api/types";
 import type { FormField, HrmsRow } from "@/types/hrms";
 
@@ -32,9 +33,9 @@ function selectOptionsFromEmployees(employees: HrmsRow[]): Array<{ value: string
     .map((row) => {
       const id = String(row.Employee_id ?? row.id ?? "").trim();
       if (!id || id === "0") return null;
-      const name = String(row.Display_name ?? row.Employee_name ?? id).trim();
+      const name = String(row.Display_name ?? row.Employee_name ?? "").trim();
       const code = String(row.Employee_code ?? "").trim();
-      return { value: id, label: code ? `${name} (${code})` : name };
+      return { value: id, label: formatEmployeeOptionLabel(code, name) || id };
     })
     .filter((option): option is { value: string; label: string } => option !== null);
 }

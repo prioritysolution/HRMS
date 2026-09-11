@@ -27,7 +27,7 @@ export function statusTone(status: string) {
   if (["pending", "late", "negotiation", "new"].includes(value)) {
     return "warning" as const;
   }
-  if (["inactive", "absent", "rejected", "overdue"].includes(value)) {
+  if (["inactive", "absent", "rejected", "overdue", "cancelled"].includes(value)) {
     return "danger" as const;
   }
   if (["on leave", "leave"].includes(value)) {

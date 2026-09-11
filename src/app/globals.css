@@ -1255,6 +1255,47 @@ textarea {
   color: var(--secondary);
 }
 
+.topbar-search-results {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  right: 0;
+  z-index: 60;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background: var(--card-bg);
+  box-shadow: 0 12px 30px rgb(15 23 42 / 14%);
+}
+
+.topbar-search-results button,
+.topbar-search-empty {
+  display: flex;
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  border: 0;
+  background: transparent;
+  color: var(--title);
+  text-align: left;
+}
+
+.topbar-search-results button {
+  flex-direction: column;
+  gap: 0.1rem;
+  cursor: pointer;
+}
+
+.topbar-search-results button:hover,
+.topbar-search-results button.is-highlighted {
+  background: var(--card-soft);
+}
+
+.topbar-search-results small,
+.topbar-search-empty {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
 .topbar-user-meta {
   display: none;
   text-align: left;
@@ -4679,16 +4720,25 @@ textarea {
   grid-template-columns: repeat(2, 1fr);
 }
 
+.ess-stat-grid--three {
+  grid-template-columns: repeat(3, 1fr);
+}
+
 @media (max-width: 1199px) {
   .ess-stat-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .ess-stat-grid--three {
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
 @media (max-width: 575px) {
 
   .ess-stat-grid,
-  .ess-stat-grid--two {
+  .ess-stat-grid--two,
+  .ess-stat-grid--three {
     grid-template-columns: 1fr;
   }
 }
@@ -4770,17 +4820,26 @@ textarea {
   gap: 1rem;
 }
 
+.ess-dashboard-grid--two {
+  grid-template-columns: repeat(2, 1fr);
+}
+
 .ess-dashboard-card--wide {
   grid-column: span 2;
 }
 
 @media (max-width: 991px) {
-  .ess-dashboard-grid {
+  .ess-dashboard-grid,
+  .ess-dashboard-grid--two {
     grid-template-columns: 1fr;
   }
 
   .ess-dashboard-card--wide {
     grid-column: span 1;
+  }
+
+  .ess-stat-grid--three {
+    grid-template-columns: 1fr;
   }
 
   .ess-welcome-banner {
@@ -5088,6 +5147,264 @@ textarea {
 
 .ess-hr-notice p {
   margin: 0;
+}
+
+/* ESS dashboard — presence / timeline / leave bars / charts */
+
+.ess-presence-dot-wrap {
+  background: var(--success-soft) !important;
+}
+
+.ess-presence-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 0 6px rgba(var(--success-rgb), 0.2);
+  animation: ess-pulse 2s ease-in-out infinite;
+}
+
+@keyframes ess-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 4px rgba(var(--success-rgb), 0.18);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(var(--success-rgb), 0.08);
+  }
+}
+
+.ess-presence-status {
+  letter-spacing: 0.04em;
+  color: var(--success);
+}
+
+.ess-attendance-timeline {
+  list-style: none;
+  margin: 0 0 1.25rem;
+  padding: 0 0 0 0.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.ess-timeline-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  position: relative;
+  padding-bottom: 1.15rem;
+}
+
+.ess-timeline-item:last-child {
+  padding-bottom: 0;
+}
+
+.ess-timeline-item:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  left: 7px;
+  top: 18px;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(
+    180deg,
+    rgba(var(--primary-rgb), 0.35),
+    rgba(var(--primary-rgb), 0.08)
+  );
+}
+
+.ess-timeline-marker {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  margin-top: 2px;
+  flex-shrink: 0;
+  border: 3px solid var(--primary);
+  background: #fff;
+  z-index: 1;
+}
+
+.ess-timeline-item--check-in .ess-timeline-marker {
+  border-color: var(--success);
+  background: var(--success);
+}
+
+.ess-timeline-item--break .ess-timeline-marker {
+  border-color: var(--orange);
+  background: var(--orange);
+}
+
+.ess-timeline-item--break-end .ess-timeline-marker {
+  border-color: var(--info);
+  background: var(--info);
+}
+
+.ess-timeline-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.ess-timeline-content strong {
+  font-size: 0.9375rem;
+  color: var(--title);
+}
+
+.ess-timeline-content span {
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+
+.ess-leave-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  margin-bottom: 1.35rem;
+}
+
+.ess-leave-bar-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.4rem;
+  font-size: 0.875rem;
+}
+
+.ess-leave-bar-meta span {
+  color: var(--title);
+  font-weight: 600;
+}
+
+.ess-leave-bar-meta strong {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.ess-leave-bar-track {
+  height: 10px;
+  border-radius: 999px;
+  background: #eef0f6;
+  overflow: hidden;
+}
+
+.ess-leave-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.45s ease;
+}
+
+.ess-card-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+}
+
+.ess-payslip-hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.ess-payslip-period {
+  display: inline-block;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 0.35rem;
+}
+
+.ess-payslip-label {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+
+.ess-payslip-amount {
+  display: block;
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--title);
+  line-height: 1.2;
+  margin: 0.15rem 0 0.35rem;
+}
+
+.ess-payslip-paid {
+  display: block;
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+
+.ess-payslip-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: var(--success-soft);
+  color: var(--success);
+  white-space: nowrap;
+}
+
+.ess-payslip-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.ess-payslip-actions .btn {
+  flex: 1;
+  min-width: 140px;
+}
+
+.ess-chart-wrap {
+  width: 100%;
+  min-height: 180px;
+}
+
+.ess-chart-wrap--salary {
+  margin: 0.25rem -0.35rem 0.5rem;
+}
+
+.ess-attendance-legend {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.65rem;
+  margin-top: 0.5rem;
+}
+
+.ess-attendance-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: 10px;
+  background: var(--card-soft);
+  font-size: 0.8125rem;
+}
+
+.ess-attendance-legend-item span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.ess-attendance-legend-item em {
+  flex: 1;
+  font-style: normal;
+  color: var(--muted);
+}
+
+.ess-attendance-legend-item strong {
+  color: var(--title);
+  font-variant-numeric: tabular-nums;
 }
 
 .ess-page-description {

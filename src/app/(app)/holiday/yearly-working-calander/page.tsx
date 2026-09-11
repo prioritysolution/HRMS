@@ -1,9 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { SearchableSelect } from "@/components/ui/SearchableSelect";
 import { TableSectionHeader } from "@/components/ui/TableSectionHeader";
+import { finYearService } from "@/lib/api/services/fin-year.service";
+import { latestFinancialYear } from "@/lib/leave-module-utils";
 
 type WorkingMonthRow = {
   month: string;
@@ -13,8 +15,6 @@ type WorkingMonthRow = {
   sunday: number;
   holiday: number;
 };
-
-const FINANCIAL_YEARS = ["2027-28", "2026-27", "2025-26", "2024-25"];
 
 const MONTHS = [
   "January",
@@ -104,14 +104,40 @@ function buildRows(financialYear: string): WorkingMonthRow[] {
 }
 
 export default function YearlyWorkingCalendarPage() {
-  const [financialYear, setFinancialYear] = useState("2026-27");
+  const [financialYear, setFinancialYear] = useState("");
+  const [yearOptions, setYearOptions] = useState<Array<{ value: string; label: string }>>([]);
 
-  const yearOptions = useMemo(
-    () => FINANCIAL_YEARS.map((year) => ({ value: year, label: year })),
-    [],
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadFinancialYears() {
+      try {
+        const options = await finYearService.options(1);
+        if (cancelled) return;
+        setYearOptions(options);
+        setFinancialYear((current) => {
+          if (current && options.some((option) => option.value === current)) return current;
+          return latestFinancialYear(options.map((option) => option.value));
+        });
+      } catch {
+        if (!cancelled) {
+          setYearOptions([]);
+          setFinancialYear("");
+        }
+      }
+    }
+
+    void loadFinancialYears();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const rows = useMemo(
+    () => (financialYear ? buildRows(financialYear) : []),
+    [financialYear],
   );
-
-  const rows = useMemo(() => buildRows(financialYear), [financialYear]);
 
   return (
     <>
@@ -158,17 +184,27 @@ export default function YearlyWorkingCalendarPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {rows.map((row, index) => (
-                    <tr key={row.month}>
-                      <td className="si-col">{index + 1}</td>
-                      <td>{row.month}</td>
-                      <td>{row.totalDays}</td>
-                      <td>{row.workingDays}</td>
-                      <td>{row.saturday}</td>
-                      <td>{row.sunday}</td>
-                      <td>{row.holiday}</td>
+                  {rows.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="text-center text-muted py-4">
+                        {yearOptions.length === 0
+                          ? "No financial years available."
+                          : "Select a financial year to view the calendar."}
+                      </td>
                     </tr>
-                  ))}
+                  ) : (
+                    rows.map((row, index) => (
+                      <tr key={row.month}>
+                        <td className="si-col">{index + 1}</td>
+                        <td>{row.month}</td>
+                        <td>{row.totalDays}</td>
+                        <td>{row.workingDays}</td>
+                        <td>{row.saturday}</td>
+                        <td>{row.sunday}</td>
+                        <td>{row.holiday}</td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>

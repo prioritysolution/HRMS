@@ -604,6 +604,297 @@ export type EmploymentTypeListQuery = {
   status?: EmploymentTypeStatus;
 };
 
+/** Leave Master — `mst_leave_master` / USP_LEAVE_* */
+export type LeaveMasterStatus = 0 | 1;
+export type LeaveMasterGender = "A" | "M" | "F";
+/** Appl-options Opt_Grp_Id = 18 (Validity) */
+export type LeaveMasterValidityCode = 1 | 2 | 3;
+
+export type LeaveMasterRecord = {
+  Leave_Id?: number;
+  leave_id?: number;
+  Leave_Code?: string | null;
+  leave_code?: string | null;
+  Leave_Name?: string | null;
+  leave_name?: string | null;
+  Leave_Days?: number | string | null;
+  leave_days?: number | string | null;
+  Is_Paid?: number | string | null;
+  is_paid?: number | string | null;
+  Is_Half_Day_Allowed?: number | string | null;
+  is_half_day_allowed?: number | string | null;
+  Is_Carry_Forward?: number | string | null;
+  is_carry_forward?: number | string | null;
+  Max_Carry_Forward_Days?: number | string | null;
+  max_carry_forward_days?: number | string | null;
+  Is_Encashable?: number | string | null;
+  is_encashable?: number | string | null;
+  Max_Encash_Days?: number | string | null;
+  max_encash_days?: number | string | null;
+  Requires_Approval?: number | string | null;
+  requires_approval?: number | string | null;
+  Requires_Document?: number | string | null;
+  requires_document?: number | string | null;
+  Minimum_Days?: number | string | null;
+  minimum_days?: number | string | null;
+  Maximum_Days?: number | string | null;
+  maximum_days?: number | string | null;
+  Applicable_Gender?: string | null;
+  applicable_gender?: string | null;
+  Applicable_Employee_Type?: number | string | null;
+  applicable_employee_type?: number | string | null;
+  Validity?: number | string | null;
+  validity?: number | string | null;
+  Days_Number?: number | string | null;
+  days_number?: number | string | null;
+  Status?: LeaveMasterStatus | number | string;
+  status?: LeaveMasterStatus | number | string;
+};
+
+export type LeaveMasterWritePayload = {
+  leave_code?: string;
+  leave_name: string;
+  leave_days?: number;
+  is_paid?: 0 | 1;
+  is_half_day_allowed?: 0 | 1;
+  is_carry_forward?: 0 | 1;
+  max_carry_forward_days?: number;
+  is_encashable?: 0 | 1;
+  max_encash_days?: number;
+  requires_approval?: 0 | 1;
+  requires_document?: 0 | 1;
+  minimum_days?: number;
+  maximum_days?: number | null;
+  applicable_gender?: LeaveMasterGender;
+  applicable_employee_type?: number | null;
+  validity?: number;
+  days_number?: number;
+  status?: LeaveMasterStatus;
+  created_by?: number;
+};
+
+export type LeaveMasterStatusPayload = {
+  status: LeaveMasterStatus;
+};
+
+export type LeaveMasterListQuery = {
+  leave_id?: number;
+  leave_code?: string;
+  status?: LeaveMasterStatus;
+  applicable_gender?: LeaveMasterGender;
+  applicable_employee_type?: number;
+};
+
+/** Leave Application / Requisition — `trans_employee_leave_application` */
+export type LeaveApplicationStatusCode = 1 | 2 | 3 | 4;
+/** Appl-options Opt_Grp_Id = 19 */
+export type LeaveHalfDayCode = 1 | 2;
+
+export type LeaveApplicationRecord = {
+  Leave_Application_Id?: number;
+  leave_application_id?: number;
+  Application_No?: string | null;
+  application_no?: string | null;
+  Employee_Id?: number | string | null;
+  employee_id?: number | string | null;
+  Employee_Code?: string | null;
+  employee_code?: string | null;
+  Employee_Name?: string | null;
+  employee_name?: string | null;
+  Branch_Id?: number | string | null;
+  branch_id?: number | string | null;
+  Branch_Name?: string | null;
+  branch_name?: string | null;
+  Designation?: string | null;
+  designation?: string | null;
+  Desig_Name?: string | null;
+  desig_name?: string | null;
+  Post?: string | null;
+  post?: string | null;
+  Photo_path?: string | null;
+  photo_path?: string | null;
+  Leave_Id?: number | string | null;
+  leave_id?: number | string | null;
+  Leave_Name?: string | null;
+  leave_name?: string | null;
+  Leave_Code?: string | null;
+  leave_code?: string | null;
+  From_Date?: string | null;
+  from_date?: string | null;
+  To_Date?: string | null;
+  to_date?: string | null;
+  Total_Days?: number | string | null;
+  total_days?: number | string | null;
+  No_Of_Days?: number | string | null;
+  no_of_days?: number | string | null;
+  Half_Day?: number | string | null;
+  half_day?: number | string | null;
+  Reason?: string | null;
+  reason?: string | null;
+  Leave_Reason?: string | null;
+  leave_reason?: string | null;
+  Document_File?: string | null;
+  document_file?: string | null;
+  Document_Url?: string | null;
+  document_url?: string | null;
+  Status?: LeaveApplicationStatusCode | number | string | null;
+  status?: LeaveApplicationStatusCode | number | string | null;
+  Remarks?: string | null;
+  remarks?: string | null;
+};
+
+export type LeaveBalanceRecord = {
+  Leave_Id?: number;
+  leave_id?: number;
+  Leave_Code?: string | null;
+  leave_code?: string | null;
+  Leave_Name?: string | null;
+  leave_name?: string | null;
+  Balance_Days?: number | string | null;
+  balance_days?: number | string | null;
+  Is_Half_Day_Allowed?: number | string | null;
+  is_half_day_allowed?: number | string | null;
+  Requires_Document?: number | string | null;
+  requires_document?: number | string | null;
+  Leave_Days?: number | string | null;
+  leave_days?: number | string | null;
+};
+
+export type LeaveApplicationWritePayload = {
+  employee_id: number;
+  leave_id: number;
+  from_date: string;
+  to_date: string;
+  total_days?: number;
+  half_day?: LeaveHalfDayCode;
+  reason?: string;
+  application_no?: string;
+};
+
+export type LeaveApplicationStatusPayload = {
+  status: LeaveApplicationStatusCode;
+  remarks?: string;
+};
+
+export type LeaveApplicationListQuery = {
+  leave_application_id?: number;
+  employee_id?: number;
+  leave_id?: number;
+  branch_id?: number;
+  status?: LeaveApplicationStatusCode;
+  from_date?: string;
+  to_date?: string;
+};
+
+export type LeaveBalanceQuery = {
+  employee_id: number;
+  fin_year?: number;
+  leave_id?: number;
+};
+
+/** Financial Year — `USP_FIN_YEAR_LIST` / FinYearController@list */
+export type FinYearStatus = 0 | 1;
+
+export type FinYearRecord = {
+  Year_Id?: number;
+  year_id?: number;
+  Year_Name?: string | null;
+  year_name?: string | null;
+  Start_Date?: string | null;
+  start_date?: string | null;
+  End_Date?: string | null;
+  end_date?: string | null;
+  Status?: FinYearStatus | number | string | null;
+  status?: FinYearStatus | number | string | null;
+};
+
+export type FinYearListQuery = {
+  year_id?: number;
+  year_name?: string;
+  status?: FinYearStatus;
+};
+
+/** Leave Allocation — `trans` employee leave / LeaveAllocationController */
+export type LeaveAllocationStatus = 0 | 1;
+
+export type LeaveAllocationRecord = {
+  Employee_Leave_Id?: number;
+  employee_leave_id?: number;
+  Employee_Id?: number | string | null;
+  employee_id?: number | string | null;
+  Employee_Code?: string | null;
+  Employee_code?: string | null;
+  employee_code?: string | null;
+  Employee_Name?: string | null;
+  Employee_name?: string | null;
+  employee_name?: string | null;
+  Leave_Id?: number | string | null;
+  leave_id?: number | string | null;
+  Leave_Code?: string | null;
+  leave_code?: string | null;
+  Leave_Name?: string | null;
+  leave_name?: string | null;
+  Year_Id?: number | string | null;
+  year_id?: number | string | null;
+  Fin_Year?: number | string | null;
+  fin_year?: number | string | null;
+  Year_Name?: string | null;
+  year_name?: string | null;
+  Opening_Balance?: number | string | null;
+  opening_balance?: number | string | null;
+  Allocated_Days?: number | string | null;
+  allocated_days?: number | string | null;
+  Earned_Days?: number | string | null;
+  earned_days?: number | string | null;
+  Carry_Forward_Days?: number | string | null;
+  carry_forward_days?: number | string | null;
+  Used_Days?: number | string | null;
+  used_days?: number | string | null;
+  Status?: LeaveAllocationStatus | number | string | null;
+  status?: LeaveAllocationStatus | number | string | null;
+};
+
+export type LeaveAllocationLeavePayload = {
+  leave_id: number;
+  opening_balance?: number;
+  allocated_days?: number;
+  earned_days?: number;
+  carry_forward_days?: number;
+  status?: LeaveAllocationStatus;
+};
+
+export type LeaveAllocationCreatePayload = {
+  employee_id?: number;
+  fin_year: number;
+  leaves?: LeaveAllocationLeavePayload[];
+  leave_id?: number;
+  opening_balance?: number;
+  allocated_days?: number;
+  earned_days?: number;
+  carry_forward_days?: number;
+  status?: LeaveAllocationStatus;
+};
+
+export type LeaveAllocationUpdatePayload = {
+  leave_id?: number;
+  opening_balance?: number;
+  allocated_days?: number;
+  earned_days?: number;
+  carry_forward_days?: number;
+  status?: LeaveAllocationStatus;
+  fin_year?: number;
+  employee_id?: number;
+};
+
+export type LeaveAllocationListQuery = {
+  employee_leave_id?: number;
+  employee_id?: number;
+  leave_id?: number;
+  fin_year?: number;
+  year_id?: number;
+  status?: LeaveAllocationStatus;
+};
+
 export type EmploymentStatus = 0 | 1;
 
 export type EmploymentStatusRecord = {

@@ -267,6 +267,22 @@ export function DataTable<T extends object>({
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(defaultPageSize);
 
+  useEffect(() => {
+    setFilters((prev) => {
+      let changed = false;
+      const next = { ...prev };
+      filterFields.forEach((field) => {
+        const fromUrl = searchParams?.get(field.key);
+        if (fromUrl) return;
+        if (prev[field.key]) return;
+        if (!field.defaultValue) return;
+        next[field.key] = field.defaultValue;
+        changed = true;
+      });
+      return changed ? next : prev;
+    });
+  }, [filterFields, searchParams]);
+
   const resolvedSearchKeys = useMemo(
     () => searchKeys ?? columns.map((column) => column.key),
     [searchKeys, columns],

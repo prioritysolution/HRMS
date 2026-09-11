@@ -56,9 +56,12 @@ export const APPROVAL_STATS: LeaveStatCard[] = [
   {
     title: "Days to Review",
     value: (rows) => {
-      const pending = rows.filter(
-        (row) => String(row.Approval_status ?? "").toLowerCase() === "pending",
-      );
+      const pending = rows.filter((row) => {
+        const status = String(
+          row.Application_status ?? row.Approval_status ?? "",
+        ).toLowerCase();
+        return status === "pending";
+      });
       const total = pending.reduce((sum, row) => sum + Number(row.Number_of_days ?? 0), 0);
       return String(total);
     },

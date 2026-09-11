@@ -31,8 +31,11 @@ export function validateImageFile(
   }
 
   const fileName = file.name.toLowerCase();
-  const hasAllowedExtension = acceptedExtensions.some((ext) => fileName.endsWith(ext));
+  const hasAllowedExtension =
+    acceptedExtensions.length === 0 ||
+    acceptedExtensions.some((ext) => fileName.endsWith(ext));
   const hasAllowedMimeType =
+    acceptedMimeTypes.length === 0 ||
     !file.type ||
     acceptedMimeTypes.some((mimeType) =>
       mimeType.endsWith("/*")
@@ -41,7 +44,8 @@ export function validateImageFile(
     );
 
   if (!hasAllowedExtension || !hasAllowedMimeType) {
-    const allowsPdf = acceptedExtensions.includes(".pdf") || acceptedMimeTypes.includes("application/pdf");
+    const allowsPdf =
+      acceptedExtensions.includes(".pdf") || acceptedMimeTypes.includes("application/pdf");
     return `${label} must be a JPG, JPEG, PNG, WEBP${allowsPdf ? ", or PDF" : ""} file.`;
   }
 

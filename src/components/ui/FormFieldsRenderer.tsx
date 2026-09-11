@@ -87,7 +87,7 @@ export function FormFieldsRenderer({
   return (
     <>
       {visibleFields.map((field) => {
-        const isDisabled = field.readOnlyOnEdit && isEdit;
+        const isDisabled = Boolean(field.readOnly) || (field.readOnlyOnEdit && isEdit);
         const floor = numberFloor(field);
         return (
           <div
@@ -173,7 +173,10 @@ export function FormFieldsRenderer({
               disabled={isDisabled}
               onChange={(file) => {
                 onChange(field.name, file);
-                if (file) return;
+                if (file) {
+                  if (field.fileNameKey) onChange(field.fileNameKey, file.name);
+                  return;
+                }
                 if (field.previewKey) onChange(field.previewKey, "");
                 if (field.fileNameKey) onChange(field.fileNameKey, "");
               }}

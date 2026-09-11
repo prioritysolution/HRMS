@@ -17,6 +17,22 @@ export { employmentStatusService } from "@/lib/api/services/employment-status.se
 export { organizationService } from "@/lib/api/services/organization.service";
 export { holidayService } from "@/lib/api/services/holiday.service";
 export {
+  LEAVE_GENDER_OPTIONS,
+  LEAVE_VALIDITY_FALLBACK_OPTIONS,
+  LEAVE_VALIDITY_OPT_GRP_ID,
+  leaveMasterService,
+} from "@/lib/api/services/leave-master.service";
+export {
+  LEAVE_APP_STATUS_FALLBACK,
+  LEAVE_APP_STATUS_OPT_GRP_ID,
+  LEAVE_HALF_DAY_FALLBACK,
+  LEAVE_HALF_DAY_OPT_GRP_ID,
+  leaveApplicationService,
+} from "@/lib/api/services/leave-application.service";
+export { leaveApprovalService } from "@/lib/api/services/leave-approval.service";
+export { leaveAllocationService } from "@/lib/api/services/leave-allocation.service";
+export { finYearService, finYearsToSelectOptions } from "@/lib/api/services/fin-year.service";
+export {
   attendanceToRow,
   filterAttendanceSourceOptions,
   filterAttendanceStatusOptions,

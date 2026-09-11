@@ -1880,6 +1880,7 @@ export const employeeService = {
       status?: number;
       employee_code?: string;
       employee_id?: number;
+      branch_id?: number;
       with_details?: 0 | 1;
     },
   ) => {
@@ -1910,6 +1911,15 @@ export const employeeService = {
       query.set(
         "employee_id",
         String(params.employee_id),
+      );
+    }
+
+    if (
+      params?.branch_id !== undefined
+    ) {
+      query.set(
+        "branch_id",
+        String(params.branch_id),
       );
     }
 

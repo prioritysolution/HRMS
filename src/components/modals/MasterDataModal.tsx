@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import {
@@ -30,6 +30,20 @@ type MasterDataModalProps = {
   existingRows?: HrmsRow[];
   onSubmit: (values: HrmsRow) => void | Promise<void>;
   disableSubmit?: boolean;
+  /** Adjust field options/labels from current form values (e.g. cascade selects). */
+  adaptFields?: (
+    fields: FormField[],
+    values: Record<string, FormValue>,
+  ) => FormField[];
+  /** Derive related values when a field changes (balance, day count, clears). */
+  deriveValues?: (
+    name: string,
+    value: FormValue,
+    values: Record<string, FormValue>,
+  ) =>
+    | Partial<Record<string, FormValue>>
+    | void
+    | Promise<Partial<Record<string, FormValue>> | void>;
 };
 
 function resolveFields(fields: FormField[] | undefined, sections: FormSection[] | undefined): FormField[] {
@@ -55,6 +69,8 @@ export function MasterDataModal({
   existingRows = [],
   onSubmit,
   disableSubmit = false,
+  adaptFields,
+  deriveValues,
 }: MasterDataModalProps) {
   const resolvedFields = useMemo(() => resolveFields(fields, sections), [fields, sections]);
   const isEdit = !!initialValues;
@@ -69,10 +85,20 @@ export function MasterDataModal({
   );
   
   const [values, setValues] = useState<Record<string, FormValue>>({});
+  const valuesRef = useRef(values);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitError, setSubmitError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [openSectionId, setOpenSectionId] = useState<string | null>(null);
+
+  const displayFields = useMemo(() => {
+    if (!adaptFields) return activeFields;
+    return adaptFields(activeFields, values);
+  }, [activeFields, adaptFields, values]);
+
+  useEffect(() => {
+    valuesRef.current = values;
+  }, [values]);
 
   useEffect(() => {
     if (!open) {
@@ -82,11 +108,40 @@ export function MasterDataModal({
       setOpenSectionId(null);
       return;
     }
-    setValues(buildInitialFormValues(resolvedFields, initialValues));
+    const initial = buildInitialFormValues(resolvedFields, initialValues);
+    valuesRef.current = initial;
+    setValues(initial);
     setErrors({});
     setSubmitError("");
     setOpenSectionId(sections?.[0]?.id ?? null);
   }, [open, resolvedFields, initialValues?.id, sections]);
+
+  // Hydrate balance (and related read-only fields) after async balance API returns on edit.
+  useEffect(() => {
+    if (!open || !initialValues) return;
+    const balance = initialValues.Balance_leave;
+    if (balance === undefined || balance === null || String(balance).trim() === "") return;
+
+    setValues((prev) => {
+      const next = {
+        ...prev,
+        Balance_leave: String(balance),
+        Requires_document:
+          (initialValues.Requires_document as FormValue) ?? prev.Requires_document,
+        Leave_type: (initialValues.Leave_type as FormValue) ?? prev.Leave_type,
+        Leave_code: (initialValues.Leave_code as FormValue) ?? prev.Leave_code,
+      };
+      valuesRef.current = next;
+      return next;
+    });
+  }, [
+    open,
+    initialValues?.id,
+    initialValues?.Balance_leave,
+    initialValues?.Requires_document,
+    initialValues?.Leave_type,
+    initialValues?.Leave_code,
+  ]);
 
   const handleClose = () => {
     if (submitting) return;
@@ -100,32 +155,52 @@ export function MasterDataModal({
     getUniqueFieldWarning(field, value, existingRows, excludeId);
 
   const handleFieldChange = (name: string, value: FormValue) => {
-    setValues((prev) => ({ ...prev, [name]: value }));
-    const field = resolvedFields.find((item) => item.name === name);
-    if (!field) return;
+    void (async () => {
+      const startedWith = { ...valuesRef.current, [name]: value };
+      valuesRef.current = startedWith;
+      setValues(startedWith);
 
-    setErrors((prev) => {
-      const next = { ...prev };
-      const error = fieldError(field, value);
-      if (error) next[name] = error;
-      else delete next[name];
-      return next;
-    });
+      let next = startedWith;
+      if (deriveValues) {
+        const extra = await deriveValues(name, value, startedWith);
+        if (extra && Object.keys(extra).length > 0) {
+          // Merge onto the latest form state so a later file pick is not wiped
+          // by an in-flight leave/employee derive callback.
+          next = { ...valuesRef.current, ...extra };
+          valuesRef.current = next;
+          setValues(next);
+        }
+      }
+
+      const field =
+        displayFields.find((item) => item.name === name) ??
+        resolvedFields.find((item) => item.name === name);
+      if (!field) return;
+
+      setErrors((prev) => {
+        const nextErrors = { ...prev };
+        const error = fieldError(field, next[name]);
+        if (error) nextErrors[name] = error;
+        else delete nextErrors[name];
+        return nextErrors;
+      });
+    })();
   };
 
   const buildPayload = (): HrmsRow => {
+    const current = valuesRef.current;
     const payload: HrmsRow = {
       ...(initialValues ?? {}),
       id: initialValues?.id ?? `new-${Date.now()}`,
     };
 
     activeFields.forEach((field) => {
-      payload[field.name] = values[field.name] as HrmsRow[string];
-      if (field.previewKey && values[field.previewKey] !== undefined) {
-        payload[field.previewKey] = values[field.previewKey] as HrmsRow[string];
+      payload[field.name] = current[field.name] as HrmsRow[string];
+      if (field.previewKey && current[field.previewKey] !== undefined) {
+        payload[field.previewKey] = current[field.previewKey] as HrmsRow[string];
       }
-      if (field.fileNameKey && values[field.fileNameKey] !== undefined) {
-        payload[field.fileNameKey] = values[field.fileNameKey] as HrmsRow[string];
+      if (field.fileNameKey && current[field.fileNameKey] !== undefined) {
+        payload[field.fileNameKey] = current[field.fileNameKey] as HrmsRow[string];
       }
     });
 
@@ -134,12 +209,29 @@ export function MasterDataModal({
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const nextErrors = validateFormFields(activeFields, values);
-    activeFields.forEach((field) => {
+    const current = valuesRef.current;
+    const nextErrors = validateFormFields(displayFields, current);
+    displayFields.forEach((field) => {
       if (nextErrors[field.name]) return;
-      const uniqueError = getUniqueFieldWarning(field, values[field.name], existingRows, excludeId);
+      const uniqueError = getUniqueFieldWarning(
+        field,
+        current[field.name],
+        existingRows,
+        excludeId,
+      );
       if (uniqueError) nextErrors[field.name] = uniqueError;
     });
+    if (
+      current.Requires_document === "Yes" ||
+      current.Requires_document === "1" ||
+      current.Requires_document === true
+    ) {
+      const hasFile = current.Supporting_document instanceof File;
+      const hasExisting = String(current.Document_name ?? "").trim().length > 0;
+      if (!hasFile && !hasExisting) {
+        nextErrors.Supporting_document = "Attachment is required for this leave type.";
+      }
+    }
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors);
       if (sections?.length) {
@@ -166,6 +258,16 @@ export function MasterDataModal({
     <div className="form-sections">
       {sections.map((section, index) => {
         const isOpen = openSectionId === section.id;
+        const sectionFields = adaptFields
+          ? adaptFields(
+              section.fields.filter((field) => {
+                if (!isEdit && field.hideOnCreate) return false;
+                if (isEdit && field.hideOnEdit) return false;
+                return true;
+              }),
+              values,
+            )
+          : section.fields;
 
         return (
           <section key={section.id} className={cn("form-section", isOpen && "is-open")}>
@@ -195,7 +297,7 @@ export function MasterDataModal({
                 className="form-grid form-grid-2 form-section-fields"
               >
                 <FormFieldsRenderer
-                  fields={section.fields}
+                  fields={sectionFields}
                   values={values}
                   errors={errors}
                   onChange={handleFieldChange}
@@ -210,7 +312,7 @@ export function MasterDataModal({
   ) : (
     <div className="form-grid form-grid-2">
       <FormFieldsRenderer
-        fields={resolvedFields}
+        fields={displayFields}
         values={values}
         errors={errors}
         onChange={handleFieldChange}
