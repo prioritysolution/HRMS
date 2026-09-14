@@ -379,6 +379,7 @@ export type HolidayRecord = {
   Holiday_name: string;
   Holiday_type: string | number;
   Holiday_type_name?: string | null;
+  Fin_Year?: number | null;
   Purpose?: string | null;
   Remarks?: string | null;
   remarks?: string | null;
@@ -389,6 +390,7 @@ export type HolidayWritePayload = {
   holiday_date: string;
   holiday_name: string;
   holiday_type: string;
+  fin_year?: number;
   remarks?: string;
   month_sl?: number;
   year_sl?: number;
@@ -401,6 +403,39 @@ export type HolidayListQuery = {
   year_sl?: number;
   holiday_type?: string;
   holiday_date?: string;
+};
+
+export type HolidayCalendarQuery = {
+  year_sl: number;
+  month_sl: number;
+};
+
+export type HolidayCalendarEntry = {
+  Holiday_id: number;
+  Fin_Year?: number | null;
+  Month_sl?: number | null;
+  Year_Sl?: number | null;
+  Holiday_date: string;
+  Holiday_name: string;
+  Holiday_type?: number | string | null;
+  Holiday_type_code?: number | string | null;
+  Holiday_type_name?: string | null;
+  Day_label?: string | null;
+  Month_name?: string | null;
+  Is_upcoming?: number | null;
+  Is_next?: number | null;
+  Remarks?: string | null;
+};
+
+export type HolidayCalendarResponse = {
+  year: number;
+  month: number;
+  month_name: string;
+  month_start?: string | null;
+  month_end?: string | null;
+  as_of_date?: string | null;
+  calendar: HolidayCalendarEntry[];
+  upcoming: HolidayCalendarEntry[];
 };
 
 export type AttendanceRecord = {

@@ -64,6 +64,7 @@ export const API_ENDPOINTS = {
   },
   holiday: {
     list: "/api/v1/holiday/list",
+    calendar: "/api/v1/holiday/calendar",
 
     get: (id: string | number) =>
       `/api/v1/holiday/list?holiday_id=${encodeURIComponent(String(id))}`,

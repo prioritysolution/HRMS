@@ -1,11 +1,18 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  CalendarDetailsSidebar,
+  attendanceToneClass,
+  type CalendarSidebarItem,
+} from "@/components/ui/CalendarDetailsSidebar";
+import { CalendarSplitLayout } from "@/components/ui/CalendarSplitLayout";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { StatCard } from "@/components/ui/StatCard";
 import { RoundLoader } from "@/components/ui/RoundLoader";
 import {
   MonthCalendar,
+  MONTH_CALENDAR_MONTHS,
   type MonthCalendarDayItem,
   type MonthCalendarLegendItem,
 } from "@/components/ui/MonthCalendar";
@@ -168,7 +175,68 @@ export default function EssAttendancePage() {
     });
   }, [calendar?.days, today]);
 
+  const sidebarItems: CalendarSidebarItem[] = useMemo(() => {
+    const normalizedToday = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate(),
+    );
+    const notable = (calendar?.days ?? []).filter((day) => {
+      const tone = myAttendanceDayTone(day);
+      return tone !== "default" && tone !== "present";
+    });
+
+    const nextDate =
+      notable.find((day) => {
+        if (!day.Attendance_date) return false;
+        const d = new Date(`${day.Attendance_date}T00:00:00`);
+        return d >= normalizedToday;
+      })?.Attendance_date ?? null;
+
+    return notable.map((day) => {
+      const tone = myAttendanceDayTone(day);
+      const label = myAttendanceDayLabel(day);
+      const statusName =
+        day.Day_status_name ||
+        day.Attendance_status_name ||
+        label ||
+        tone.replace("-", " ");
+      const title =
+        day.Holiday_name ||
+        day.Leave_Name ||
+        statusName ||
+        "Day detail";
+      const metaParts = [
+        statusName && statusName !== title ? statusName : null,
+        day.Check_in && day.Check_out
+          ? `${day.Check_in} – ${day.Check_out}`
+          : day.Check_in || day.Check_out || null,
+      ].filter(Boolean);
+      const date = day.Attendance_date || "";
+      const d = date ? new Date(`${date}T00:00:00`) : null;
+      const isPast = d ? d < normalizedToday : false;
+      const isTodayRow = Boolean(
+        day.Attendance_date &&
+          isSameDay(new Date(`${day.Attendance_date}T00:00:00`), today),
+      );
+
+      return {
+        id: date || String(day.Day_no),
+        date,
+        title,
+        meta: metaParts.join(" · ") || undefined,
+        metaToneClass: attendanceToneClass(tone),
+        muted: isPast,
+        isNext: Boolean(nextDate && date === nextDate && !isPast),
+        badge: isTodayRow ? "Today" : undefined,
+      };
+    });
+  }, [calendar?.days, today]);
+
   const summary = calendar?.summary;
+  const monthLabel =
+    calendar?.month_name ||
+    `${MONTH_CALENDAR_MONTHS[Math.max(0, month - 1)]} ${year}`;
 
   return (
     <>
@@ -237,31 +305,47 @@ export default function EssAttendancePage() {
           />
         </div>
 
-        {loading && !calendar ? (
-          <div className="card">
-            <div className="card-body employee-profile-loading">
-              <RoundLoader />
-              <p>Loading attendance calendar…</p>
-            </div>
-          </div>
-        ) : (
-          <MonthCalendar
-            year={year}
-            month={month}
-            days={calendarDays}
-            title={
-              calendar?.display_name
-                ? `Attendance — ${calendar.display_name}`
-                : "Attendance Calendar"
-            }
-            loading={loading}
-            onPrevMonth={goPrev}
-            onNextMonth={goNext}
-            onYearChange={setYear}
-            onMonthChange={setMonth}
-            legend={ATTENDANCE_LEGEND}
-          />
-        )}
+        <CalendarSplitLayout
+          className="mb-4"
+          syncKey={`${year}-${month}-${loading ? 1 : 0}-${calendarDays.length}`}
+          calendar={
+            loading && !calendar ? (
+              <div className="card">
+                <div className="card-body employee-profile-loading">
+                  <RoundLoader />
+                  <p>Loading attendance calendar…</p>
+                </div>
+              </div>
+            ) : (
+              <MonthCalendar
+                year={year}
+                month={month}
+                days={calendarDays}
+                title={
+                  calendar?.display_name
+                    ? `Attendance — ${calendar.display_name}`
+                    : "Attendance Calendar"
+                }
+                loading={loading}
+                onPrevMonth={goPrev}
+                onNextMonth={goNext}
+                onYearChange={setYear}
+                onMonthChange={setMonth}
+                legend={ATTENDANCE_LEGEND}
+              />
+            )
+          }
+          sidebar={
+            <CalendarDetailsSidebar
+              title="Day Details"
+              subtitle={`Notable days in ${monthLabel}`}
+              items={sidebarItems}
+              loading={loading}
+              emptyMessage="No leave, holiday, or exception days this month."
+              className="w-full"
+            />
+          }
+        />
       </div>
     </>
   );

@@ -429,7 +429,7 @@ export function MonthCalendar({
   };
 
   return (
-    <div className={cn("card month-calendar border-0 shadow-sm", className)}>
+    <div className={cn("card month-calendar shadow-sm", className)}>
       <div className="card-header month-calendar-header bg-card border-b border-[var(--border)] p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex flex-col gap-1 min-w-0">
           <h5 className="card-title mb-0 text-lg font-bold text-title truncate">{title}</h5>

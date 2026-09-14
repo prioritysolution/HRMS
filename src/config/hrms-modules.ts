@@ -1506,12 +1506,12 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
     nameKey: "Holiday_name",
     usesApi: true,
     statusToggle: false,
-    searchKeys: ["Purpose", "Holiday_name", "Holiday_date", "Remarks"],
+    searchKeys: ["Purpose", "Holiday_name", "Holiday_date", "Financial_year"],
     columns: [
       { key: "Purpose", header: "Purpose", filterable: true },
       { key: "Holiday_date", header: "Date", type: "date" },
       { key: "Holiday_name", header: "Holiday" },
-      { key: "Remarks", header: "Remarks", wrap: true },
+      { key: "Financial_year", header: "Financial Year" },
     ],
     formFields: [
       {
@@ -1521,9 +1521,15 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
         required: true,
         options: [],
       },
+      {
+        name: "Fin_year",
+        label: "Financial Year",
+        type: "select",
+        required: true,
+        options: [],
+      },
       { name: "Holiday_date", label: "Date", type: "date", required: true },
       { name: "Holiday_name", label: "Holiday", required: true, placeholder: "Ex. Republic Day" },
-      { name: "Remarks", label: "Remarks", type: "textarea", span: "full", placeholder: "Enter remarks" },
     ],
   },
   "weekly-off": {
