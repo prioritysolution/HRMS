@@ -338,6 +338,126 @@ export type EmployeeServiceHistoryListQuery = {
   effective_date?: string;
 };
 
+/** Employee Register Report — GET /api/v1/employee-register-report */
+export type EmployeeRegisterReportRecord = {
+  Employee_id: number;
+  Employee_code: string;
+  Display_name: string;
+  Mobile?: string | null;
+  Email?: string | null;
+  Branch_Id?: number | null;
+  Branch_Name?: string | null;
+  Dept_Id?: number | null;
+  Dept_Name?: string | null;
+  Desig_Id?: number | null;
+  Desig_Name?: string | null;
+  Emp_type_id?: number | null;
+  Emp_type_name?: string | null;
+  Category_name?: string | null;
+  Employment_status?: number | null;
+  Employment_status_name?: string | null;
+  Date_of_joining?: string | null;
+  Status?: number | null;
+  Status_name?: string | null;
+  Bank_name?: string | null;
+  Account_number?: string | null;
+  Ifsc_code?: string | null;
+  Pf_no?: string | null;
+  Uan_no?: string | null;
+  Esi_no?: string | null;
+  Work_Email?: string | null;
+  IdCard_No?: string | null;
+  Identification_count?: number | null;
+  Identifications?: string | null;
+  Active_asset_count?: number | null;
+  Active_asset_codes?: string | null;
+};
+
+export type EmployeeRegisterReportQuery = {
+  branch_id?: number | string;
+  dept_id?: number | string;
+  desig_id?: number | string;
+  emp_type_id?: number | string;
+  status?: 0 | 1 | "" | string;
+  search?: string;
+  org_id?: number | string;
+};
+
+/** Employee Service History Report — GET /api/v1/employee-service-history-report */
+export type EmployeeServiceHistoryReportRecord = {
+  History_id: number;
+  Employee_id: number;
+  Employee_code?: string | null;
+  Employee_name?: string | null;
+  Branch_Id?: number | null;
+  Branch_Name?: string | null;
+  Dept_Id?: number | null;
+  Dept_Name?: string | null;
+  Desig_Id?: number | null;
+  Desig_Name?: string | null;
+  Emp_type_name?: string | null;
+  Employment_status_name?: string | null;
+  Employee_status?: number | null;
+  Employee_status_name?: string | null;
+  Event_type?: number | null;
+  Event_type_code?: number | null;
+  Event_type_name?: string | null;
+  Effective_date?: string | null;
+  Old_Id?: number | null;
+  Old_Opt_Description?: string | null;
+  New_Id?: number | null;
+  New_Opt_Description?: string | null;
+  Old_Amount?: string | number | null;
+  New_Amount?: string | number | null;
+  Remarks?: string | null;
+  Created_by?: number | null;
+  Created_at?: string | null;
+};
+
+export type EmployeeServiceHistoryReportQuery = {
+  event_type?: number | string;
+  status?: 0 | 1 | "" | string;
+  from_date?: string;
+  to_date?: string;
+  branch_id?: number | string;
+  dept_id?: number | string;
+  employee_id?: number | string;
+  search?: string;
+  org_id?: number | string;
+};
+
+/** Attendance Summary Report — GET /api/v1/attendance-summary-report */
+export type AttendanceSummaryReportRecord = {
+  Employee_id: number;
+  Employee_code?: string | null;
+  Employee_name?: string | null;
+  Branch_Id?: number | null;
+  Branch_Name?: string | null;
+  Dept_Id?: number | null;
+  Dept_Name?: string | null;
+  Present_count?: number | null;
+  Absent_count?: number | null;
+  Half_day_count?: number | null;
+  Late_status_count?: number | null;
+  Leave_count?: number | null;
+  Late_coming_days?: number | null;
+  Early_leaving_days?: number | null;
+  Total_late_minutes?: number | null;
+  Total_early_leave_minutes?: number | null;
+  Total_working_hours?: number | null;
+  Total_overtime_hours?: number | null;
+};
+
+export type AttendanceSummaryReportQuery = {
+  from_date?: string;
+  to_date?: string;
+  branch_id?: number | string;
+  dept_id?: number | string;
+  employee_id?: number | string;
+  search?: string;
+  org_id?: number | string;
+};
+
 export type DeviceStatus = OrganizationStatus;
 
 export type DeviceRecord = {
@@ -685,6 +805,43 @@ export type EmploymentTypeWritePayload = {
 export type EmploymentTypeListQuery = {
   org_id?: number;
   status?: EmploymentTypeStatus;
+};
+
+/** Security Role — `mst_role` / USP_ROLE_* */
+export type RoleStatus = OrganizationStatus;
+
+export type RoleRecord = {
+  Role_Id?: number;
+  role_id?: number;
+  Role_Code?: string | null;
+  role_code?: string | null;
+  Role_Name?: string | null;
+  role_name?: string | null;
+  Is_Admin?: number | boolean | null;
+  is_admin?: number | boolean | null;
+  Status?: RoleStatus | number | string | null;
+  status?: RoleStatus | number | string | null;
+  Org_Id?: number | null;
+  org_id?: number | null;
+  Org_Name?: string | null;
+  org_name?: string | null;
+  Remarks?: string | null;
+  remarks?: string | null;
+};
+
+export type RoleWritePayload = {
+  org_id?: number;
+  role_code?: string;
+  role_name: string;
+  is_admin?: 0 | 1;
+  status?: RoleStatus;
+  remarks?: string | null;
+};
+
+export type RoleListQuery = {
+  org_id?: number;
+  status?: RoleStatus;
+  is_admin?: 0 | 1;
 };
 
 /** Leave Master — `mst_leave_master` / USP_LEAVE_* */

@@ -75,6 +75,8 @@ type DataTableProps<T extends object> = {
   emptyStateTitle?: string;
   emptyStateMessage?: string;
   extraActions?: React.ReactNode;
+  /** Fires whenever search/filter results change (full filtered set, before pagination). */
+  onFilteredRowsChange?: (rows: T[]) => void;
 };
 
 export function RowActions<T extends object>({
@@ -254,6 +256,7 @@ export function DataTable<T extends object>({
   emptyStateTitle,
   emptyStateMessage,
   extraActions,
+  onFilteredRowsChange,
 }: DataTableProps<T>) {
   const searchParams = useSearchParams();
   const [search, setSearch] = useState(() => searchParams?.get("search") ?? "");
@@ -293,6 +296,10 @@ export function DataTable<T extends object>({
     const searched = applyTableSearch(rows, search, resolvedSearchKeys);
     return applyTableFilters(searched, filters);
   }, [rows, search, filters, resolvedSearchKeys]);
+
+  useEffect(() => {
+    onFilteredRowsChange?.(filteredRows);
+  }, [filteredRows, onFilteredRowsChange]);
 
   const totalPages = getTotalPages(filteredRows.length, pageSize);
 

@@ -8,6 +8,7 @@ import { designationService } from "@/lib/api/services/designation.service";
 import { employmentTypeService } from "@/lib/api/services/employment-type.service";
 import { employmentStatusService } from "@/lib/api/services/employment-status.service";
 import { holidayService } from "./services/holiday.service";
+import { roleService } from "@/lib/api/services/role.service";
 import { leaveAllocationService } from "@/lib/api/services/leave-allocation.service";
 import { leaveMasterService } from "@/lib/api/services/leave-master.service";
 import { leaveApplicationService } from "@/lib/api/services/leave-application.service";
@@ -17,8 +18,10 @@ import { gradeService } from "@/lib/api/services/grade.service";
 import { organizationService } from "@/lib/api/services/organization.service";
 import { workShiftService } from "@/lib/api/services/work-shift.service";
 import { employeeService } from "@/lib/api/services/employee.service";
+import { employeeServiceHistoryReportService } from "@/lib/api/services/employee-service-history-report.service";
+import { attendanceSummaryReportService } from "@/lib/api/services/attendance-summary-report.service";
 import { attendanceService } from "@/lib/api/services/attendance.service";
-import { MOCK_EMPLOYEES, MOCK_SERVICE_HISTORY, MOCK_EMPLOYEE_ATTENDANCE, MOCK_LATE_COMING, MOCK_EARLY_LEAVING, MOCK_ATTENDANCE_SUMMARY, MOCK_LEAVE_REGISTER, MOCK_EMPLOYEE_LEAVE } from "@/data/reports-mock";
+import { MOCK_EMPLOYEES, MOCK_EMPLOYEE_ATTENDANCE, MOCK_LATE_COMING, MOCK_EARLY_LEAVING, MOCK_LEAVE_REGISTER, MOCK_EMPLOYEE_LEAVE } from "@/data/reports-mock";
 
 
 
@@ -82,6 +85,10 @@ async function listGrades(): Promise<HrmsRow[]> {
 
 async function listEmploymentTypes(): Promise<HrmsRow[]> {
   return employmentTypeService.list(undefined, await buildOrgNameMap());
+}
+
+async function listRoles(): Promise<HrmsRow[]> {
+  return roleService.list(undefined, await buildOrgNameMap());
 }
 
 async function listWorkShifts(): Promise<HrmsRow[]> {
@@ -172,6 +179,12 @@ export const MASTER_DATA_API_SERVICES: Record<string, MasterDataApiService> = {
     update: employmentTypeService.update,
     remove: employmentTypeService.remove,
   },
+  roles: {
+    list: listRoles,
+    create: roleService.create,
+    update: roleService.update,
+    remove: roleService.remove,
+  },
   employees: {
     list: listEmployees,
     create: createEmployee,
@@ -186,9 +199,9 @@ export const MASTER_DATA_API_SERVICES: Record<string, MasterDataApiService> = {
     remove: async () => ({}),
   },
   "employee-service-history-report": {
-    list: async () => MOCK_SERVICE_HISTORY as any[],
-    create: async (row: any) => row,
-    update: async (id: any, row: any) => row,
+    list: (params) => employeeServiceHistoryReportService.list(params),
+    create: async (row) => row,
+    update: async (_id, row) => row,
     remove: async () => ({}),
   },
   "employee-attendance-report": {
@@ -210,9 +223,9 @@ export const MASTER_DATA_API_SERVICES: Record<string, MasterDataApiService> = {
     remove: async () => ({}),
   },
   "attendance-summary-report": {
-    list: async () => MOCK_ATTENDANCE_SUMMARY as any[],
-    create: async (row: any) => row,
-    update: async (id: any, row: any) => row,
+    list: (params) => attendanceSummaryReportService.list(params),
+    create: async (row) => row,
+    update: async (_id, row) => row,
     remove: async () => ({}),
   },
   "leave-register-report": {

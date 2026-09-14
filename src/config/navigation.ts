@@ -13,7 +13,8 @@ export type NavIcon =
   | "reports"
   | "settings"
   | "helpdesk"
-  | "ess";
+  | "ess"
+  | "shield";
 
 export type NavItem = {
   label: string;
@@ -160,6 +161,11 @@ export const navigation: NavSection[] = [
           { label: "Notifications", href: "/settings/notifications" },
           { label: "Configure Numbering Sequence", href: "/settings/configure-numbering-sequence" },
         ],
+      },
+      {
+        label: "Security",
+        icon: "shield",
+        children: [{ label: "Role Management", href: "/security/role" }],
       },
     ],
   },

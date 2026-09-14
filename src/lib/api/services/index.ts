@@ -12,9 +12,13 @@ export { gradeService } from "@/lib/api/services/grade.service";
 export { gradeSalaryService } from "@/lib/api/services/grade-salary.service";
 export { workShiftService } from "@/lib/api/services/work-shift.service";
 export { employeeService } from "@/lib/api/services/employee.service";
+export { employeeRegisterReportService } from "@/lib/api/services/employee-register-report.service";
+export { employeeServiceHistoryReportService } from "@/lib/api/services/employee-service-history-report.service";
+export { attendanceSummaryReportService } from "@/lib/api/services/attendance-summary-report.service";
 export { employmentTypeService } from "@/lib/api/services/employment-type.service";
 export { employmentStatusService } from "@/lib/api/services/employment-status.service";
 export { organizationService } from "@/lib/api/services/organization.service";
+export { roleService } from "@/lib/api/services/role.service";
 export { holidayService } from "@/lib/api/services/holiday.service";
 export { HOLIDAY_TYPE_OPT_GRP_ID } from "@/lib/api/services/holiday.service";
 export {

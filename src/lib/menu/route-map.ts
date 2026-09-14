@@ -151,6 +151,12 @@ const ROUTE_ALIASES: Record<string, string> = {
   "/settings/notification-settings": "/settings/notifications",
   "/settings/configure-numbering-sequence": "/settings/configure-numbering-sequence",
   "/settings/numbering-sequence": "/settings/configure-numbering-sequence",
+
+  // Security
+  "/security/role": "/security/role",
+  "/security/roles": "/security/role",
+  "/role": "/security/role",
+  "/roles": "/security/role",
 };
 
 /**
@@ -224,6 +230,9 @@ const LABEL_ROUTES: Array<{ match: RegExp; href: string }> = [
   { match: /^smtp(\s*configuration)?$/i, href: "/settings/email" },
   { match: /^notifications?(\s*settings)?$/i, href: "/settings/notifications" },
   { match: /^(configure\s*)?numbering\s*sequence$/i, href: "/settings/configure-numbering-sequence" },
+  { match: /^role\s*management$/i, href: "/security/role" },
+  { match: /^roles?$/i, href: "/security/role" },
+  { match: /^security\s*roles?$/i, href: "/security/role" },
 ];
 
 function normalizePath(route: string): string {

@@ -43,6 +43,7 @@ const MODULE_ICONS: Record<string, LucideIcon> = {
   grades: Award,
   "employee-categories": Tags,
   "employment-types": FileText,
+  roles: ShieldCheck,
   "job-types": Hammer,
   shifts: Clock,
   "salary-grades": IndianRupee,

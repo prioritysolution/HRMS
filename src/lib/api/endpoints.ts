@@ -200,6 +200,15 @@ export const API_ENDPOINTS = {
     update: (id: number | string) => `/api/v1/employee/update/${id}`,
     remove: (id: number | string) => `/api/v1/employee/delete/${id}`,
   },
+  employeeRegisterReport: {
+    list: "/api/v1/employee-register-report",
+  },
+  employeeServiceHistoryReport: {
+    list: "/api/v1/employee-service-history-report",
+  },
+  attendanceSummaryReport: {
+    list: "/api/v1/attendance-summary-report",
+  },
   employeeOnboarding: {
     list: "/api/v1/employee-onboarding/list",
     get: (id: number | string) => `/api/v1/employee-onboarding/get/${id}`,
@@ -266,5 +275,12 @@ export const API_ENDPOINTS = {
   notificationSettings: {
     get: "/api/v1/notification-settings",
     update: "/api/v1/notification-settings",
+  },
+  role: {
+    list: "/api/v1/role/list",
+    get: (id: string | number) => `/api/v1/role/get/${id}`,
+    create: "/api/v1/role/create",
+    update: (id: string | number) => `/api/v1/role/update/${id}`,
+    delete: (id: string | number) => `/api/v1/role/delete/${id}`,
   },
 } as const;

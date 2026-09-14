@@ -10,6 +10,7 @@ import {
   Clock3,
   LayoutDashboard,
   Settings,
+  ShieldCheck,
   UserRound,
   UsersRound,
   Wallet,
@@ -38,6 +39,7 @@ const itemIcons: Record<NavIcon, LucideIcon> = {
   settings: Settings,
   helpdesk: CircleHelp,
   ess: UserRound,
+  shield: ShieldCheck,
 };
 
 function isActivePath(pathname: string, href?: string, exact?: boolean) {
