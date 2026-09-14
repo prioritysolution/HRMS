@@ -200,11 +200,22 @@ export function Sidebar() {
     }
   };
 
-  const handleNavClick = () => {
+  const handleNavClick = (parentLabel?: string) => {
     closeFlyout();
     if (isMobile) {
       closeMobile();
     }
+    setOpenGroups(prev => {
+      const next: Record<string, boolean> = {};
+      sections.forEach(section => {
+        section.items.forEach(item => {
+          if (item.children) {
+            next[item.label] = item.label === parentLabel;
+          }
+        });
+      });
+      return next;
+    });
   };
 
   return (
@@ -282,7 +293,7 @@ export function Sidebar() {
                             <div className="nav-item" key={`${item.label}-${child.href}`}>
                               <Link
                                 href={child.href}
-                                onClick={handleNavClick}
+                                onClick={() => handleNavClick(item.label)}
                                 className={cn(
                                   "nav-link",
                                   isActivePath(pathname, child.href, child.exact) && "active",
@@ -305,7 +316,7 @@ export function Sidebar() {
                   <div className="nav-item" key={item.href ?? item.label}>
                     <Link
                       href={item.href!}
-                      onClick={handleNavClick}
+                      onClick={() => handleNavClick()}
                       title={item.label}
                       className={cn(
                         "nav-link",

@@ -21,10 +21,16 @@ export function StatusBadge({
 
 export function statusTone(status: string) {
   const value = status.toLowerCase();
-  if (["active", "present", "approved", "qualified", "paid"].includes(value)) {
+  if (
+    ["active", "present", "approved", "qualified", "paid", "allocated", "assigned", "complete"].includes(
+      value,
+    )
+  ) {
     return "success" as const;
   }
-  if (["pending", "late", "negotiation", "new"].includes(value)) {
+  if (
+    ["pending", "late", "negotiation", "new", "under review"].includes(value)
+  ) {
     return "warning" as const;
   }
   if (["inactive", "absent", "rejected", "overdue", "cancelled"].includes(value)) {

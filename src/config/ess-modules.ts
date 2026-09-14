@@ -183,10 +183,11 @@ export const ESS_MODULES: Record<string, HrmsModuleConfig> = {
       { key: "Serial_number", header: "Serial No." },
       { key: "Assigned_on", header: "Assigned On", type: "date" },
       { key: "Condition", header: "Condition" },
-      { key: "Status", header: "Status", type: "status" },
+      { key: "Allocation_status", header: "Status", type: "status" },
+      { key: "Remarks", header: "Remarks" },
     ]),
     formFields: [],
-    searchKeys: ["Asset_name", "Asset_type", "Status"],
+    searchKeys: ["Asset_name", "Asset_type", "Asset_code", "Serial_number", "Allocation_status"],
   },
   "ess-performance": {
     id: "ess-performance",

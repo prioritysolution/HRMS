@@ -154,7 +154,8 @@ export const ESS_MOCK_DATA: Record<string, HrmsRow[]> = {
       Serial_number: "DL-2026-00125",
       Assigned_on: "2026-01-20",
       Condition: "Good",
-      Status: "Assigned",
+      Allocation_status: "Allocated",
+      Remarks: "Charger included",
     }),
     row("easset-2", {
       Employee_code: "EMP-1001",
@@ -164,7 +165,8 @@ export const ESS_MOCK_DATA: Record<string, HrmsRow[]> = {
       Serial_number: "SM-S24-78231",
       Assigned_on: "2026-02-12",
       Condition: "Good",
-      Status: "Assigned",
+      Allocation_status: "Allocated",
+      Remarks: "",
     }),
   ],
   "ess-service-history": [

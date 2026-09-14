@@ -12,6 +12,10 @@ import type {
   AttendancePunchWritePayload,
   AttendanceRecord,
   AttendanceWritePayload,
+  MonthlyAttendanceListQuery,
+  MonthlyAttendanceRecord,
+  MonthlyAttendanceResponse,
+  MonthlyAttendanceSummary,
 } from "@/lib/api/types";
 import { formatDateDisplay, parseDateToIso } from "@/lib/date-utils";
 import type { HrmsRow } from "@/types/hrms";
@@ -179,6 +183,123 @@ function withPunchListQuery(basePath: string, query?: AttendancePunchListQuery):
 
   const suffix = params.toString();
   return suffix ? `${basePath}?${suffix}` : basePath;
+}
+
+function withMonthlyListQuery(basePath: string, query?: MonthlyAttendanceListQuery): string {
+  const params = new URLSearchParams();
+
+  if (query?.year !== undefined) {
+    params.set("year", String(query.year));
+  }
+  if (query?.month !== undefined) {
+    params.set("month", String(query.month));
+  }
+  if (query?.search) {
+    params.set("search", query.search);
+  }
+  if (query?.summary_status !== undefined) {
+    params.set("summary_status", String(query.summary_status));
+  }
+  if (query?.employee_id !== undefined) {
+    params.set("employee_id", String(query.employee_id));
+  }
+  if (query?.branch_id !== undefined) {
+    params.set("branch_id", String(query.branch_id));
+  }
+  if (query?.dept_id !== undefined) {
+    params.set("dept_id", String(query.dept_id));
+  }
+
+  const suffix = params.toString();
+  return suffix ? `${basePath}?${suffix}` : basePath;
+}
+
+function emptyMonthlySummary(): MonthlyAttendanceSummary {
+  return {
+    Total_summaries: 0,
+    Complete_count: 0,
+    Pending_review: 0,
+    Avg_present_days: 0,
+  };
+}
+
+function asMonthlyAttendance(payload: unknown): MonthlyAttendanceResponse {
+  const root = asRecord(payload);
+  const nested = root ? asRecord(root.data) ?? root : null;
+  const summarySource = nested ? asRecord(readValue(nested, ["summary"])) ?? {} : {};
+  const recordsValue = nested ? readValue(nested, ["records", "data"]) : undefined;
+  const records = Array.isArray(recordsValue)
+    ? (recordsValue as MonthlyAttendanceRecord[])
+    : [];
+
+  return {
+    summary: {
+      Total_summaries:
+        optionalNumber(
+          readValue(summarySource, ["Total_summaries", "total_summaries"]),
+        ) ?? records.length,
+      Complete_count:
+        optionalNumber(
+          readValue(summarySource, ["Complete_count", "complete_count"]),
+        ) ?? 0,
+      Pending_review:
+        optionalNumber(
+          readValue(summarySource, ["Pending_review", "pending_review"]),
+        ) ?? 0,
+      Avg_present_days:
+        optionalNumber(
+          readValue(summarySource, ["Avg_present_days", "avg_present_days"]),
+        ) ?? 0,
+    },
+    records,
+  };
+}
+
+export function monthlyAttendanceToRow(record: MonthlyAttendanceRecord): HrmsRow {
+  const source = record as unknown as Record<string, unknown>;
+  const employeeId = optionalNumber(readValue(source, ["Employee_id", "employee_id"])) ?? 0;
+  const yearNo = optionalNumber(readValue(source, ["Year_no", "year_no"])) ?? 0;
+  const monthNo = optionalNumber(readValue(source, ["Month_no", "month_no"])) ?? 0;
+  const monthLabel =
+    optionalText(readValue(source, ["Month_label", "month_label"])) ??
+    (yearNo && monthNo
+      ? new Date(yearNo, monthNo - 1, 1).toLocaleString("en-US", {
+          month: "short",
+          year: "numeric",
+        })
+      : "");
+  const statusName =
+    optionalText(
+      readValue(source, ["Summary_status_name", "summary_status_name"]),
+    ) ?? "";
+  const statusCode =
+    optionalNumber(readValue(source, ["Summary_status", "summary_status"])) ?? null;
+
+  return {
+    id: `${employeeId}-${yearNo}-${monthNo}`,
+    Employee_id: employeeId,
+    Employee_code: optionalText(readValue(source, ["Employee_code", "employee_code"])) ?? "",
+    Employee_name: optionalText(readValue(source, ["Employee_name", "employee_name"])) ?? "",
+    Photo_path: optionalText(readValue(source, ["Photo_path", "photo_path"])) ?? "",
+    Branch_Id: optionalNumber(readValue(source, ["Branch_Id", "branch_id"])) ?? 0,
+    Dept_Id: optionalNumber(readValue(source, ["Dept_Id", "dept_id"])) ?? 0,
+    Dept_Name: optionalText(readValue(source, ["Dept_Name", "dept_name"])) ?? "",
+    Year_no: yearNo,
+    Month_no: monthNo,
+    Month_year: monthLabel,
+    Month_label: monthLabel,
+    Month_start: optionalText(readValue(source, ["Month_start", "month_start"])) ?? "",
+    Month_end: optionalText(readValue(source, ["Month_end", "month_end"])) ?? "",
+    Present_days: optionalNumber(readValue(source, ["Present_count", "present_count"])) ?? 0,
+    Absent_days: optionalNumber(readValue(source, ["Absent_count", "absent_count"])) ?? 0,
+    Half_day_days:
+      optionalNumber(readValue(source, ["Half_day_count", "half_day_count"])) ?? 0,
+    Late_days: optionalNumber(readValue(source, ["Late_count", "late_count"])) ?? 0,
+    Overtime_hours:
+      optionalNumber(readValue(source, ["Overtime_hours", "overtime_hours"])) ?? 0,
+    Summary_status: statusCode ?? "",
+    Attendance_status: statusName || (statusCode === 1 ? "Complete" : "Under Review"),
+  };
 }
 
 export function attendanceToRow(record: AttendanceRecord): HrmsRow {
@@ -449,6 +570,19 @@ export const attendanceService = {
       withListQuery(API_ENDPOINTS.attendance.daily, query),
     );
     return asAttendanceList(payload).map(attendanceToRow);
+  },
+
+  monthly: async (
+    query?: MonthlyAttendanceListQuery,
+  ): Promise<{ summary: MonthlyAttendanceSummary; rows: HrmsRow[] }> => {
+    const payload = await apiClient.get<unknown>(
+      withMonthlyListQuery(API_ENDPOINTS.attendance.monthly, query),
+    );
+    const data = asMonthlyAttendance(payload);
+    return {
+      summary: data.summary ?? emptyMonthlySummary(),
+      rows: data.records.map(monthlyAttendanceToRow),
+    };
   },
 
   create: async (

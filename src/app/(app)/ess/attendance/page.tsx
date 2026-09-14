@@ -257,6 +257,8 @@ export default function EssAttendancePage() {
             loading={loading}
             onPrevMonth={goPrev}
             onNextMonth={goNext}
+            onYearChange={setYear}
+            onMonthChange={setMonth}
             legend={ATTENDANCE_LEGEND}
           />
         )}

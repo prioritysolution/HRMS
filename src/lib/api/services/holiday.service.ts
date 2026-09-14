@@ -9,6 +9,9 @@ import type {
 import { lookupHolidayDescription } from "@/data/holiday-remarks";
 import type { HrmsRow } from "@/types/hrms";
 
+/** Appl-options Opt_Grp_Id = 17 — Holiday Type / Purpose */
+export const HOLIDAY_TYPE_OPT_GRP_ID = 17;
+
 function asRecord(value: unknown): Record<string, unknown> | null {
     if (!value || typeof value !== "object" || Array.isArray(value)) {
         return null;
@@ -103,7 +106,21 @@ function holidayToRow(
     fallback?: HrmsRow,
 ): HrmsRow {
     const source = holiday as HolidayRecord & Record<string, unknown>;
-    const purpose = readText(source, ["Purpose", "purpose", "Holiday_type", "holiday_type"]);
+    const typeCode = readText(source, ["Holiday_type", "holiday_type"]);
+    const typeName = readText(source, [
+        "Holiday_type_name",
+        "holiday_type_name",
+        "Purpose_name",
+        "purpose_name",
+    ]);
+    const purposeRaw = readText(source, ["Purpose", "purpose"]);
+    // Prefer type name for display; avoid showing numeric type codes in Purpose.
+    const purpose =
+        typeName ||
+        (purposeRaw && purposeRaw !== typeCode ? purposeRaw : "") ||
+        (typeCode && !/^\d+$/.test(typeCode) ? typeCode : "") ||
+        String(fallback?.Purpose ?? "").trim() ||
+        typeCode;
     const holidayDate = normalizeDate(holiday.Holiday_date ?? fallback?.Holiday_date);
     const holidayName = String(holiday.Holiday_name ?? fallback?.Holiday_name ?? "");
     const remarks = readText(source, [
@@ -132,9 +149,11 @@ function holidayToRow(
 
         Holiday_name: holidayName,
 
-        Holiday_type: holiday.Holiday_type ?? purpose,
+        Holiday_type: typeCode || String(fallback?.Holiday_type ?? ""),
 
-        Purpose: purpose || String(fallback?.Purpose ?? ""),
+        Holiday_type_name: typeName || purpose,
+
+        Purpose: purpose,
 
         Remarks: remarks,
     };
@@ -156,8 +175,9 @@ function rowToPayload(
             row.Holiday_name ?? "",
         ).trim(),
 
+        // Form Purpose select stores Opt_Code; keep that as holiday_type.
         holiday_type: String(
-            row.Purpose ?? row.Holiday_type ?? "",
+            row.Holiday_type || row.Purpose || "",
         ).trim(),
 
         remarks: String(row.Remarks ?? "").trim(),

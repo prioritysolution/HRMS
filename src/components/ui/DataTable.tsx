@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import {
@@ -591,4 +592,97 @@ export function PersonCell({
 
 export function SoftStatus({ value }: { value: string }) {
   return <StatusBadge label={value} tone={statusTone(value)} />;
+}
+
+export function ClampedText({
+  text,
+  empty = "—",
+  maxWidth = "14rem",
+}: {
+  text: string;
+  empty?: string;
+  maxWidth?: string;
+}) {
+  const value = text.trim();
+  const triggerRef = useRef<HTMLSpanElement>(null);
+  const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [coords, setCoords] = useState<{
+    top: number;
+    left: number;
+    width: number;
+    placeAbove: boolean;
+  } | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const updatePosition = () => {
+      const rect = triggerRef.current?.getBoundingClientRect();
+      if (!rect) return;
+
+      const width = Math.min(Math.max(rect.width, 260), 360);
+      const left = Math.min(
+        Math.max(8, rect.left),
+        Math.max(8, window.innerWidth - width - 8),
+      );
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const placeAbove = spaceBelow < 180 && rect.top > spaceBelow;
+
+      setCoords({
+        top: placeAbove ? rect.top - 8 : rect.bottom + 8,
+        left,
+        width,
+        placeAbove,
+      });
+    };
+
+    updatePosition();
+    window.addEventListener("scroll", updatePosition, true);
+    window.addEventListener("resize", updatePosition);
+    return () => {
+      window.removeEventListener("scroll", updatePosition, true);
+      window.removeEventListener("resize", updatePosition);
+    };
+  }, [open]);
+
+  if (!value) return <>{empty}</>;
+
+  const tooltip =
+    open && coords ? (
+      <span
+        className="clamped-text-tooltip"
+        role="tooltip"
+        style={{
+          top: coords.top,
+          left: coords.left,
+          width: coords.width,
+          transform: coords.placeAbove ? "translateY(-100%)" : undefined,
+        }}
+      >
+        {value}
+      </span>
+    ) : null;
+
+  return (
+    <>
+      <span
+        ref={triggerRef}
+        className="clamped-text"
+        style={{ maxWidth }}
+        tabIndex={0}
+        onMouseEnter={() => setOpen(true)}
+        onMouseLeave={() => setOpen(false)}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setOpen(false)}
+      >
+        <span className="clamped-text-preview">{value}</span>
+      </span>
+      {mounted && tooltip ? createPortal(tooltip, document.body) : null}
+    </>
+  );
 }

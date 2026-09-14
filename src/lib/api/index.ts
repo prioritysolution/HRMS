@@ -20,6 +20,7 @@ export {
   employmentTypeService,
   employmentStatusService,
   holidayService,
+  HOLIDAY_TYPE_OPT_GRP_ID,
   leaveMasterService,
   leaveApplicationService,
   leaveApprovalService,

@@ -101,6 +101,7 @@ export function employeeAssetToRow(record: EmployeeAssetRecord): HrmsRow {
       readValue(source, ["Serial_number", "serial_number", "Serial_Number"]),
     ) ?? "",
     Allocation_date: issueDate ? formatDateDisplay(issueDate) : "",
+    Assigned_on: issueDate ? formatDateDisplay(issueDate) : "",
     Return_date: returnDate ? formatDateDisplay(returnDate) : "",
     Condition: optionalText(
       readValue(source, ["Issue_condition", "issue_condition", "Issue_Condition"]),
@@ -183,6 +184,19 @@ export const employeeAssetService = {
   list: async (query?: EmployeeAssetListQuery) => {
     const payload = await apiClient.get<unknown>(
       withListQuery(API_ENDPOINTS.employeeAsset.list, query),
+    );
+    return asEmployeeAssetList(payload).map(employeeAssetToRow);
+  },
+
+  listForEmployee: async (query: {
+    employee_id: number;
+    status?: EmployeeAssetListQuery["status"];
+  }) => {
+    const payload = await apiClient.get<unknown>(
+      withListQuery(API_ENDPOINTS.employeeAsset.employeeList, {
+        employee_id: query.employee_id,
+        status: query.status ?? 1,
+      }),
     );
     return asEmployeeAssetList(payload).map(employeeAssetToRow);
   },

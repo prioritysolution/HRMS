@@ -198,6 +198,8 @@ export default function EssHolidaysPage() {
               title="Calendar View"
               onPrevMonth={goPrev}
               onNextMonth={goNext}
+              onYearChange={setYear}
+              onMonthChange={setMonth}
               legend={[{ tone: "holiday", label: "Holiday" }]}
             />
           </div>

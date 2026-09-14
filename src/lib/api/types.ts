@@ -377,7 +377,9 @@ export type HolidayRecord = {
   Year_Sl: number;
   Holiday_date: string;
   Holiday_name: string;
-  Holiday_type: string;
+  Holiday_type: string | number;
+  Holiday_type_name?: string | null;
+  Purpose?: string | null;
   Remarks?: string | null;
   remarks?: string | null;
 };
@@ -458,6 +460,52 @@ export type AttendanceListQuery = {
   attendance_status?: number;
   source?: number;
   with_punches?: boolean | number;
+};
+
+export type MonthlyAttendanceSummaryStatus = 0 | 1;
+
+export type MonthlyAttendanceListQuery = {
+  year?: number;
+  month?: number;
+  search?: string;
+  summary_status?: MonthlyAttendanceSummaryStatus | number;
+  employee_id?: number;
+  branch_id?: number;
+  dept_id?: number;
+};
+
+export type MonthlyAttendanceSummary = {
+  Total_summaries: number;
+  Complete_count: number;
+  Pending_review: number;
+  Avg_present_days: number;
+};
+
+export type MonthlyAttendanceRecord = {
+  Employee_id: number;
+  Employee_code?: string | null;
+  Employee_name?: string | null;
+  Photo_path?: string | null;
+  Branch_Id?: number | null;
+  Dept_Id?: number | null;
+  Dept_Name?: string | null;
+  Year_no: number;
+  Month_no: number;
+  Month_label?: string | null;
+  Month_start?: string | null;
+  Month_end?: string | null;
+  Present_count?: number | null;
+  Absent_count?: number | null;
+  Half_day_count?: number | null;
+  Late_count?: number | null;
+  Overtime_hours?: number | null;
+  Summary_status?: MonthlyAttendanceSummaryStatus | number | null;
+  Summary_status_name?: string | null;
+};
+
+export type MonthlyAttendanceResponse = {
+  summary: MonthlyAttendanceSummary;
+  records: MonthlyAttendanceRecord[];
 };
 
 export type AttendancePunchRecord = {

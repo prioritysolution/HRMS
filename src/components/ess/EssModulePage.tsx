@@ -11,6 +11,7 @@ import {
 import { useToast } from "@/components/ui/ToastProvider";
 import { getEssModule, getEssFormFields, getEssModuleDescription } from "@/config/ess-modules";
 import { getEssMockRows } from "@/data/ess-mock";
+import { ApiError } from "@/lib/api/client";
 import { authService } from "@/lib/api/services/auth.service";
 import {
   getEssEmployeeCode,
@@ -32,6 +33,7 @@ type EssModulePageProps = {
   emptyStateMessage?: string;
   modalSubtitle?: string;
   hrApprovalNotice?: boolean;
+  loadRows?: (profile: AuthMeProfile | null) => Promise<HrmsRow[]>;
 };
 
 function formatCellValue(value: HrmsRow[string], type?: TableColumn["type"]): string {
@@ -93,6 +95,7 @@ export function EssModulePage({
   emptyStateMessage,
   modalSubtitle,
   hrApprovalNotice = false,
+  loadRows,
 }: EssModulePageProps) {
   const config = getEssModule(moduleId);
   const toast = useToast();
@@ -115,16 +118,30 @@ export function EssModulePage({
     try {
       const me = await authService.getMeProfile();
       setProfile(me);
+      if (loadRows) {
+        setRows(await loadRows(me));
+        return;
+      }
       const code = getEssEmployeeCode(null, me);
       setRows(getEssMockRows(moduleId, code));
-    } catch {
-      setRows(getEssMockRows(moduleId, employeeCode));
+    } catch (err) {
+      setRows(loadRows ? [] : getEssMockRows(moduleId, employeeCode));
+      if (loadRows) {
+        const message =
+          err instanceof ApiError
+            ? err.message
+            : err instanceof Error
+              ? err.message
+              : "Failed to load records.";
+        toast.error(message);
+      }
     } finally {
       setLoading(false);
     }
-  }, [moduleId, employeeCode]);
+  }, [employeeCode, loadRows, moduleId, toast]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- initial/async data load
     void loadData();
   }, [loadData]);
 

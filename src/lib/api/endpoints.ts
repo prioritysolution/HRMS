@@ -137,6 +137,7 @@ export const API_ENDPOINTS = {
   },
   employeeAsset: {
     list: "/api/v1/employee-asset/list",
+    employeeList: "/api/v1/employee-asset-list",
     create: "/api/v1/employee-asset/create",
     update: (id: string | number) => `/api/v1/employee-asset/update/${id}`,
     delete: (id: string | number) => `/api/v1/employee-asset/delete/${id}`,
@@ -208,6 +209,7 @@ export const API_ENDPOINTS = {
   attendance: {
     list: "/api/v1/attendance/list",
     daily: "/api/v1/attendance/daily",
+    monthly: "/api/v1/attendance/monthly",
     create: "/api/v1/attendance/create",
     update: (id: string | number) => `/api/v1/attendance/update/${id}`,
     delete: (id: string | number) => `/api/v1/attendance/delete/${id}`,

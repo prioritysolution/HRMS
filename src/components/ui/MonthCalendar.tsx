@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { Calendar as CalendarIcon, ChevronDown, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { RoundLoader } from "@/components/ui/RoundLoader";
 
@@ -64,10 +64,16 @@ type MonthCalendarProps = {
   loading?: boolean;
   onPrevMonth?: () => void;
   onNextMonth?: () => void;
+  onYearChange?: (year: number) => void;
+  onMonthChange?: (month: number) => void;
+  /** Fires when a day cell is clicked. Date is ISO `YYYY-MM-DD`. */
+  onDayClick?: (date: string, item?: MonthCalendarDayItem) => void;
   legend?: MonthCalendarLegendItem[];
   className?: string;
   emptyCellMinHeight?: number;
   headerExtra?: ReactNode;
+  /** Inclusive year range for the year picker. Defaults to current±10. */
+  yearRange?: { start: number; end: number };
 };
 
 type CalendarCell = {
@@ -183,6 +189,7 @@ function DayCellContent({
   minHeight,
   selectedKey,
   onSelect,
+  onDayClick,
   compact = false,
 }: {
   cell: CalendarCell;
@@ -191,6 +198,7 @@ function DayCellContent({
   minHeight: number;
   selectedKey: string | null;
   onSelect: (key: string) => void;
+  onDayClick?: (date: string, item?: MonthCalendarDayItem) => void;
   compact?: boolean;
 }) {
   if (cell.empty) {
@@ -212,6 +220,8 @@ function DayCellContent({
   const subtitle = item?.subtitle?.trim();
   const canShowDetails = hasDetailContent(item);
   const isSelected = selectedKey === cell.key;
+  const date = cell.date || toIsoDate(year, month, cell.dayNumber || 1);
+  const isClickable = Boolean(onDayClick) || canShowDetails;
 
   return (
     <button
@@ -220,11 +230,15 @@ function DayCellContent({
         "month-calendar-cell group transition-colors text-left",
         `month-calendar-cell--${tone}`,
         isSelected && "month-calendar-cell--selected",
-        canShowDetails && "month-calendar-cell--interactive",
+        isClickable && "month-calendar-cell--interactive",
         compact && "month-calendar-cell--compact",
       )}
       style={{ minHeight }}
       onClick={() => {
+        if (onDayClick) {
+          onDayClick(date, item);
+          return;
+        }
         if (!canShowDetails) return;
         onSelect(cell.key);
       }}
@@ -287,19 +301,67 @@ export function MonthCalendar({
   loading = false,
   onPrevMonth,
   onNextMonth,
+  onYearChange,
+  onMonthChange,
+  onDayClick,
   legend,
   className,
   emptyCellMinHeight = 112,
   headerExtra,
+  yearRange,
 }: MonthCalendarProps) {
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const pickerRef = useRef<HTMLDivElement>(null);
   const monthIndex0 = Math.max(0, Math.min(11, month - 1));
   const daysInMonth = getDaysInMonth(year, monthIndex0);
   const firstDay = getFirstWeekdaySunday(year, monthIndex0);
+  const canPickPeriod = Boolean(onYearChange || onMonthChange);
+
+  const resolvedYearRange = useMemo(() => {
+    const current = new Date().getFullYear();
+    return {
+      start: yearRange?.start ?? current - 10,
+      end: yearRange?.end ?? current + 5,
+    };
+  }, [yearRange]);
+
+  const yearOptions = useMemo(() => {
+    const years: number[] = [];
+    for (let y = resolvedYearRange.end; y >= resolvedYearRange.start; y -= 1) {
+      years.push(y);
+    }
+    return years;
+  }, [resolvedYearRange]);
 
   useEffect(() => {
     setSelectedKey(null);
   }, [year, month]);
+
+  useEffect(() => {
+    setPickerOpen(false);
+  }, [year, month]);
+
+  useEffect(() => {
+    if (!pickerOpen) return;
+
+    const handlePointerDown = (event: MouseEvent) => {
+      if (!pickerRef.current?.contains(event.target as Node)) {
+        setPickerOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setPickerOpen(false);
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [pickerOpen]);
 
   const dayMap = useMemo(() => {
     const map = new Map<number, MonthCalendarDayItem>();
@@ -356,6 +418,16 @@ export function MonthCalendar({
     setSelectedKey((prev) => (prev === key ? null : key));
   };
 
+  const handleSelectYear = (nextYear: number) => {
+    onYearChange?.(nextYear);
+    setPickerOpen(false);
+  };
+
+  const handleSelectMonth = (nextMonth: number) => {
+    onMonthChange?.(nextMonth);
+    setPickerOpen(false);
+  };
+
   return (
     <div className={cn("card month-calendar border-0 shadow-sm", className)}>
       <div className="card-header month-calendar-header bg-card border-b border-[var(--border)] p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -363,7 +435,10 @@ export function MonthCalendar({
           <h5 className="card-title mb-0 text-lg font-bold text-title truncate">{title}</h5>
           {headerExtra}
         </div>
-        <div className="month-calendar-nav flex items-center gap-3 sm:gap-4 bg-[var(--card-soft)] rounded-full p-1.5 border border-[var(--border)] self-stretch sm:self-auto justify-between sm:justify-center">
+        <div
+          ref={pickerRef}
+          className="month-calendar-nav relative flex items-center gap-2 sm:gap-3 bg-[var(--card-soft)] rounded-full p-1.5 border border-[var(--border)] self-stretch sm:self-auto justify-between sm:justify-center"
+        >
           <button
             type="button"
             onClick={onPrevMonth}
@@ -372,9 +447,32 @@ export function MonthCalendar({
           >
             <ChevronLeft size={18} />
           </button>
-          <span className="font-bold text-sm min-w-[120px] text-center text-title">
-            {MONTH_CALENDAR_MONTHS[monthIndex0]} {year}
-          </span>
+
+          {canPickPeriod ? (
+            <button
+              type="button"
+              className="month-calendar-period-btn font-bold text-sm min-w-[132px] px-2 py-1 rounded-full text-center text-title inline-flex items-center justify-center gap-1 hover:bg-card hover:shadow-sm transition-all"
+              aria-haspopup="dialog"
+              aria-expanded={pickerOpen}
+              onClick={() => setPickerOpen((open) => !open)}
+            >
+              <span>
+                {MONTH_CALENDAR_MONTHS[monthIndex0]} {year}
+              </span>
+              <ChevronDown
+                size={14}
+                className={cn(
+                  "text-secondary transition-transform",
+                  pickerOpen && "rotate-180",
+                )}
+              />
+            </button>
+          ) : (
+            <span className="font-bold text-sm min-w-[120px] text-center text-title">
+              {MONTH_CALENDAR_MONTHS[monthIndex0]} {year}
+            </span>
+          )}
+
           <button
             type="button"
             onClick={onNextMonth}
@@ -383,6 +481,55 @@ export function MonthCalendar({
           >
             <ChevronRight size={18} />
           </button>
+
+          {canPickPeriod && pickerOpen ? (
+            <div className="month-calendar-period-popover" role="dialog" aria-label="Select month and year">
+              {onYearChange ? (
+                <div className="month-calendar-period-section">
+                  <p className="month-calendar-period-label">Year</p>
+                  <div className="month-calendar-year-grid">
+                    {yearOptions.map((optionYear) => (
+                      <button
+                        key={optionYear}
+                        type="button"
+                        className={cn(
+                          "month-calendar-period-option",
+                          optionYear === year && "is-active",
+                        )}
+                        onClick={() => handleSelectYear(optionYear)}
+                      >
+                        {optionYear}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {onMonthChange ? (
+                <div className="month-calendar-period-section">
+                  <p className="month-calendar-period-label">Month</p>
+                  <div className="month-calendar-month-grid">
+                    {MONTH_CALENDAR_MONTHS.map((monthName, index) => {
+                      const monthValue = index + 1;
+                      return (
+                        <button
+                          key={monthName}
+                          type="button"
+                          className={cn(
+                            "month-calendar-period-option",
+                            monthValue === month && "is-active",
+                          )}
+                          onClick={() => handleSelectMonth(monthValue)}
+                        >
+                          {monthName.slice(0, 3)}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
         </div>
       </div>
 
@@ -420,6 +567,7 @@ export function MonthCalendar({
                       minHeight={emptyCellMinHeight}
                       selectedKey={selectedKey}
                       onSelect={handleSelect}
+                      onDayClick={onDayClick}
                     />
                   ))}
                 </div>
@@ -464,6 +612,7 @@ export function MonthCalendar({
                         minHeight={56}
                         selectedKey={selectedKey}
                         onSelect={handleSelect}
+                        onDayClick={onDayClick}
                         compact
                       />
                     </div>

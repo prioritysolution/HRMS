@@ -16,6 +16,7 @@ export { employmentTypeService } from "@/lib/api/services/employment-type.servic
 export { employmentStatusService } from "@/lib/api/services/employment-status.service";
 export { organizationService } from "@/lib/api/services/organization.service";
 export { holidayService } from "@/lib/api/services/holiday.service";
+export { HOLIDAY_TYPE_OPT_GRP_ID } from "@/lib/api/services/holiday.service";
 export {
   LEAVE_GENDER_OPTIONS,
   LEAVE_VALIDITY_FALLBACK_OPTIONS,

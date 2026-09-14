@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { MasterDataModal } from "@/components/modals/MasterDataModal";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { DataTable, PersonCell } from "@/components/ui/DataTable";
+import { DataTable, PersonCell, ClampedText } from "@/components/ui/DataTable";
 import { useToast } from "@/components/ui/ToastProvider";
 import { getHrmsModule, getModuleFormFields } from "@/config/hrms-modules";
 import {
@@ -249,7 +249,9 @@ export default function ServiceHistoryPage() {
             {
               key: "Remarks",
               header: "Remarks",
-              render: (row) => formatCell(row.Remarks),
+              render: (row) => (
+                <ClampedText text={String(row.Remarks ?? "")} />
+              ),
             },
           ]}
         />
