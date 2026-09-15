@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { RoundLoader } from "@/components/ui/RoundLoader";
 import { SearchableSelect } from "@/components/ui/SearchableSelect";
@@ -25,6 +26,7 @@ export default function RoleMenuPermissionPage() {
   const [rolesLoading, setRolesLoading] = useState(true);
   const [matrixLoading, setMatrixLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [confirmSaveOpen, setConfirmSaveOpen] = useState(false);
   const [roleOptions, setRoleOptions] = useState<RoleOption[]>([]);
   const [roleId, setRoleId] = useState("");
   const [matrixRows, setMatrixRows] = useState<RoleMenuMatrixRow[]>([]);
@@ -155,7 +157,7 @@ export default function RoleMenuPermissionPage() {
     setSelected(new Set());
   };
 
-  const handleSave = async () => {
+  const requestSave = () => {
     if (!roleId) {
       toast.error({
         title: "Select a role",
@@ -170,6 +172,14 @@ export default function RoleMenuPermissionPage() {
       });
       return;
     }
+    setConfirmSaveOpen(true);
+  };
+
+  const handleConfirmSave = async () => {
+    if (!roleId || isAdminRole) {
+      setConfirmSaveOpen(false);
+      return;
+    }
 
     setSaving(true);
     try {
@@ -177,6 +187,7 @@ export default function RoleMenuPermissionPage() {
         role_id: Number(roleId),
         menu_sls: Array.from(selected).sort((a, b) => a - b),
       });
+      setConfirmSaveOpen(false);
       toast.success({
         title: "Permissions saved",
         message: `Updated menu access for ${selectedRole?.label ?? "selected role"}.`,
@@ -207,7 +218,7 @@ export default function RoleMenuPermissionPage() {
                     type="button"
                     className="btn btn-primary"
                     disabled={saving || matrixLoading}
-                    onClick={() => void handleSave()}
+                    onClick={requestSave}
                   >
                     {saving ? "Saving..." : "Save Permissions"}
                   </button>
@@ -364,7 +375,7 @@ export default function RoleMenuPermissionPage() {
                       type="button"
                       className="btn btn-primary"
                       disabled={saving}
-                      onClick={() => void handleSave()}
+                      onClick={requestSave}
                     >
                       {saving ? "Saving..." : "Save Permissions"}
                     </button>
@@ -375,6 +386,19 @@ export default function RoleMenuPermissionPage() {
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={confirmSaveOpen}
+        onClose={() => {
+          if (!saving) setConfirmSaveOpen(false);
+        }}
+        onConfirm={handleConfirmSave}
+        title="Save menu permissions?"
+        message={`This will replace the current menu access for "${selectedRole?.label ?? "this role"}" with ${selectedCount} selected menu${selectedCount === 1 ? "" : "s"}.\nDo you want to continue?`}
+        confirmLabel="Save Permissions"
+        cancelLabel="Cancel"
+        loading={saving}
+      />
     </>
   );
 }
