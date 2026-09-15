@@ -511,6 +511,47 @@ export type EmployeeAttendanceReportQuery = {
   org_id?: number | string;
 };
 
+/** Late Coming Report — GET /api/v1/late-coming-report */
+export type LateComingReportRecord = {
+  Attendance_id: number;
+  Employee_id: number;
+  Employee_code?: string | null;
+  Employee_name?: string | null;
+  Photo_path?: string | null;
+  Branch_Id?: number | null;
+  Branch_Name?: string | null;
+  Dept_Id?: number | null;
+  Dept_Name?: string | null;
+  Desig_Id?: number | null;
+  Desig_Name?: string | null;
+  Attendance_date?: string | null;
+  Shift_id?: number | null;
+  Shift_code?: string | null;
+  Shift_name?: string | null;
+  Shift_start?: string | null;
+  Shift_late_after?: string | null;
+  Check_in?: string | null;
+  Check_out?: string | null;
+  Late_minutes?: number | null;
+  Working_minutes?: number | null;
+  Attendance_status?: number | null;
+  Attendance_status_name?: string | null;
+  Source?: number | null;
+  Source_name?: string | null;
+  Remarks?: string | null;
+};
+
+export type LateComingReportQuery = {
+  from_date?: string;
+  to_date?: string;
+  branch_id?: number | string;
+  dept_id?: number | string;
+  employee_id?: number | string;
+  min_late_minutes?: number | string;
+  search?: string;
+  org_id?: number | string;
+};
+
 export type DeviceStatus = OrganizationStatus;
 
 export type DeviceRecord = {

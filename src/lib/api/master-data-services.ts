@@ -21,8 +21,9 @@ import { employeeService } from "@/lib/api/services/employee.service";
 import { employeeServiceHistoryReportService } from "@/lib/api/services/employee-service-history-report.service";
 import { attendanceSummaryReportService } from "@/lib/api/services/attendance-summary-report.service";
 import { employeeAttendanceReportService } from "@/lib/api/services/employee-attendance-report.service";
+import { lateComingReportService } from "@/lib/api/services/late-coming-report.service";
 import { attendanceService } from "@/lib/api/services/attendance.service";
-import { MOCK_EMPLOYEES, MOCK_LATE_COMING, MOCK_EARLY_LEAVING, MOCK_LEAVE_REGISTER, MOCK_EMPLOYEE_LEAVE } from "@/data/reports-mock";
+import { MOCK_EMPLOYEES, MOCK_EARLY_LEAVING, MOCK_LEAVE_REGISTER, MOCK_EMPLOYEE_LEAVE } from "@/data/reports-mock";
 
 
 
@@ -212,9 +213,9 @@ export const MASTER_DATA_API_SERVICES: Record<string, MasterDataApiService> = {
     remove: async () => ({}),
   },
   "late-coming-report": {
-    list: async () => MOCK_LATE_COMING as any[],
-    create: async (row: any) => row,
-    update: async (id: any, row: any) => row,
+    list: (params) => lateComingReportService.list(params),
+    create: async (row) => row,
+    update: async (_id, row) => row,
     remove: async () => ({}),
   },
   "early-leaving-report": {

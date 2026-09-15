@@ -16,6 +16,7 @@ export { employeeRegisterReportService } from "@/lib/api/services/employee-regis
 export { employeeServiceHistoryReportService } from "@/lib/api/services/employee-service-history-report.service";
 export { attendanceSummaryReportService } from "@/lib/api/services/attendance-summary-report.service";
 export { employeeAttendanceReportService } from "@/lib/api/services/employee-attendance-report.service";
+export { lateComingReportService } from "@/lib/api/services/late-coming-report.service";
 export { employmentTypeService } from "@/lib/api/services/employment-type.service";
 export { employmentStatusService } from "@/lib/api/services/employment-status.service";
 export { organizationService } from "@/lib/api/services/organization.service";

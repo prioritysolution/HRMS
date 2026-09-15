@@ -21,6 +21,7 @@ export {
   employeeServiceHistoryReportService,
   attendanceSummaryReportService,
   employeeAttendanceReportService,
+  lateComingReportService,
   employmentTypeService,
   employmentStatusService,
   holidayService,
