@@ -22,9 +22,17 @@ export function StatusBadge({
 export function statusTone(status: string) {
   const value = status.toLowerCase();
   if (
-    ["active", "present", "approved", "qualified", "paid", "allocated", "assigned", "complete"].includes(
-      value,
-    )
+    [
+      "active",
+      "present",
+      "approved",
+      "qualified",
+      "paid",
+      "allocated",
+      "assigned",
+      "complete",
+      "login",
+    ].includes(value)
   ) {
     return "success" as const;
   }
@@ -33,7 +41,9 @@ export function statusTone(status: string) {
   ) {
     return "warning" as const;
   }
-  if (["inactive", "absent", "rejected", "overdue", "cancelled"].includes(value)) {
+  if (
+    ["inactive", "absent", "rejected", "overdue", "cancelled", "logout"].includes(value)
+  ) {
     return "danger" as const;
   }
   if (["on leave", "leave"].includes(value)) {

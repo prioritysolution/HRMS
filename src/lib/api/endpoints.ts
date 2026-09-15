@@ -299,4 +299,8 @@ export const API_ENDPOINTS = {
     delete: (id: string | number) => `/api/v1/role-menu/delete/${id}`,
     sync: "/api/v1/role-menu/sync",
   },
+  user: {
+    list: "/api/v1/user/list",
+    updateStatus: (id: string | number) => `/api/v1/user/update-status/${id}`,
+  },
 } as const;

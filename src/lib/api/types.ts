@@ -1065,6 +1065,56 @@ export type RoleMenuSyncPayload = {
   created_by?: number;
 };
 
+/** Security User — `mst_user` / USP_USER_* (core DB) */
+export type UserActiveStatus = OrganizationStatus;
+export type UserLoginStatus = "LogIn" | "LogOut" | string;
+
+export type UserRecord = {
+  User_Id?: number;
+  user_id?: number;
+  Org_Id?: number | null;
+  org_id?: number | null;
+  Org_Cd?: string | null;
+  org_cd?: string | null;
+  Org_Name?: string | null;
+  org_name?: string | null;
+  Org_Schema?: string | null;
+  org_schema?: string | null;
+  Branch_Id?: number | null;
+  branch_id?: number | null;
+  Branch_Code?: string | null;
+  branch_code?: string | null;
+  Branch_Name?: string | null;
+  branch_name?: string | null;
+  User_Name?: string | null;
+  user_name?: string | null;
+  Is_Active?: number | boolean | null;
+  is_active?: number | boolean | null;
+  Login_Status?: UserLoginStatus | null;
+  login_status?: UserLoginStatus | null;
+  Created_by?: number | null;
+  created_by?: number | null;
+  Created_at?: string | null;
+  created_at?: string | null;
+};
+
+export type UserListQuery = {
+  user_id?: number;
+  org_id?: number;
+  branch_id?: number;
+  user_name?: string;
+  search?: string;
+  is_active?: UserActiveStatus;
+  status?: UserActiveStatus;
+  login_status?: UserLoginStatus;
+};
+
+export type UserStatusPayload = {
+  is_active?: UserActiveStatus;
+  status?: UserActiveStatus;
+  updated_by?: number;
+};
+
 /** Leave Master — `mst_leave_master` / USP_LEAVE_* */
 export type LeaveMasterStatus = 0 | 1;
 export type LeaveMasterGender = "A" | "M" | "F";

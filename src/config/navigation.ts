@@ -168,6 +168,7 @@ export const navigation: NavSection[] = [
         children: [
           { label: "Role Management", href: "/security/role" },
           { label: "Role Menu Permission", href: "/security/permission" },
+          { label: "User Management", href: "/security/user" },
         ],
       },
     ],

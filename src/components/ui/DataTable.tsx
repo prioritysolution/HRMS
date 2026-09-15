@@ -172,14 +172,16 @@ export function RowActions<T extends object>({
   return (
     <>
       <div className="table-actions">
-        <button
-          type="button"
-          className="btn-action btn-action-edit"
-          aria-label="Edit"
-          onClick={() => onEdit?.(row)}
-        >
-          <SquarePen size={16} strokeWidth={2.25} />
-        </button>
+        {onEdit ? (
+          <button
+            type="button"
+            className="btn-action btn-action-edit"
+            aria-label="Edit"
+            onClick={() => onEdit(row)}
+          >
+            <SquarePen size={16} strokeWidth={2.25} />
+          </button>
+        ) : null}
         {inactive ? (
           <button
             type="button"
