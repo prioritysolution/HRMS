@@ -86,6 +86,7 @@ const MODULE_ICONS: Record<string, LucideIcon> = {
   "leave-encashment": Wallet,
   "leave-register-report": ClipboardList,
   "employee-leave-report": ClipboardList,
+  "leave-pending-report": ClipboardList,
   "payroll-salary-components": Tags,
   "payroll-salary-structure": Layers,
   "payroll-salary-revision": History,

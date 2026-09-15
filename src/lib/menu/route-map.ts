@@ -123,6 +123,10 @@ const ROUTE_ALIASES: Record<string, string> = {
   "/reports/leave-employee-wise": "/reports/leave/employee",
   "/employee-wise-leave": "/reports/leave/employee",
   "/leave-employee-wise": "/reports/leave/employee",
+  "/reports/leave/pending": "/reports/leave/pending",
+  "/reports/leave-pending": "/reports/leave/pending",
+  "/leave-pending": "/reports/leave/pending",
+  "/leave-pending-report": "/reports/leave/pending",
 
   // Dashboard
   "/dashboard": "/dashboard",
@@ -257,6 +261,8 @@ const LABEL_ROUTES: Array<{ match: RegExp; href: string }> = [
   { match: /^leave\s*report$/i, href: "/reports/leave/register" },
   { match: /^employee[\s-]*wise\s*leave(\s*report)?$/i, href: "/reports/leave/employee" },
   { match: /^leave\s*employee[\s-]*wise(\s*report)?$/i, href: "/reports/leave/employee" },
+  { match: /^leave\s*pending(\s*report)?$/i, href: "/reports/leave/pending" },
+  { match: /^pending\s*leave(\s*report)?$/i, href: "/reports/leave/pending" },
   { match: /^salary\s*components?$/i, href: "/payroll/salary-components" },
   { match: /^salary\s*structure$/i, href: "/payroll/salary-structure" },
   { match: /^salary\s*revision$/i, href: "/payroll/salary-revision" },

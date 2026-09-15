@@ -26,6 +26,7 @@ import { lateComingReportService } from "@/lib/api/services/late-coming-report.s
 import { earlyLeavingReportService } from "@/lib/api/services/early-leaving-report.service";
 import { leaveRegisterReportService } from "@/lib/api/services/leave-register-report.service";
 import { leaveEmployeeWiseReportService } from "@/lib/api/services/leave-employee-wise-report.service";
+import { leavePendingReportService } from "@/lib/api/services/leave-pending-report.service";
 import { attendanceService } from "@/lib/api/services/attendance.service";
 import { loginHistoryService } from "@/lib/api/services/login-history.service";
 import { auditLogService } from "@/lib/api/services/audit-log.service";
@@ -273,6 +274,12 @@ export const MASTER_DATA_API_SERVICES: Record<string, MasterDataApiService> = {
   },
   "employee-leave-report": {
     list: (params) => leaveEmployeeWiseReportService.list(params),
+    create: async (row) => row,
+    update: async (_id, row) => row,
+    remove: async () => ({}),
+  },
+  "leave-pending-report": {
+    list: (params) => leavePendingReportService.list(params),
     create: async (row) => row,
     update: async (_id, row) => row,
     remove: async () => ({}),

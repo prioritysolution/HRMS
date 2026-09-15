@@ -27,6 +27,10 @@ export {
   leaveEmployeeWiseReportService,
   leaveEmployeeWiseReportToRow,
 } from "@/lib/api/services/leave-employee-wise-report.service";
+export {
+  leavePendingReportService,
+  leavePendingReportToRow,
+} from "@/lib/api/services/leave-pending-report.service";
 export { employmentTypeService } from "@/lib/api/services/employment-type.service";
 export { employmentStatusService } from "@/lib/api/services/employment-status.service";
 export { organizationService } from "@/lib/api/services/organization.service";

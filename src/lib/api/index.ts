@@ -25,6 +25,7 @@ export {
   earlyLeavingReportService,
   leaveRegisterReportService,
   leaveEmployeeWiseReportService,
+  leavePendingReportService,
   employmentTypeService,
   employmentStatusService,
   holidayService,

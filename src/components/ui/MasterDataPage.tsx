@@ -81,6 +81,8 @@ type MasterDataPageProps = {
   onRowEdit?: (row: HrmsRow) => void;
   titleRender?: React.ReactNode;
   topContent?: React.ReactNode;
+  /** Extra controls rendered inside the FILTERS section (with Search / dropdowns). */
+  filterExtra?: React.ReactNode;
   stats?: any[];
   extraActions?:
     | React.ReactNode
@@ -240,6 +242,7 @@ export function MasterDataPage({
   onRowEdit,
   titleRender,
   topContent,
+  filterExtra,
   stats,
   extraActions,
   fetchParams,
@@ -2240,6 +2243,7 @@ export function MasterDataPage({
           columns={columns}
           searchKeys={config.searchKeys}
           filterFields={filterFields}
+          filterExtra={filterExtra}
           getDeleteLabel={deleteName}
           emptyStateIcon={getModuleEmptyIcon(moduleId)}
           emptyStateTitle={`No ${config.title.toLowerCase()} records yet`}

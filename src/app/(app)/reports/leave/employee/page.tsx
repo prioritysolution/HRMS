@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { MasterDataPage } from "@/components/ui/MasterDataPage";
+import { SearchableSelect } from "@/components/ui/SearchableSelect";
 import { branchService, finYearService } from "@/lib/api";
 
 export default function EmployeeLeaveReportPage() {
@@ -81,51 +82,41 @@ export default function EmployeeLeaveReportPage() {
         fin_year: finYearId || undefined,
         branch_id: branchId || undefined,
       }}
-      extraActions={
-        <div className="flex flex-wrap items-end gap-2">
-          <div className="min-w-[10.5rem]">
-            <label
-              className="mb-1 block text-xs font-medium text-[var(--text-secondary)]"
-              htmlFor="employee-leave-fin-year"
-            >
+      filterExtra={
+        <>
+          <div className="table-filter-item">
+            <label className="table-filter-label" htmlFor="employee-leave-fin-year">
               Financial Year
             </label>
-            <select
+            <SearchableSelect
               id="employee-leave-fin-year"
-              className="form-select form-select-sm"
               value={finYearId}
-              onChange={(event) => setFinYearId(event.target.value)}
-            >
-              <option value="">Active Year</option>
-              {finYearOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+              onChange={setFinYearId}
+              options={finYearOptions}
+              placeholder="Active Year"
+              searchPlaceholder="Search financial year..."
+              allowEmpty
+              emptyLabel="Active Year"
+              size="sm"
+            />
           </div>
-          <div className="min-w-[10.5rem]">
-            <label
-              className="mb-1 block text-xs font-medium text-[var(--text-secondary)]"
-              htmlFor="employee-leave-branch"
-            >
+          <div className="table-filter-item">
+            <label className="table-filter-label" htmlFor="employee-leave-branch">
               Branch
             </label>
-            <select
+            <SearchableSelect
               id="employee-leave-branch"
-              className="form-select form-select-sm"
               value={branchId}
-              onChange={(event) => setBranchId(event.target.value)}
-            >
-              <option value="">All Branches</option>
-              {branchOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+              onChange={setBranchId}
+              options={branchOptions}
+              placeholder="All Branches"
+              searchPlaceholder="Search branch..."
+              allowEmpty
+              emptyLabel="All Branches"
+              size="sm"
+            />
           </div>
-        </div>
+        </>
       }
       emptyStateMessage="Try adjusting the financial year, branch, or leave type filter."
     />

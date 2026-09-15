@@ -1614,6 +1614,21 @@ textarea {
   color: var(--secondary);
 }
 
+/* Keep Search / DatePicker / inputs aligned with SearchableSelect size="sm" */
+.table-filters .search-input input,
+.table-filters .date-picker-input.form-control,
+.table-filters .form-control {
+  height: 38px;
+  min-height: 38px;
+  max-height: 38px;
+  padding-top: 0.4rem;
+  padding-bottom: 0.4rem;
+  font-size: 0.875rem;
+  line-height: 1;
+  box-sizing: border-box;
+  border-radius: 0.5rem;
+}
+
 .table-filter-select,
 .table-page-size-select {
   height: 38px;

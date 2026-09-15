@@ -151,6 +151,7 @@ export const navigation: NavSection[] = [
         children: [
           { label: "Leave Register", href: "/reports/leave/register" },
           { label: "Employee-wise Leave", href: "/reports/leave/employee" },
+          { label: "Leave Pending", href: "/reports/leave/pending" },
         ],
       },
       {

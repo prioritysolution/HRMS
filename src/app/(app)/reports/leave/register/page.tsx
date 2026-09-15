@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { DatePicker } from "@/components/ui/DatePicker";
 import { MasterDataPage } from "@/components/ui/MasterDataPage";
 import { pad2 } from "@/lib/date-utils";
 
@@ -27,39 +28,31 @@ export default function LeaveRegisterReportPage() {
         from_date: fromDate || undefined,
         to_date: toDate || undefined,
       }}
-      extraActions={
-        <div className="flex flex-wrap items-end gap-2">
-          <div className="min-w-[9.5rem]">
-            <label
-              className="mb-1 block text-xs font-medium text-[var(--text-secondary)]"
-              htmlFor="leave-register-from"
-            >
+      filterExtra={
+        <>
+          <div className="table-filter-item">
+            <label className="table-filter-label" htmlFor="leave-register-from">
               From
             </label>
-            <input
+            <DatePicker
               id="leave-register-from"
-              type="date"
-              className="form-control form-control-sm"
               value={fromDate}
-              onChange={(event) => setFromDate(event.target.value)}
+              onChange={setFromDate}
+              max={toDate || undefined}
             />
           </div>
-          <div className="min-w-[9.5rem]">
-            <label
-              className="mb-1 block text-xs font-medium text-[var(--text-secondary)]"
-              htmlFor="leave-register-to"
-            >
+          <div className="table-filter-item">
+            <label className="table-filter-label" htmlFor="leave-register-to">
               To
             </label>
-            <input
+            <DatePicker
               id="leave-register-to"
-              type="date"
-              className="form-control form-control-sm"
               value={toDate}
-              onChange={(event) => setToDate(event.target.value)}
+              onChange={setToDate}
+              min={fromDate || undefined}
             />
           </div>
-        </div>
+        </>
       }
       emptyStateMessage="Try adjusting the date range, leave type, or status filter."
     />

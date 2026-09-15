@@ -689,6 +689,43 @@ export type LeaveEmployeeWiseReportQuery = {
   org_id?: number | string;
 };
 
+/**
+ * Leave Pending Report — GET /api/v1/leave-pending-report
+ * USP_LEAVE_PENDING_REPORT (Leave_Status = 1 only, oldest first)
+ */
+export type LeavePendingReportRecord = {
+  Leave_Application_Id: number;
+  Application_No?: string | null;
+  Employee_Id: number;
+  Employee_code?: string | null;
+  Employee_name?: string | null;
+  Branch_Id?: number | null;
+  Branch_Name?: string | null;
+  Dept_Name?: string | null;
+  Desig_Name?: string | null;
+  Leave_Code?: string | null;
+  Leave_Name?: string | null;
+  From_Date?: string | null;
+  To_Date?: string | null;
+  Total_Days?: string | number | null;
+  Leave_Status?: number | null;
+  Leave_Status_name?: string | null;
+  Applied_Date?: string | null;
+  Pending_Days?: number | null;
+  Reason?: string | null;
+};
+
+export type LeavePendingReportQuery = {
+  branch_id?: number | string;
+  dept_id?: number | string;
+  employee_id?: number | string;
+  leave_id?: number | string;
+  /** Pending_Days >= this value. */
+  min_pending_days?: number | string;
+  search?: string;
+  org_id?: number | string;
+};
+
 export type DeviceStatus = OrganizationStatus;
 
 export type DeviceRecord = {
