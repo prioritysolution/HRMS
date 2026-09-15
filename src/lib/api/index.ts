@@ -61,6 +61,8 @@ export {
   codeSeriesService,
   emailConfigService,
   toEmailConfigWritePayload,
+  smsConfigService,
+  documentSettingsService,
   notificationSettingsService,
 } from "@/lib/api/services";
 export { env, getApiUrl } from "@/lib/env";

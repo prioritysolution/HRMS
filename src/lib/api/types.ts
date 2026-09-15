@@ -2255,6 +2255,97 @@ export type EmailConfigTestPayload = EmailConfigWritePayload & {
   message: string;
 };
 
+/** Document Settings — GET /document-settings/list, PUT /document-settings/save */
+export type DocumentSettingsRecord = {
+  setting_id?: number | null;
+  approval_required: 0 | 1;
+  allow_edit_after_approval: 0 | 1;
+  allow_cancel_after_approval: 0 | 1;
+  allow_reprint: 0 | 1;
+  show_duplicate_on_reprint: 0 | 1;
+};
+
+export type DocumentSettingsWritePayload = {
+  approval_required: 0 | 1;
+  allow_edit_after_approval: 0 | 1;
+  allow_cancel_after_approval: 0 | 1;
+  allow_reprint: 0 | 1;
+  show_duplicate_on_reprint: 0 | 1;
+};
+
+/** SMS Gateway — GET/POST/PUT /api/v1/sms-gateway/* (singleton) */
+export type SmsGatewayRecord = {
+  gateway_id?: number | null;
+  api_url: string;
+  api_key: string;
+  sender_id: string;
+  message_type: string;
+  status: 0 | 1;
+};
+
+export type SmsGatewayCreatePayload = {
+  api_url: string;
+  api_key: string;
+  sender_id: string;
+  message_type: string;
+  status: 0 | 1;
+};
+
+export type SmsGatewayUpdatePayload = {
+  api_url: string;
+  api_key?: string;
+  sender_id: string;
+  message_type: string;
+  status: 0 | 1;
+};
+
+/** SMS Event Settings — GET /sms-event/list, PUT /sms-event/save */
+export type SmsEventRecord = {
+  event_id: number;
+  event_code: string;
+  event_name: string;
+  event_label: string;
+  description: string;
+  status: 0 | 1;
+};
+
+export type SmsEventSaveItem = {
+  event_id?: number;
+  event_code?: string;
+  status: 0 | 1;
+};
+
+export type SmsEventSavePayload = {
+  events: SmsEventSaveItem[];
+};
+
+/** SMS Template Setup — /api/v1/sms-template/* */
+export type SmsTemplateRecord = {
+  template_id: number;
+  template_name: string;
+  event_id: number;
+  event_code: string;
+  event_name: string;
+  event_label: string;
+  message_template: string;
+  status: 0 | 1;
+};
+
+export type SmsTemplateWritePayload = {
+  template_name: string;
+  event_id: number;
+  message_template: string;
+  status: 0 | 1;
+};
+
+export type SmsTemplateStatusPayload = {
+  status: 0 | 1;
+};
+
+export type SmsTemplateListQuery = {
+  search?: string;
+};
+
 export type NotificationChannelStatus = 0 | 1;
 
 export type NotificationSettingsRecord = {

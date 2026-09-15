@@ -13,7 +13,7 @@ import { RoundLoader } from "@/components/ui/RoundLoader";
 import { StatusToggle } from "@/components/ui/StatusToggle";
 import { TableSectionHeader } from "@/components/ui/TableSectionHeader";
 import { useToast } from "@/components/ui/ToastProvider";
-import type { DocumentSettings } from "@/data/settings-mock";
+import type { DocumentSettings } from "@/lib/api/services/document-settings.service";
 import { documentSettingsService } from "@/lib/api/services/document-settings.service";
 import type { FormValue } from "@/lib/form-validation";
 

@@ -296,6 +296,26 @@ export const API_ENDPOINTS = {
     update: "/api/v1/email-config/update",
     test: "/api/v1/email-config/test",
   },
+  documentSettings: {
+    list: "/api/v1/document-settings/list",
+    save: "/api/v1/document-settings/save",
+  },
+  smsGateway: {
+    list: "/api/v1/sms-gateway/list",
+    create: "/api/v1/sms-gateway/create",
+    update: "/api/v1/sms-gateway/update",
+  },
+  smsEvent: {
+    list: "/api/v1/sms-event/list",
+    save: "/api/v1/sms-event/save",
+  },
+  smsTemplate: {
+    list: "/api/v1/sms-template/list",
+    create: "/api/v1/sms-template/create",
+    update: (id: string | number) => `/api/v1/sms-template/update/${id}`,
+    status: (id: string | number) => `/api/v1/sms-template/status/${id}`,
+    delete: (id: string | number) => `/api/v1/sms-template/delete/${id}`,
+  },
   notificationSettings: {
     get: "/api/v1/notification-settings",
     update: "/api/v1/notification-settings",
