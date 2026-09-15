@@ -91,6 +91,24 @@ export const MOCK_ATTENDANCE_SETTINGS: AttendanceSettings = {
   weekly_off_ot: 1,
 };
 
+export type LeaveSettings = {
+  apply_for_future_leave: 0 | 1;
+  apply_for_previous_date_leave: 0 | 1;
+  half_day_leave_allowed: 0 | 1;
+  apply_during_probation: 0 | 1;
+  reason_mandatory: 0 | 1;
+  prevent_overlapping_leave: 0 | 1;
+};
+
+export const MOCK_LEAVE_SETTINGS: LeaveSettings = {
+  apply_for_future_leave: 1,
+  apply_for_previous_date_leave: 1,
+  half_day_leave_allowed: 1,
+  apply_during_probation: 1,
+  reason_mandatory: 1,
+  prevent_overlapping_leave: 1,
+};
+
 export const MOCK_SMS_GATEWAY: SmsGatewayConfig = {
   api_url: "https://sms.prioritysolutions.in/api/v1/send",
   api_key: "demo-sms-api-key-••••••••",
