@@ -109,6 +109,48 @@ export const MOCK_LEAVE_SETTINGS: LeaveSettings = {
   prevent_overlapping_leave: 1,
 };
 
+export type PayrollSettings = {
+  salary_basis: "monthly" | "daily" | "hourly";
+  working_days_basis: "calendar_days" | "actual_working_days" | "fixed_26" | "fixed_30";
+  salary_calculation_based_on: "attendance" | "paid_days" | "working_days";
+  ot_applicable: 0 | 1;
+  ot_calculation_based_on: "basic" | "hourly_rate";
+  normal_day_ot_rate: number;
+  weekly_off_ot_rate: number;
+  holiday_ot_rate: number;
+  minimum_ot_minutes: number;
+  generate_salary_slip_automatically: 0 | 1;
+  salary_slip_format: "a4" | "a5" | "letter";
+  show_attendance_details: 0 | 1;
+  show_leave_details: 0 | 1;
+  show_earnings: 0 | 1;
+  show_deductions: 0 | 1;
+  show_employer_contributions: 0 | 1;
+  show_bank_details: 0 | 1;
+  digital_signature: 0 | 1;
+};
+
+export const MOCK_PAYROLL_SETTINGS: PayrollSettings = {
+  salary_basis: "monthly",
+  working_days_basis: "calendar_days",
+  salary_calculation_based_on: "attendance",
+  ot_applicable: 1,
+  ot_calculation_based_on: "basic",
+  normal_day_ot_rate: 1.5,
+  weekly_off_ot_rate: 2.0,
+  holiday_ot_rate: 2.0,
+  minimum_ot_minutes: 30,
+  generate_salary_slip_automatically: 1,
+  salary_slip_format: "a4",
+  show_attendance_details: 1,
+  show_leave_details: 1,
+  show_earnings: 1,
+  show_deductions: 1,
+  show_employer_contributions: 1,
+  show_bank_details: 1,
+  digital_signature: 1,
+};
+
 export const MOCK_SMS_GATEWAY: SmsGatewayConfig = {
   api_url: "https://sms.prioritysolutions.in/api/v1/send",
   api_key: "demo-sms-api-key-••••••••",

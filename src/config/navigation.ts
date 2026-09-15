@@ -163,6 +163,7 @@ export const navigation: NavSection[] = [
           { label: "Document Settings", href: "/settings/document" },
           { label: "Attendance Settings", href: "/settings/attendance" },
           { label: "Leave Settings", href: "/settings/leave" },
+          { label: "Payroll Settings", href: "/settings/payroll" },
           { label: "Notifications", href: "/settings/notifications" },
           { label: "Configure Numbering Sequence", href: "/settings/configure-numbering-sequence" },
         ],

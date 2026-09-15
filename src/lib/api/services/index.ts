@@ -93,6 +93,8 @@ export { attendanceSettingsService } from "@/lib/api/services/attendance-setting
 export type { AttendanceSettingsActionResult } from "@/lib/api/services/attendance-settings.service";
 export { leaveSettingsService } from "@/lib/api/services/leave-settings.service";
 export type { LeaveSettingsActionResult } from "@/lib/api/services/leave-settings.service";
+export { payrollSettingsService } from "@/lib/api/services/payroll-settings.service";
+export type { PayrollSettingsActionResult } from "@/lib/api/services/payroll-settings.service";
 export { employeeOnboardingService } from "@/lib/api/services/employee-onboarding.service";
 export {
   attendanceTrendToPercentages,
