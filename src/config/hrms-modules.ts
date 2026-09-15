@@ -2631,17 +2631,14 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
     nameKey: "Role_Name",
     usesApi: true,
     statusToggle: true,
-    searchKeys: ["Role_Code", "Role_Name", "Remarks"],
+    searchKeys: ["Role_Name"],
     columns: [
-      { key: "Role_Code", header: "Role Code" },
       { key: "Role_Name", header: "Role Name" },
       { key: "Is_Admin", header: "Admin", type: "boolean" },
       { key: "Status", header: "Status", type: "status", filterable: true },
-      { key: "Remarks", header: "Remarks", wrap: true },
     ],
     formFields: [
-      { name: "Role_Code", label: "Role Code", placeholder: "Ex. HR_ADMIN" },
-      { name: "Role_Name", label: "Role Name", required: true, placeholder: "Ex. HR Admin" },
+      { name: "Role_Name", label: "Role Name", required: true, placeholder: "Ex. Branch HR" },
       {
         name: "Is_Admin",
         label: "Administrator Role",
@@ -2657,13 +2654,6 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
           { value: "Inactive", label: "Inactive" },
         ],
         defaultValue: "Active",
-      },
-      {
-        name: "Remarks",
-        label: "Remarks",
-        type: "textarea",
-        span: "full",
-        placeholder: "Optional notes about this role",
       },
     ],
   },

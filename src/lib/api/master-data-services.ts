@@ -91,7 +91,7 @@ async function listEmploymentTypes(): Promise<HrmsRow[]> {
 }
 
 async function listRoles(): Promise<HrmsRow[]> {
-  return roleService.list(undefined, await buildOrgNameMap());
+  return roleService.list();
 }
 
 async function listWorkShifts(): Promise<HrmsRow[]> {

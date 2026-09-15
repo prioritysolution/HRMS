@@ -287,7 +287,6 @@ export const API_ENDPOINTS = {
   },
   role: {
     list: "/api/v1/role/list",
-    get: (id: string | number) => `/api/v1/role/get/${id}`,
     create: "/api/v1/role/create",
     update: (id: string | number) => `/api/v1/role/update/${id}`,
     delete: (id: string | number) => `/api/v1/role/delete/${id}`,

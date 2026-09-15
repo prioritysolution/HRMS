@@ -1,4 +1,3 @@
-import { appendOrgIdQuery, getCurrentOrgId, resolveOrgId } from "@/lib/auth/org-context";
 import { apiClient } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/endpoints";
 import type { RoleListQuery, RoleRecord, RoleWritePayload } from "@/lib/api/types";
@@ -49,44 +48,34 @@ function asRole(payload: unknown): RoleRecord {
   return (nested ?? record ?? payload) as RoleRecord;
 }
 
-export function roleToRow(record: RoleRecord, orgName = ""): HrmsRow {
+export function roleToRow(record: RoleRecord): HrmsRow {
   const source = record as unknown as Record<string, unknown>;
-  const roleId = readValue(source, ["Role_Id", "role_id", "id"]);
-  const orgId = readValue(source, ["Org_Id", "org_id"]);
+  const roleId = readValue(source, ["Id", "Role_Id", "role_id", "id"]);
   const isAdmin = toAdminFlag(readValue(source, ["Is_Admin", "is_admin", "IsAdmin"]));
 
   return {
     id: String(roleId ?? ""),
     Role_Id: Number(roleId ?? 0),
-    Org_Id: Number(orgId ?? 0) || "",
-    Org_Name: orgName || optionalText(readValue(source, ["Org_Name", "org_name"])),
-    Role_Code: optionalText(readValue(source, ["Role_Code", "role_code"])),
     Role_Name: optionalText(readValue(source, ["Role_Name", "role_name"])),
     Is_Admin: isAdmin === 1,
     Status: toOrganizationStatusLabel(readValue(source, ["Status", "status"])),
-    Remarks: optionalText(readValue(source, ["Remarks", "remarks"])),
+    Created_at: optionalText(readValue(source, ["Created_at", "created_at"])),
   };
 }
 
 export function rowToRolePayload(row: HrmsRow): RoleWritePayload {
-  const orgId = resolveOrgId(row.Org_Id);
-  const roleCode = String(row.Role_Code ?? "").trim();
-  const remarks = String(row.Remarks ?? "").trim();
-
   return {
-    ...(orgId ? { org_id: orgId } : {}),
-    ...(roleCode ? { role_code: roleCode } : {}),
     role_name: String(row.Role_Name ?? "").trim(),
     is_admin: toAdminFlag(row.Is_Admin),
     status: toOrganizationStatus(row.Status),
-    ...(remarks ? { remarks } : { remarks: null }),
   };
 }
 
 function withListQuery(basePath: string, query?: RoleListQuery) {
   const params = new URLSearchParams();
-  const orgId = query?.org_id ?? getCurrentOrgId();
-  if (orgId !== undefined) params.set("org_id", String(orgId));
+  if (query?.role_id !== undefined) params.set("role_id", String(query.role_id));
+  const roleName = query?.role_name ?? query?.search;
+  if (roleName) params.set("role_name", roleName);
   if (query?.status !== undefined) params.set("status", String(query.status));
   if (query?.is_admin !== undefined) params.set("is_admin", String(query.is_admin));
   const suffix = params.toString();
@@ -94,19 +83,18 @@ function withListQuery(basePath: string, query?: RoleListQuery) {
 }
 
 export const roleService = {
-  list: async (query?: RoleListQuery, orgNameById?: Map<number, string>) => {
+  list: async (query?: RoleListQuery) => {
     const payload = await apiClient.get<unknown>(withListQuery(API_ENDPOINTS.role.list, query));
-    return asRoleList(payload).map((record) => {
-      const source = record as unknown as Record<string, unknown>;
-      const orgId = Number(readValue(source, ["Org_Id", "org_id"]) ?? 0);
-      const orgName = orgNameById?.get(orgId) ?? "";
-      return roleToRow(record, orgName);
-    });
+    return asRoleList(payload).map((record) => roleToRow(record));
   },
 
   getById: async (id: string | number) => {
-    const payload = await apiClient.get<unknown>(API_ENDPOINTS.role.get(id));
-    return roleToRow(asRole(payload));
+    const rows = await roleService.list({ role_id: Number(id) });
+    const match = rows.find((row) => String(row.id) === String(id));
+    if (!match) {
+      throw new Error("Role not found");
+    }
+    return match;
   },
 
   create: async (row: HrmsRow) => {
@@ -114,7 +102,7 @@ export const roleService = {
       API_ENDPOINTS.role.create,
       rowToRolePayload(row),
     );
-    return roleToRow(asRole(payload), String(row.Org_Name ?? ""));
+    return roleToRow(asRole(payload));
   },
 
   update: async (id: string | number, row: HrmsRow) => {
@@ -122,12 +110,12 @@ export const roleService = {
       API_ENDPOINTS.role.update(id),
       rowToRolePayload(row),
     );
-    return roleToRow(asRole(payload), String(row.Org_Name ?? ""));
+    return roleToRow(asRole(payload));
   },
 
   remove: (id: string | number) =>
     apiClient.delete<{ success?: boolean; message?: string; data?: null }>(
-      appendOrgIdQuery(API_ENDPOINTS.role.delete(id)),
+      API_ENDPOINTS.role.delete(id),
       { unwrap: false },
     ),
 };

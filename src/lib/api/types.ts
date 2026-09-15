@@ -945,37 +945,35 @@ export type EmploymentTypeListQuery = {
 export type RoleStatus = OrganizationStatus;
 
 export type RoleRecord = {
+  Id?: number;
+  id?: number;
   Role_Id?: number;
   role_id?: number;
-  Role_Code?: string | null;
-  role_code?: string | null;
   Role_Name?: string | null;
   role_name?: string | null;
   Is_Admin?: number | boolean | null;
   is_admin?: number | boolean | null;
   Status?: RoleStatus | number | string | null;
   status?: RoleStatus | number | string | null;
-  Org_Id?: number | null;
-  org_id?: number | null;
-  Org_Name?: string | null;
-  org_name?: string | null;
-  Remarks?: string | null;
-  remarks?: string | null;
+  Created_by?: number | null;
+  created_by?: number | null;
+  Created_at?: string | null;
+  created_at?: string | null;
 };
 
 export type RoleWritePayload = {
-  org_id?: number;
-  role_code?: string;
   role_name: string;
   is_admin?: 0 | 1;
   status?: RoleStatus;
-  remarks?: string | null;
+  created_by?: number;
 };
 
 export type RoleListQuery = {
-  org_id?: number;
-  status?: RoleStatus;
+  role_id?: number;
+  role_name?: string;
+  search?: string;
   is_admin?: 0 | 1;
+  status?: RoleStatus;
 };
 
 /** Leave Master — `mst_leave_master` / USP_LEAVE_* */
