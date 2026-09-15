@@ -300,6 +300,14 @@ export const API_ENDPOINTS = {
     list: "/api/v1/document-settings/list",
     save: "/api/v1/document-settings/save",
   },
+  lateEarlyRules: {
+    list: "/api/v1/late-early-rules/list",
+    save: "/api/v1/late-early-rules/save",
+  },
+  overtimeSettings: {
+    list: "/api/v1/overtime-settings/list",
+    save: "/api/v1/overtime-settings/save",
+  },
   smsGateway: {
     list: "/api/v1/sms-gateway/list",
     create: "/api/v1/sms-gateway/create",

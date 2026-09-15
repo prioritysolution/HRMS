@@ -253,6 +253,9 @@ export function FormFieldsRenderer({
                   onWheel={
                     floor !== undefined
                       ? (event) => {
+                          if (document.activeElement !== event.currentTarget) {
+                            return;
+                          }
                           event.preventDefault();
                           const current =
                             event.currentTarget.value === ""

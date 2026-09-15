@@ -2273,6 +2273,68 @@ export type DocumentSettingsWritePayload = {
   show_duplicate_on_reprint: 0 | 1;
 };
 
+/** Late & Early Rules — GET/PUT /api/v1/late-early-rules/* */
+export type LateEarlyRulesRecord = {
+  rule_id?: number | null;
+  late_grace_minutes: number;
+  early_leaving_grace_minutes: number;
+  late_mark_after_minutes: number;
+  half_day_after_minutes: number;
+  absent_after_minutes: number;
+};
+
+export type LateEarlyRulesWritePayload = {
+  late_grace_minutes: number;
+  early_leaving_grace_minutes: number;
+  late_mark_after_minutes: number;
+  half_day_after_minutes: number;
+  absent_after_minutes: number;
+};
+
+/** Overtime Settings — GET/PUT /api/v1/overtime-settings/* */
+export type OvertimeSettingsRecord = {
+  setting_id?: number | null;
+  overtime_applicable: 0 | 1;
+  ot_requires_approval: 0 | 1;
+  holiday_ot: 0 | 1;
+  weekly_off_ot: 0 | 1;
+  ot_calculation: string;
+  min_ot_minutes: number;
+  ot_round_off_minutes: number;
+  max_ot_per_day_hours: number;
+};
+
+export type OvertimeSettingsWritePayload = {
+  overtime_applicable: 0 | 1;
+  ot_requires_approval: 0 | 1;
+  holiday_ot: 0 | 1;
+  weekly_off_ot: 0 | 1;
+  ot_calculation: string;
+  min_ot_minutes: number;
+  ot_round_off_minutes: number;
+  max_ot_per_day_hours: number;
+};
+
+/** Combined attendance settings UI model */
+export type AttendanceSettingsRecord = {
+  late_grace_period_minutes: number;
+  early_leaving_grace_minutes: number;
+  late_mark_after_minutes: number;
+  half_day_after_minutes: number;
+  absent_after_minutes: number;
+  overtime_applicable: 0 | 1;
+  /** Appl-option Opt_Code sent/saved by API. */
+  ot_calculation: string;
+  /** Display name from API (e.g. "Daily"). */
+  ot_calculation_name?: string;
+  minimum_ot_minutes: number;
+  ot_round_off_minutes: number;
+  ot_requires_approval: 0 | 1;
+  maximum_ot_per_day_hours: number;
+  holiday_ot: 0 | 1;
+  weekly_off_ot: 0 | 1;
+};
+
 /** SMS Gateway — GET/POST/PUT /api/v1/sms-gateway/* (singleton) */
 export type SmsGatewayRecord = {
   gateway_id?: number | null;

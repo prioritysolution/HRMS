@@ -63,6 +63,7 @@ export {
   toEmailConfigWritePayload,
   smsConfigService,
   documentSettingsService,
+  attendanceSettingsService,
   notificationSettingsService,
 } from "@/lib/api/services";
 export { env, getApiUrl } from "@/lib/env";

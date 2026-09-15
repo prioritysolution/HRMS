@@ -110,8 +110,11 @@ export type {
   DocumentSettings,
   DocumentSettingsActionResult,
 } from "@/lib/api/services/document-settings.service";
-export { attendanceSettingsService } from "@/lib/api/services/attendance-settings.service";
-export type { AttendanceSettingsActionResult } from "@/lib/api/services/attendance-settings.service";
+export { attendanceSettingsService, OT_CALCULATION_OPT_GRP_ID } from "@/lib/api/services/attendance-settings.service";
+export type {
+  AttendanceSettings,
+  AttendanceSettingsActionResult,
+} from "@/lib/api/services/attendance-settings.service";
 export { leaveSettingsService } from "@/lib/api/services/leave-settings.service";
 export type { LeaveSettingsActionResult } from "@/lib/api/services/leave-settings.service";
 export { payrollSettingsService } from "@/lib/api/services/payroll-settings.service";

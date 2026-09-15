@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   CalendarDays,
   CheckCircle2,
@@ -13,10 +13,38 @@ import { RoundLoader } from "@/components/ui/RoundLoader";
 import { StatusToggle } from "@/components/ui/StatusToggle";
 import { TableSectionHeader } from "@/components/ui/TableSectionHeader";
 import { useToast } from "@/components/ui/ToastProvider";
-import type { AttendanceSettings } from "@/data/settings-mock";
-import { attendanceSettingsService } from "@/lib/api/services/attendance-settings.service";
+import {
+  applOptionService,
+} from "@/lib/api";
+import type { ApplOptionRecord } from "@/lib/api/types";
+import {
+  OT_CALCULATION_OPT_GRP_ID,
+  attendanceSettingsService,
+  type AttendanceSettings,
+} from "@/lib/api/services/attendance-settings.service";
 import { validateFormField, validateFormFields, type FormValue } from "@/lib/form-validation";
 import type { FormField } from "@/types/hrms";
+
+type OtCalculationOption = {
+  value: string;
+  label: string;
+  optionId: string;
+};
+
+/**
+ * OT Calculation select value = Opt_Code (what the API expects on save).
+ * optionId is kept only to resolve GET responses that return Option_Id.
+ */
+function otCalculationToSelectOptions(records: ApplOptionRecord[]): OtCalculationOption[] {
+  return [...records]
+    .sort((left, right) => Number(left.Srl_No ?? 0) - Number(right.Srl_No ?? 0))
+    .map((record) => ({
+      value: String(record.Opt_Code ?? "").trim(),
+      label: String(record.Opt_Description || record.Opt_Code || "").trim(),
+      optionId: String(record.Option_Id ?? "").trim(),
+    }))
+    .filter((option) => option.value);
+}
 
 const lateEarlyFields: FormField[] = [
   {
@@ -66,48 +94,47 @@ const lateEarlyFields: FormField[] = [
   },
 ];
 
-const overtimeValueFields: FormField[] = [
-  {
-    label: "OT Calculation",
-    name: "ot_calculation",
-    type: "select",
-    required: true,
-    defaultValue: "daily",
-    options: [
-      { value: "daily", label: "Daily" },
-      { value: "monthly", label: "Monthly" },
-    ],
-  },
-  {
-    label: "Minimum OT (Minutes)",
-    name: "minimum_ot_minutes",
-    type: "number",
-    required: true,
-    min: 0,
-    max: 480,
-    defaultValue: "30",
-  },
-  {
-    label: "OT Round Off (Minutes)",
-    name: "ot_round_off_minutes",
-    type: "number",
-    required: true,
-    min: 0,
-    max: 480,
-    defaultValue: "30",
-  },
-  {
-    label: "Maximum OT per Day (Hours)",
-    name: "maximum_ot_per_day_hours",
-    type: "number",
-    required: true,
-    min: 0,
-    max: 24,
-    defaultValue: "4",
-  },
-];
-
-const allFields: FormField[] = [...lateEarlyFields, ...overtimeValueFields];
+function buildOvertimeValueFields(
+  otCalculationOptions: OtCalculationOption[],
+): FormField[] {
+  return [
+    {
+      label: "OT Calculation",
+      name: "ot_calculation",
+      type: "select",
+      required: true,
+      defaultValue: otCalculationOptions[0]?.value ?? "",
+      options: otCalculationOptions,
+    },
+    {
+      label: "Minimum OT (Minutes)",
+      name: "minimum_ot_minutes",
+      type: "number",
+      required: true,
+      min: 0,
+      max: 480,
+      defaultValue: "30",
+    },
+    {
+      label: "OT Round Off (Minutes)",
+      name: "ot_round_off_minutes",
+      type: "number",
+      required: true,
+      min: 0,
+      max: 480,
+      defaultValue: "30",
+    },
+    {
+      label: "Maximum OT per Day (Hours)",
+      name: "maximum_ot_per_day_hours",
+      type: "number",
+      required: true,
+      min: 0,
+      max: 24,
+      defaultValue: "4",
+    },
+  ];
+}
 
 const OT_TOGGLES = [
   {
@@ -145,7 +172,38 @@ function toNumber(value: FormValue, fallback = 0): number {
   return Number.isFinite(numeric) ? numeric : fallback;
 }
 
-function toFormValues(data: AttendanceSettings): Record<string, FormValue> {
+function resolveOtCalculationValue(
+  raw: string,
+  name: string | undefined,
+  options: OtCalculationOption[],
+): string {
+  const text = String(raw ?? "").trim();
+  const label = String(name ?? "").trim();
+
+  if (text) {
+    const byCode = options.find(
+      (option) => option.value.toLowerCase() === text.toLowerCase(),
+    );
+    if (byCode) return byCode.value;
+
+    const byId = options.find((option) => option.optionId === text);
+    if (byId) return byId.value;
+  }
+
+  if (label) {
+    const byLabel = options.find(
+      (option) => option.label.toLowerCase() === label.toLowerCase(),
+    );
+    if (byLabel) return byLabel.value;
+  }
+
+  return options[0]?.value ?? "";
+}
+
+function toFormValues(
+  data: AttendanceSettings,
+  otCalculationOptions: OtCalculationOption[],
+): Record<string, FormValue> {
   return {
     late_grace_period_minutes: String(data.late_grace_period_minutes),
     early_leaving_grace_minutes: String(data.early_leaving_grace_minutes),
@@ -153,7 +211,11 @@ function toFormValues(data: AttendanceSettings): Record<string, FormValue> {
     half_day_after_minutes: String(data.half_day_after_minutes),
     absent_after_minutes: String(data.absent_after_minutes),
     overtime_applicable: String(data.overtime_applicable),
-    ot_calculation: data.ot_calculation,
+    ot_calculation: resolveOtCalculationValue(
+      data.ot_calculation,
+      data.ot_calculation_name,
+      otCalculationOptions,
+    ),
     minimum_ot_minutes: String(data.minimum_ot_minutes),
     ot_round_off_minutes: String(data.ot_round_off_minutes),
     ot_requires_approval: String(data.ot_requires_approval),
@@ -163,18 +225,43 @@ function toFormValues(data: AttendanceSettings): Record<string, FormValue> {
   };
 }
 
+/** Merge API/toggle values with form field defaults (toggles are not FormFields). */
+function buildAttendanceFormValues(
+  data: AttendanceSettings,
+  otCalculationOptions: OtCalculationOption[],
+): Record<string, FormValue> {
+  const fields = [
+    ...lateEarlyFields,
+    ...buildOvertimeValueFields(otCalculationOptions),
+  ];
+  return {
+    ...buildInitialFormValues(fields),
+    ...toFormValues(data, otCalculationOptions),
+  };
+}
+
 export default function AttendanceSettingsPage() {
   const toast = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [values, setValues] = useState<Record<string, FormValue>>(() =>
-    buildInitialFormValues(allFields, {
-      overtime_applicable: "1",
-      ot_requires_approval: "1",
-      holiday_ot: "1",
-      weekly_off_ot: "1",
-    }),
+  const [otCalculationOptions, setOtCalculationOptions] = useState<
+    OtCalculationOption[]
+  >([]);
+  const overtimeValueFields = useMemo(
+    () => buildOvertimeValueFields(otCalculationOptions),
+    [otCalculationOptions],
   );
+  const allFields = useMemo(
+    () => [...lateEarlyFields, ...overtimeValueFields],
+    [overtimeValueFields],
+  );
+  const [values, setValues] = useState<Record<string, FormValue>>(() => ({
+    ...buildInitialFormValues([...lateEarlyFields, ...buildOvertimeValueFields([])]),
+    overtime_applicable: "0",
+    ot_requires_approval: "0",
+    holiday_ot: "0",
+    weekly_off_ot: "0",
+  }));
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -182,10 +269,20 @@ export default function AttendanceSettingsPage() {
 
     async function loadSettings() {
       try {
-        const result = await attendanceSettingsService.get();
+        const [result, otCalcOpts] = await Promise.all([
+          attendanceSettingsService.get(),
+          applOptionService.list({
+            opt_grp_id: OT_CALCULATION_OPT_GRP_ID,
+            is_active: 1,
+          }),
+        ]);
         if (cancelled) return;
+
+        const mappedOtCalc = otCalculationToSelectOptions(otCalcOpts);
+        setOtCalculationOptions(mappedOtCalc);
+
         if (result.data) {
-          setValues(buildInitialFormValues(allFields, toFormValues(result.data)));
+          setValues(buildAttendanceFormValues(result.data, mappedOtCalc));
           setErrors({});
         }
         if (!result.ok) {
@@ -194,11 +291,14 @@ export default function AttendanceSettingsPage() {
             message: result.message,
           });
         }
-      } catch {
+      } catch (error) {
         if (cancelled) return;
         toast.error({
           title: "Unable to load settings",
-          message: "Failed to load attendance settings. Please try again.",
+          message:
+            error instanceof Error
+              ? error.message
+              : "Failed to load attendance settings. Please try again.",
         });
       } finally {
         if (!cancelled) setLoading(false);
@@ -245,7 +345,7 @@ export default function AttendanceSettingsPage() {
         half_day_after_minutes: toNumber(values.half_day_after_minutes),
         absent_after_minutes: toNumber(values.absent_after_minutes),
         overtime_applicable: toFlag(values.overtime_applicable),
-        ot_calculation: String(values.ot_calculation) === "monthly" ? "monthly" : "daily",
+        ot_calculation: String(values.ot_calculation ?? "").trim(),
         minimum_ot_minutes: toNumber(values.minimum_ot_minutes),
         ot_round_off_minutes: toNumber(values.ot_round_off_minutes),
         ot_requires_approval: toFlag(values.ot_requires_approval),
@@ -257,7 +357,7 @@ export default function AttendanceSettingsPage() {
         toast.error({ title: "Save failed", message: result.message });
         return;
       }
-      setValues(buildInitialFormValues(allFields, toFormValues(result.data)));
+      setValues(buildAttendanceFormValues(result.data, otCalculationOptions));
       toast.success({ title: "Saved", message: result.message });
     } catch {
       toast.error({
