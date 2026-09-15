@@ -51,6 +51,7 @@ import { MasterDataModal } from "@/components/modals/MasterDataModal";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { StatCard } from "@/components/ui/StatCard";
 import { DataTable, PersonCell, SoftStatus, ClampedText, JsonClampedText, type Column } from "@/components/ui/DataTable";
+import { ReportExportButtons } from "@/components/reports/ReportExportButtons";
 import { useToast } from "@/components/ui/ToastProvider";
 import { queueAuditLog, resolveAuditRecordId } from "@/lib/audit-log";
 import { getModuleEmptyIcon } from "@/lib/module-icons";
@@ -81,7 +82,13 @@ type MasterDataPageProps = {
   titleRender?: React.ReactNode;
   topContent?: React.ReactNode;
   stats?: any[];
-  extraActions?: React.ReactNode;
+  extraActions?:
+    | React.ReactNode
+    | ((ctx: {
+        rows: HrmsRow[];
+        filteredRows: HrmsRow[];
+        loading: boolean;
+      }) => React.ReactNode);
   fetchParams?: Record<string, any>;
   modalSubtitle?: string;
   emptyStateMessage?: string;
@@ -244,6 +251,7 @@ export function MasterDataPage({
   const toast = useToast();
   const usesApi = Boolean(config.usesApi);
   const [rows, setRows] = useState<HrmsRow[]>([]);
+  const [filteredRows, setFilteredRows] = useState<HrmsRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [listTotal, setListTotal] = useState(0);
   const [listPage, setListPage] = useState(1);
@@ -2052,26 +2060,6 @@ export function MasterDataPage({
     setApprovalConfirm({ row, status });
   };
 
-  const resolvedExtraActions = useMemo(() => {
-    if (moduleId === "devices") {
-      return (
-        <div className="flex items-center gap-2">
-          {extraActions}
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={handleSyncDevices}
-            disabled={syncing || loading}
-          >
-            <RefreshCw size={16} strokeWidth={2} className={syncing ? "animate-spin" : ""} />
-            Sync Device
-          </button>
-        </div>
-      );
-    }
-    return extraActions;
-  }, [moduleId, extraActions, syncing, loading]);
-
   const activeStats = stats ?? config.stats;
 
   const tableRows = useMemo(() => {
@@ -2095,6 +2083,77 @@ export function MasterDataPage({
       return resolvedName ? { ...row, Branch_Name: resolvedName } : row;
     });
   }, [branchOptions, isDailyAttendanceModule, isEmployeeModule, rows]);
+
+  const resolvedExtraActions = useMemo(() => {
+    const exportRows = filteredRows.length ? filteredRows : tableRows;
+    const reportExport = config.reportExport;
+    const moduleExport = reportExport ? (
+      <ReportExportButtons
+        title={`${config.title} Report`}
+        rows={exportRows}
+        columns={reportExport.columns}
+        filterSummary={`${exportRows.length} record${exportRows.length === 1 ? "" : "s"} (as per current filters)`}
+        pdfLayout={reportExport.pdfLayout}
+        fieldGroups={reportExport.fieldGroups}
+        cardTitle={reportExport.cardTitle}
+        sheetName={reportExport.sheetName ?? config.title}
+        disabled={loading || editLoading}
+        emptyMessage={
+          reportExport.emptyMessage ?? "No records match the current filters."
+        }
+        successMessage={
+          reportExport.successMessage ?? "Download started for the filtered report."
+        }
+      />
+    ) : null;
+
+    const customActions =
+      typeof extraActions === "function"
+        ? extraActions({
+            rows: tableRows,
+            filteredRows: exportRows,
+            loading: loading || editLoading,
+          })
+        : extraActions;
+
+    const actions =
+      moduleExport && customActions ? (
+        <div className="flex flex-wrap items-end gap-2">
+          {customActions}
+          {moduleExport}
+        </div>
+      ) : (
+        (customActions ?? moduleExport)
+      );
+
+    if (moduleId === "devices") {
+      return (
+        <div className="flex items-center gap-2">
+          {actions}
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={handleSyncDevices}
+            disabled={syncing || loading}
+          >
+            <RefreshCw size={16} strokeWidth={2} className={syncing ? "animate-spin" : ""} />
+            Sync Device
+          </button>
+        </div>
+      );
+    }
+    return actions;
+  }, [
+    moduleId,
+    extraActions,
+    syncing,
+    loading,
+    editLoading,
+    tableRows,
+    filteredRows,
+    config.reportExport,
+    config.title,
+  ]);
 
   return (
     <>
@@ -2186,6 +2245,7 @@ export function MasterDataPage({
           emptyStateTitle={`No ${config.title.toLowerCase()} records yet`}
           emptyStateMessage={emptyStateMessage}
           loading={loading || editLoading}
+          onFilteredRowsChange={setFilteredRows}
           extraActions={resolvedExtraActions}
           defaultPageSize={listPageSize}
           serverPagination={

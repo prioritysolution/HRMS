@@ -146,6 +146,13 @@ export const navigation: NavSection[] = [
         ],
       },
       {
+        label: "Leave Reports",
+        icon: "reports",
+        children: [
+          { label: "Leave Register", href: "/reports/leave/register" },
+        ],
+      },
+      {
         label: "Employee Reports",
         icon: "reports",
         children: [

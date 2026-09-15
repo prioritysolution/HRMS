@@ -592,6 +592,63 @@ export type EarlyLeavingReportQuery = {
   org_id?: number | string;
 };
 
+/** Leave Register / Leave Report — GET /api/v1/leave-register-report (alias: /api/v1/leave-report) */
+export type LeaveRegisterReportRecord = {
+  Leave_Application_Id: number;
+  Application_No?: string | null;
+  Employee_Id: number;
+  Employee_code?: string | null;
+  Employee_name?: string | null;
+  Photo_path?: string | null;
+  Mobile?: string | null;
+  Branch_Id?: number | null;
+  Branch_Code?: string | null;
+  Branch_Name?: string | null;
+  Dept_Id?: number | null;
+  Dept_Name?: string | null;
+  Desig_Id?: number | null;
+  Desig_Name?: string | null;
+  Leave_Id?: number | null;
+  Leave_Code?: string | null;
+  Leave_Name?: string | null;
+  Is_Paid?: number | null;
+  From_Date?: string | null;
+  To_Date?: string | null;
+  Total_Days?: string | number | null;
+  Half_Day?: number | null;
+  Half_Day_code?: number | string | null;
+  Half_Day_name?: string | null;
+  Reason?: string | null;
+  Document_File?: string | null;
+  Leave_Status?: number | null;
+  Leave_Status_code?: number | null;
+  Leave_Status_name?: string | null;
+  Applied_Date?: string | null;
+  Status_by?: number | null;
+  Status_by_name?: string | null;
+  Status_Date?: string | null;
+  Remarks?: string | null;
+  Employee_status?: number | null;
+  Created_by?: number | null;
+  Created_at?: string | null;
+  Modified_by?: number | null;
+  Modified_at?: string | null;
+};
+
+export type LeaveRegisterReportQuery = {
+  from_date?: string;
+  to_date?: string;
+  branch_id?: number | string;
+  dept_id?: number | string;
+  employee_id?: number | string;
+  leave_id?: number | string;
+  /** Application status 1–4 (alias: application_status). */
+  leave_status?: number | string;
+  application_status?: number | string;
+  search?: string;
+  org_id?: number | string;
+};
+
 export type DeviceStatus = OrganizationStatus;
 
 export type DeviceRecord = {

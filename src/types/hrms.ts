@@ -86,6 +86,23 @@ export type StatCardConfig = {
   positive?: boolean;
 };
 
+export type ModuleReportExportConfig = {
+  columns: Array<{ key: string; header: string; fullWidth?: boolean }>;
+  fieldGroups?: Array<{
+    title: string;
+    fields: Array<{ key: string; header: string; fullWidth?: boolean }>;
+  }>;
+  pdfLayout?: "cards" | "table";
+  cardTitle?: {
+    primaryKey: string;
+    secondaryKey?: string;
+    badgeKey?: string;
+  };
+  sheetName?: string;
+  emptyMessage?: string;
+  successMessage?: string;
+};
+
 export type HrmsModuleConfig = {
   id: string;
   title: string;
@@ -106,4 +123,6 @@ export type HrmsModuleConfig = {
   serverPagination?: boolean;
   disableEditSubmit?: boolean;
   stats?: StatCardConfig[];
+  /** When set, MasterDataPage shows Excel/PDF export for this module. */
+  reportExport?: ModuleReportExportConfig;
 };

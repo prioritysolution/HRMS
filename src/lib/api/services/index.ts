@@ -18,6 +18,11 @@ export { attendanceSummaryReportService } from "@/lib/api/services/attendance-su
 export { employeeAttendanceReportService } from "@/lib/api/services/employee-attendance-report.service";
 export { lateComingReportService } from "@/lib/api/services/late-coming-report.service";
 export { earlyLeavingReportService } from "@/lib/api/services/early-leaving-report.service";
+export {
+  LEAVE_REGISTER_STATUS_OPTIONS,
+  leaveRegisterReportService,
+  leaveRegisterReportToRow,
+} from "@/lib/api/services/leave-register-report.service";
 export { employmentTypeService } from "@/lib/api/services/employment-type.service";
 export { employmentStatusService } from "@/lib/api/services/employment-status.service";
 export { organizationService } from "@/lib/api/services/organization.service";

@@ -111,6 +111,14 @@ const ROUTE_ALIASES: Record<string, string> = {
   "/payroll/payslip": "/payroll/payslip-bank",
   "/payroll/bank-transfer": "/payroll/payslip-bank",
 
+  // Reports
+  "/reports/leave/register": "/reports/leave/register",
+  "/reports/leave-register": "/reports/leave/register",
+  "/reports/leave-report": "/reports/leave/register",
+  "/leave-register": "/reports/leave/register",
+  "/leave-report": "/reports/leave/register",
+  "/reports/leave/employee": "/reports/leave/employee",
+
   // Dashboard
   "/dashboard": "/dashboard",
   "/home": "/dashboard",
@@ -240,6 +248,8 @@ const LABEL_ROUTES: Array<{ match: RegExp; href: string }> = [
   { match: /^leave\s*calendar$/i, href: "/leave/calendar" },
   { match: /^leave\s*encashment$/i, href: "/leave/encashment" },
   { match: /^leave\s*encashment$/i, href: "/leave/encashment" },
+  { match: /^leave\s*register(\s*report)?$/i, href: "/reports/leave/register" },
+  { match: /^leave\s*report$/i, href: "/reports/leave/register" },
   { match: /^salary\s*components?$/i, href: "/payroll/salary-components" },
   { match: /^salary\s*structure$/i, href: "/payroll/salary-structure" },
   { match: /^salary\s*revision$/i, href: "/payroll/salary-revision" },

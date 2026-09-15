@@ -222,6 +222,10 @@ export const API_ENDPOINTS = {
   earlyLeavingReport: {
     list: "/api/v1/early-leaving-report",
   },
+  leaveRegisterReport: {
+    list: "/api/v1/leave-register-report",
+    alias: "/api/v1/leave-report",
+  },
   employeeOnboarding: {
     list: "/api/v1/employee-onboarding/list",
     get: (id: number | string) => `/api/v1/employee-onboarding/get/${id}`,

@@ -23,6 +23,7 @@ export {
   employeeAttendanceReportService,
   lateComingReportService,
   earlyLeavingReportService,
+  leaveRegisterReportService,
   employmentTypeService,
   employmentStatusService,
   holidayService,
