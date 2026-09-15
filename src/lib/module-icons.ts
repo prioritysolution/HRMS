@@ -85,6 +85,7 @@ const MODULE_ICONS: Record<string, LucideIcon> = {
   "leave-calendar": CalendarDays,
   "leave-encashment": Wallet,
   "leave-register-report": ClipboardList,
+  "employee-leave-report": ClipboardList,
   "payroll-salary-components": Tags,
   "payroll-salary-structure": Layers,
   "payroll-salary-revision": History,

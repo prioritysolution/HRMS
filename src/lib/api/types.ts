@@ -649,6 +649,46 @@ export type LeaveRegisterReportQuery = {
   org_id?: number | string;
 };
 
+/**
+ * Employee-wise Leave Report — GET /api/v1/leave-employee-wise-report
+ * (alias: /api/v1/employee-wise-leave-report) — USP_LEAVE_EMPLOYEE_WISE_REPORT
+ */
+export type LeaveEmployeeWiseReportRecord = {
+  Employee_leave_id: number;
+  Employee_Id: number;
+  Employee_code?: string | null;
+  Employee_name?: string | null;
+  Branch_Id?: number | null;
+  Branch_Name?: string | null;
+  Dept_Name?: string | null;
+  Desig_Name?: string | null;
+  Leave_Id?: number | null;
+  Leave_Code?: string | null;
+  Leave_Name?: string | null;
+  Fin_Year?: number | null;
+  Fin_Year_Name?: string | null;
+  Opening_Balance?: string | number | null;
+  Allocated_Days?: string | number | null;
+  Earned_Days?: string | number | null;
+  Used_Days?: string | number | null;
+  Encashed_Days?: string | number | null;
+  Carry_Forward_Days?: string | number | null;
+  Balance_Days?: string | number | null;
+  Allocation_status?: number | null;
+  Employee_status?: number | null;
+};
+
+export type LeaveEmployeeWiseReportQuery = {
+  branch_id?: number | string;
+  dept_id?: number | string;
+  employee_id?: number | string;
+  leave_id?: number | string;
+  /** Financial year id; API defaults to active FY when omitted. */
+  fin_year?: number | string;
+  search?: string;
+  org_id?: number | string;
+};
+
 export type DeviceStatus = OrganizationStatus;
 
 export type DeviceRecord = {

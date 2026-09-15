@@ -23,6 +23,10 @@ export {
   leaveRegisterReportService,
   leaveRegisterReportToRow,
 } from "@/lib/api/services/leave-register-report.service";
+export {
+  leaveEmployeeWiseReportService,
+  leaveEmployeeWiseReportToRow,
+} from "@/lib/api/services/leave-employee-wise-report.service";
 export { employmentTypeService } from "@/lib/api/services/employment-type.service";
 export { employmentStatusService } from "@/lib/api/services/employment-status.service";
 export { organizationService } from "@/lib/api/services/organization.service";

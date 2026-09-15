@@ -226,6 +226,10 @@ export const API_ENDPOINTS = {
     list: "/api/v1/leave-register-report",
     alias: "/api/v1/leave-report",
   },
+  leaveEmployeeWiseReport: {
+    list: "/api/v1/leave-employee-wise-report",
+    alias: "/api/v1/employee-wise-leave-report",
+  },
   employeeOnboarding: {
     list: "/api/v1/employee-onboarding/list",
     get: (id: number | string) => `/api/v1/employee-onboarding/get/${id}`,
