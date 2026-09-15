@@ -1,32 +1,62 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Mail, Smartphone } from "lucide-react";
+import { Bell, Mail, MessageCircle, MessageSquare, Smartphone } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { RoundLoader } from "@/components/ui/RoundLoader";
 import { StatusToggle } from "@/components/ui/StatusToggle";
 import { TableSectionHeader } from "@/components/ui/TableSectionHeader";
 import { useToast } from "@/components/ui/ToastProvider";
+import type { NotificationChannelSettings } from "@/data/settings-mock";
 import { notificationSettingsService } from "@/lib/api/services/notification-settings.service";
 import type { FormValue } from "@/lib/form-validation";
 
 const CHANNELS = [
   {
-    name: "email_notification",
-    label: "Email Notification",
+    name: "inapp_notification" as const,
+    label: "In-App",
+    description: "Show alerts inside PrioHRM.",
+    icon: Smartphone,
+  },
+  {
+    name: "email_notification" as const,
+    label: "Email",
     description: "Send alerts and updates by email.",
     icon: Mail,
   },
   {
-    name: "inapp_notification",
-    label: "In-app Notification",
-    description: "Show alerts inside PrioHRM.",
-    icon: Smartphone,
+    name: "sms_notification" as const,
+    label: "SMS",
+    description: "Send text message notifications to employees.",
+    icon: MessageSquare,
+  },
+  {
+    name: "push_notification" as const,
+    label: "Push",
+    description: "Send mobile push notifications.",
+    icon: Bell,
+  },
+  {
+    name: "whatsapp_notification" as const,
+    label: "WhatsApp",
+    description: "Send WhatsApp alerts when configured.",
+    icon: MessageCircle,
+    optional: true,
   },
 ] as const;
 
-function toStatusValue(value: FormValue): 0 | 1 {
+function toFlag(value: FormValue): 0 | 1 {
   return String(value ?? "").trim() === "0" ? 0 : 1;
+}
+
+function toFormValues(data: NotificationChannelSettings): Record<string, FormValue> {
+  return {
+    inapp_notification: String(data.inapp_notification),
+    email_notification: String(data.email_notification),
+    sms_notification: String(data.sms_notification),
+    push_notification: String(data.push_notification),
+    whatsapp_notification: String(data.whatsapp_notification),
+  };
 }
 
 export default function NotificationSettingsPage() {
@@ -34,8 +64,11 @@ export default function NotificationSettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [values, setValues] = useState<Record<string, FormValue>>({
-    email_notification: "1",
     inapp_notification: "1",
+    email_notification: "1",
+    sms_notification: "1",
+    push_notification: "1",
+    whatsapp_notification: "0",
   });
 
   useEffect(() => {
@@ -45,10 +78,7 @@ export default function NotificationSettingsPage() {
       try {
         const result = await notificationSettingsService.get();
         if (cancelled) return;
-        setValues({
-          email_notification: String(result.data?.email_notification ?? 1),
-          inapp_notification: String(result.data?.inapp_notification ?? 1),
-        });
+        if (result.data) setValues(toFormValues(result.data));
         if (!result.ok) {
           toast.error({
             title: "Unable to load settings",
@@ -77,20 +107,20 @@ export default function NotificationSettingsPage() {
     setSaving(true);
     try {
       const result = await notificationSettingsService.update({
-        email_notification: toStatusValue(values.email_notification),
-        inapp_notification: toStatusValue(values.inapp_notification),
+        inapp_notification: toFlag(values.inapp_notification),
+        email_notification: toFlag(values.email_notification),
+        sms_notification: toFlag(values.sms_notification),
+        push_notification: toFlag(values.push_notification),
+        whatsapp_notification: toFlag(values.whatsapp_notification),
       });
-      if (!result.ok) {
+      if (!result.ok || !result.data) {
         toast.error({
           title: "Save failed",
           message: result.message,
         });
         return;
       }
-      setValues({
-        email_notification: String(result.data?.email_notification ?? values.email_notification),
-        inapp_notification: String(result.data?.inapp_notification ?? values.inapp_notification),
-      });
+      setValues(toFormValues(result.data));
       toast.success({ title: "Saved", message: result.message });
     } catch {
       toast.error({
@@ -104,12 +134,12 @@ export default function NotificationSettingsPage() {
 
   return (
     <>
-      <PageHeader title="Notifications" section="Settings" hideTitle />
+      <PageHeader title="Notification Settings" section="Settings" hideTitle />
       {loading ? (
         <div className="container-fluid">
           <div className="card">
             <div className="card-body">
-              <TableSectionHeader title="Notifications" />
+              <TableSectionHeader title="Notification Settings" />
               <div className="employee-profile-loading">
                 <RoundLoader />
                 <p>Loading notification settings…</p>
@@ -121,12 +151,13 @@ export default function NotificationSettingsPage() {
         <div className="container-fluid">
           <div className="card">
             <div className="card-body">
-              <TableSectionHeader title="Notifications" />
+              <TableSectionHeader title="Notification Settings" />
 
               <form id="notification-settings-form" onSubmit={(event) => void handleSave(event)}>
                 <div className="notification-option-list">
                   {CHANNELS.map((channel) => {
                     const Icon = channel.icon;
+                    const optional = "optional" in channel && channel.optional;
                     return (
                       <div key={channel.name} className="notification-option">
                         <div className="notification-option-main">
@@ -134,13 +165,22 @@ export default function NotificationSettingsPage() {
                             <Icon size={18} />
                           </div>
                           <div className="notification-option-copy">
-                            <h6>{channel.label}</h6>
+                            <h6 className="inline-flex items-center gap-2">
+                              {channel.label}
+                              {optional ? (
+                                <span className="badge bg-soft-secondary text-secondary text-xs font-medium">
+                                  Optional
+                                </span>
+                              ) : null}
+                            </h6>
                             <p>{channel.description}</p>
                           </div>
                         </div>
                         <StatusToggle
                           name={channel.name}
-                          value={String(values[channel.name] ?? "1")}
+                          value={String(values[channel.name] ?? "0")}
+                          activeLabel="Yes"
+                          inactiveLabel="No"
                           onChange={(nextValue) =>
                             setValues((prev) => ({ ...prev, [channel.name]: nextValue }))
                           }

@@ -197,6 +197,22 @@ export const MOCK_TAX_SETTINGS: TaxSettings = {
   show_tds_on_payslip: 1,
 };
 
+export type NotificationChannelSettings = {
+  inapp_notification: 0 | 1;
+  email_notification: 0 | 1;
+  sms_notification: 0 | 1;
+  push_notification: 0 | 1;
+  whatsapp_notification: 0 | 1;
+};
+
+export const MOCK_NOTIFICATION_SETTINGS: NotificationChannelSettings = {
+  inapp_notification: 1,
+  email_notification: 1,
+  sms_notification: 1,
+  push_notification: 1,
+  whatsapp_notification: 0,
+};
+
 export const MOCK_SMS_GATEWAY: SmsGatewayConfig = {
   api_url: "https://sms.prioritysolutions.in/api/v1/send",
   api_key: "demo-sms-api-key-••••••••",

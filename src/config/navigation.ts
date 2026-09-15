@@ -165,7 +165,7 @@ export const navigation: NavSection[] = [
           { label: "Leave Settings", href: "/settings/leave" },
           { label: "Payroll Settings", href: "/settings/payroll" },
           { label: "Tax Settings", href: "/settings/tax" },
-          { label: "Notifications", href: "/settings/notifications" },
+          { label: "Notification Settings", href: "/settings/notifications" },
           { label: "Configure Numbering Sequence", href: "/settings/configure-numbering-sequence" },
         ],
       },

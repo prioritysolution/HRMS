@@ -2124,8 +2124,11 @@ export type EmailConfigTestPayload = EmailConfigWritePayload & {
 export type NotificationChannelStatus = 0 | 1;
 
 export type NotificationSettingsRecord = {
-  email_notification: NotificationChannelStatus;
   inapp_notification: NotificationChannelStatus;
+  email_notification: NotificationChannelStatus;
+  sms_notification: NotificationChannelStatus;
+  push_notification: NotificationChannelStatus;
+  whatsapp_notification: NotificationChannelStatus;
 };
 
 export type NotificationSettingsWritePayload = NotificationSettingsRecord;
