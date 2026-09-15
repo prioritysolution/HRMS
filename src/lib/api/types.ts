@@ -1115,6 +1115,55 @@ export type UserStatusPayload = {
   updated_by?: number;
 };
 
+/** Login History — `trans_login_history` / USP_LOGIN_HIST_* */
+export type LoginHistoryStatus = 0 | 1;
+
+export type LoginHistoryRecord = {
+  Login_hist_id?: number;
+  login_hist_id?: number;
+  User_Id?: number | null;
+  user_id?: number | null;
+  User_Name?: string | null;
+  user_name?: string | null;
+  Org_Id?: number | null;
+  org_id?: number | null;
+  Org_Cd?: string | null;
+  org_cd?: string | null;
+  Org_Name?: string | null;
+  org_name?: string | null;
+  Branch_Id?: number | null;
+  branch_id?: number | null;
+  Branch_Code?: string | null;
+  branch_code?: string | null;
+  Branch_Name?: string | null;
+  branch_name?: string | null;
+  Login_status?: LoginHistoryStatus | number | string | null;
+  login_status?: LoginHistoryStatus | number | string | null;
+  Login_at?: string | null;
+  login_at?: string | null;
+  Logout_at?: string | null;
+  logout_at?: string | null;
+  Ip_address?: string | null;
+  ip_address?: string | null;
+  User_agent?: string | null;
+  user_agent?: string | null;
+  Remarks?: string | null;
+  remarks?: string | null;
+};
+
+export type LoginHistoryListQuery = {
+  login_hist_id?: number;
+  user_id?: number;
+  user_name?: string;
+  search?: string;
+  org_id?: number;
+  branch_id?: number;
+  login_status?: LoginHistoryStatus;
+  status?: LoginHistoryStatus;
+  from_date?: string;
+  to_date?: string;
+};
+
 /** Leave Master — `mst_leave_master` / USP_LEAVE_* */
 export type LeaveMasterStatus = 0 | 1;
 export type LeaveMasterGender = "A" | "M" | "F";

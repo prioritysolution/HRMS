@@ -32,6 +32,10 @@ export type {
   RoleMenuMatrixRow,
 } from "@/lib/api/services/role-menu.service";
 export { userService, userToRow } from "@/lib/api/services/user.service";
+export {
+  loginHistoryService,
+  loginHistoryToRow,
+} from "@/lib/api/services/login-history.service";
 export { holidayService } from "@/lib/api/services/holiday.service";
 export { HOLIDAY_TYPE_OPT_GRP_ID } from "@/lib/api/services/holiday.service";
 export {

@@ -303,4 +303,7 @@ export const API_ENDPOINTS = {
     list: "/api/v1/user/list",
     updateStatus: (id: string | number) => `/api/v1/user/update-status/${id}`,
   },
+  loginHistory: {
+    list: "/api/v1/login-history/list",
+  },
 } as const;

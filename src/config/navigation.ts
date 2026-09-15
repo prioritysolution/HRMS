@@ -169,6 +169,7 @@ export const navigation: NavSection[] = [
           { label: "Role Management", href: "/security/role" },
           { label: "Role Menu Permission", href: "/security/permission" },
           { label: "User Management", href: "/security/user" },
+          { label: "Login History", href: "/security/login-history" },
         ],
       },
     ],

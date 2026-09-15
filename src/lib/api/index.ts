@@ -53,6 +53,7 @@ export {
   roleMenuService,
   groupMatrixRows,
   userService,
+  loginHistoryService,
   workShiftService,
   codeSeriesService,
   emailConfigService,

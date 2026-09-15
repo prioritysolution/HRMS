@@ -167,6 +167,10 @@ const ROUTE_ALIASES: Record<string, string> = {
   "/security/users": "/security/user",
   "/user": "/security/user",
   "/users": "/security/user",
+  "/security/login-history": "/security/login-history",
+  "/security/loginhistory": "/security/login-history",
+  "/login-history": "/security/login-history",
+  "/loginhistory": "/security/login-history",
 };
 
 /**
@@ -249,6 +253,8 @@ const LABEL_ROUTES: Array<{ match: RegExp; href: string }> = [
   { match: /^user\s*management$/i, href: "/security/user" },
   { match: /^users?$/i, href: "/security/user" },
   { match: /^security\s*users?$/i, href: "/security/user" },
+  { match: /^login\s*history$/i, href: "/security/login-history" },
+  { match: /^user\s*login\s*history$/i, href: "/security/login-history" },
 ];
 
 function normalizePath(route: string): string {

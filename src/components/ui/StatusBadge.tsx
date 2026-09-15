@@ -32,6 +32,7 @@ export function statusTone(status: string) {
       "assigned",
       "complete",
       "login",
+      "success",
     ].includes(value)
   ) {
     return "success" as const;
@@ -42,7 +43,15 @@ export function statusTone(status: string) {
     return "warning" as const;
   }
   if (
-    ["inactive", "absent", "rejected", "overdue", "cancelled", "logout"].includes(value)
+    [
+      "inactive",
+      "absent",
+      "rejected",
+      "overdue",
+      "cancelled",
+      "logout",
+      "failed",
+    ].includes(value)
   ) {
     return "danger" as const;
   }
