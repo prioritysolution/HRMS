@@ -87,6 +87,10 @@ export type { EmailConfigActionResult } from "@/lib/api/services/email-config.se
 export { notificationSettingsService } from "@/lib/api/services/notification-settings.service";
 export { smsConfigService } from "@/lib/api/services/sms-config.service";
 export type { SmsConfigActionResult } from "@/lib/api/services/sms-config.service";
+export { documentSettingsService } from "@/lib/api/services/document-settings.service";
+export type { DocumentSettingsActionResult } from "@/lib/api/services/document-settings.service";
+export { attendanceSettingsService } from "@/lib/api/services/attendance-settings.service";
+export type { AttendanceSettingsActionResult } from "@/lib/api/services/attendance-settings.service";
 export { employeeOnboardingService } from "@/lib/api/services/employee-onboarding.service";
 export {
   attendanceTrendToPercentages,
