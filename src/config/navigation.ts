@@ -159,6 +159,7 @@ export const navigation: NavSection[] = [
         children: [
           { label: "Financial Year", href: "/settings/financial-year" },
           { label: "Email Configuration", href: "/settings/email" },
+          { label: "SMS Configuration", href: "/settings/sms" },
           { label: "Notifications", href: "/settings/notifications" },
           { label: "Configure Numbering Sequence", href: "/settings/configure-numbering-sequence" },
         ],

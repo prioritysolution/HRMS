@@ -85,6 +85,8 @@ export {
 } from "@/lib/api/services/email-config.service";
 export type { EmailConfigActionResult } from "@/lib/api/services/email-config.service";
 export { notificationSettingsService } from "@/lib/api/services/notification-settings.service";
+export { smsConfigService } from "@/lib/api/services/sms-config.service";
+export type { SmsConfigActionResult } from "@/lib/api/services/sms-config.service";
 export { employeeOnboardingService } from "@/lib/api/services/employee-onboarding.service";
 export {
   attendanceTrendToPercentages,
