@@ -215,6 +215,9 @@ export const API_ENDPOINTS = {
   lateComingReport: {
     list: "/api/v1/late-coming-report",
   },
+  earlyLeavingReport: {
+    list: "/api/v1/early-leaving-report",
+  },
   employeeOnboarding: {
     list: "/api/v1/employee-onboarding/list",
     get: (id: number | string) => `/api/v1/employee-onboarding/get/${id}`,
