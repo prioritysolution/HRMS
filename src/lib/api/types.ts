@@ -1162,6 +1162,8 @@ export type LoginHistoryListQuery = {
   status?: LoginHistoryStatus;
   from_date?: string;
   to_date?: string;
+  page?: number;
+  per_page?: number;
 };
 
 /** Leave Master — `mst_leave_master` / USP_LEAVE_* */
@@ -1572,27 +1574,57 @@ export type AuditLogCreatePayload = {
   user_agent?: string;
 };
 
+export type AuditLogListQuery = {
+  audit_id?: number;
+  user_id?: number;
+  menu_name?: string;
+  table_name?: string;
+  record_id?: number;
+  action?: AuditLogActionCode;
+  search?: string;
+  from_date?: string;
+  to_date?: string;
+  page?: number;
+  per_page?: number;
+};
+
 export type AuditLogRecord = {
+  Audit_id?: number;
   Audit_Id?: number;
   audit_id?: number;
-  User_Id?: number;
-  user_id?: number;
+  User_id?: number | null;
+  User_Id?: number | null;
+  user_id?: number | null;
+  User_Name?: string | null;
+  user_name?: string | null;
+  Menu_name?: string | null;
   Menu_Name?: string | null;
   menu_name?: string | null;
+  Table_name?: string | null;
   Table_Name?: string | null;
   table_name?: string | null;
+  Record_id?: number | null;
   Record_Id?: number | null;
   record_id?: number | null;
-  Action?: number;
-  action?: number;
+  Action?: number | null;
+  action?: number | null;
+  Action_code?: number | null;
+  action_code?: number | null;
+  Action_name?: string | null;
+  action_name?: string | null;
+  Old_values?: AuditLogJsonValue | string | null;
   Old_Values?: AuditLogJsonValue | string | null;
   old_values?: AuditLogJsonValue | string | null;
+  New_values?: AuditLogJsonValue | string | null;
   New_Values?: AuditLogJsonValue | string | null;
   new_values?: AuditLogJsonValue | string | null;
+  Ip_address?: string | null;
   Ip_Address?: string | null;
   ip_address?: string | null;
-  User_Agent?: string | null;
   user_agent?: string | null;
+  User_Agent?: string | null;
+  User_agent?: string | null;
+  Created_at?: string | null;
   Created_At?: string | null;
   created_at?: string | null;
 };

@@ -50,7 +50,7 @@ import { formatRowStatus, getRowStatusKey } from "@/lib/row-status";
 import { MasterDataModal } from "@/components/modals/MasterDataModal";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { StatCard } from "@/components/ui/StatCard";
-import { DataTable, PersonCell, SoftStatus, type Column } from "@/components/ui/DataTable";
+import { DataTable, PersonCell, SoftStatus, ClampedText, JsonClampedText, type Column } from "@/components/ui/DataTable";
 import { useToast } from "@/components/ui/ToastProvider";
 import { queueAuditLog, resolveAuditRecordId } from "@/lib/audit-log";
 import { getModuleEmptyIcon } from "@/lib/module-icons";
@@ -130,15 +130,28 @@ function buildColumns(configColumns: TableColumn[]): Column<HrmsRow>[] {
       };
     }
 
+    if (column.type === "json") {
+      return {
+        key: column.key,
+        header: column.header,
+        render: (row) => <JsonClampedText value={row[column.key]} />,
+      };
+    }
+
+    if (column.type === "clamp" || column.wrap) {
+      return {
+        key: column.key,
+        header: column.header,
+        render: (row) => (
+          <ClampedText text={formatCellValue(row[column.key], column.type)} />
+        ),
+      };
+    }
+
     return {
       key: column.key,
       header: column.header,
-      render: (row) =>
-        column.wrap ? (
-          <span className="cell-wrap">{formatCellValue(row[column.key], column.type)}</span>
-        ) : (
-          formatCellValue(row[column.key], column.type)
-        ),
+      render: (row) => formatCellValue(row[column.key], column.type),
     };
   });
 }
@@ -227,6 +240,9 @@ export function MasterDataPage({
   const usesApi = Boolean(config.usesApi);
   const [rows, setRows] = useState<HrmsRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [listTotal, setListTotal] = useState(0);
+  const [listPage, setListPage] = useState(1);
+  const [listPageSize, setListPageSize] = useState(10);
   const [addOpen, setAddOpen] = useState(false);
   const [editRow, setEditRow] = useState<HrmsRow | null>(null);
   const [syncing, setSyncing] = useState(false);
@@ -295,6 +311,19 @@ export function MasterDataPage({
   const isLeaveRequisitionModule = moduleId === "leave-requisition";
   const isLeaveApprovalModule = moduleId === "leave-approval";
   const isLeaveEntitlementModule = moduleId === "leave-entitlement";
+  const isReadOnlyModule = Boolean(config.readOnly);
+  const isServerPagedModule = Boolean(config.serverPagination);
+  const hasEditableForm = Boolean(
+    (config.formFields && config.formFields.length > 0) ||
+      (config.formSections && config.formSections.length > 0),
+  );
+  const allowRowEdit = !isReadOnlyModule && !isLeaveApprovalModule && hasEditableForm;
+  const allowStatusToggle =
+    !isReadOnlyModule &&
+    !isLeaveApprovalModule &&
+    !isLeaveRequisitionModule &&
+    (config.statusToggle ?? usesApi);
+  const showRowActions = !isReadOnlyModule && (allowRowEdit || allowStatusToggle || isLeaveApprovalModule);
   const [meProfile, setMeProfile] = useState<AuthMeProfile | null>(null);
   const isLeaveRequisitionAdmin = Boolean(meProfile?.isAdmin);
   const leaveRequisitionEmployeeId = meProfile?.employeeId ?? null;
@@ -1287,14 +1316,31 @@ export function MasterDataPage({
     };
   }, [moduleId]);
 
+  const resolvedFetchParams = useMemo(() => {
+    if (!isServerPagedModule) return fetchParams;
+    return {
+      ...(fetchParams ?? {}),
+      page: listPage,
+      per_page: listPageSize,
+    };
+  }, [fetchParams, isServerPagedModule, listPage, listPageSize]);
+
   const fetchModuleRows = useCallback(async (): Promise<HrmsRow[]> => {
-    const nextRows = usesApi
-      ? apiService
-        ? await apiService.list(fetchParams)
-        : []
-      : getHrmsMockRows(moduleId);
-    return sortConfigRows(moduleId, nextRows);
-  }, [apiService, moduleId, usesApi, fetchParams]);
+    if (!usesApi || !apiService) {
+      return sortConfigRows(moduleId, getHrmsMockRows(moduleId));
+    }
+
+    const result = await apiService.list(resolvedFetchParams);
+    if (Array.isArray(result)) {
+      if (isServerPagedModule) setListTotal(result.length);
+      return sortConfigRows(moduleId, result);
+    }
+
+    if (isServerPagedModule) {
+      setListTotal(Number(result.total ?? result.rows.length));
+    }
+    return sortConfigRows(moduleId, result.rows);
+  }, [apiService, isServerPagedModule, moduleId, resolvedFetchParams, usesApi]);
 
   const loadRows = useCallback(
     async (options?: { showLoader?: boolean }) => {
@@ -1304,6 +1350,7 @@ export function MasterDataPage({
         setRows(await fetchModuleRows());
       } catch (error) {
         setRows([]);
+        if (isServerPagedModule) setListTotal(0);
         toast.error({
           title: `Unable to load ${config.title.toLowerCase()}`,
           message: error instanceof ApiError ? error.message : "Check the API connection and try again.",
@@ -1312,8 +1359,13 @@ export function MasterDataPage({
         if (showLoader) setLoading(false);
       }
     },
-    [config.title, fetchModuleRows, toast],
+    [config.title, fetchModuleRows, isServerPagedModule, toast],
   );
+
+  useEffect(() => {
+    if (!isServerPagedModule) return;
+    setListPage(1);
+  }, [fetchParams, isServerPagedModule, moduleId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1327,6 +1379,7 @@ export function MasterDataPage({
       } catch (error) {
         if (cancelled) return;
         setRows([]);
+        if (isServerPagedModule) setListTotal(0);
         toast.error({
           title: `Unable to load ${config.title.toLowerCase()}`,
           message: error instanceof ApiError ? error.message : "Check the API connection and try again.",
@@ -1340,9 +1393,9 @@ export function MasterDataPage({
     return () => {
       cancelled = true;
     };
-    // Load once when the route/module changes — not when toast identity updates.
+    // Load when route/module or paging/filter params change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [moduleId, usesApi, fetchParams]);
+  }, [moduleId, usesApi, resolvedFetchParams]);
 
   // const handleEdit = (row: HrmsRow) => {
   //   if (onRowEdit) {
@@ -2023,19 +2076,15 @@ export function MasterDataPage({
         <DataTable
           title={titleRender ?? config.title}
           searchPlaceholder={`Search ${config.title.toLowerCase()}...`}
-          actionLabel={config.actionLabel}
-          onAction={() => setAddOpen(true)}
-          showRowActions
-          statusToggle={
-            isLeaveApprovalModule || isLeaveRequisitionModule
-              ? false
-              : (config.statusToggle ?? usesApi)
+          actionLabel={isReadOnlyModule ? undefined : config.actionLabel}
+          onAction={isReadOnlyModule ? undefined : () => setAddOpen(true)}
+          showRowActions={showRowActions}
+          statusToggle={allowStatusToggle}
+          onRowEdit={allowRowEdit ? handleEdit : undefined}
+          onRowDelete={
+            isLeaveApprovalModule || isReadOnlyModule ? undefined : handleDelete
           }
-          onRowEdit={isLeaveApprovalModule ? undefined : handleEdit}
-          onRowDelete={isLeaveApprovalModule ? undefined : handleDelete}
-          onRowActivate={
-            isLeaveApprovalModule || isLeaveRequisitionModule ? undefined : handleActivate
-          }
+          onRowActivate={allowStatusToggle ? handleActivate : undefined}
           renderRowActions={
             isLeaveApprovalModule
               ? (row) => {
@@ -2070,14 +2119,14 @@ export function MasterDataPage({
           deleteConfirmTitle={
             isLeaveRequisitionModule
               ? "Cancel leave requisition?"
-              : (config.statusToggle ?? usesApi)
+              : allowStatusToggle
                 ? `Deactivate ${config.title.toLowerCase()}?`
                 : `Delete ${config.title.toLowerCase()}?`
           }
           deleteConfirmMessage={
             isLeaveRequisitionModule
               ? "This will cancel the pending application. Only pending requisitions can be cancelled."
-              : (config.statusToggle ?? usesApi)
+              : allowStatusToggle
                 ? DEACTIVATE_CONFIRM_MESSAGE
                 : undefined
           }
@@ -2093,6 +2142,21 @@ export function MasterDataPage({
           emptyStateMessage={emptyStateMessage}
           loading={loading || editLoading}
           extraActions={resolvedExtraActions}
+          defaultPageSize={listPageSize}
+          serverPagination={
+            isServerPagedModule
+              ? {
+                  page: listPage,
+                  pageSize: listPageSize,
+                  total: listTotal,
+                  onPageChange: setListPage,
+                  onPageSizeChange: (nextSize) => {
+                    setListPageSize(nextSize);
+                    setListPage(1);
+                  },
+                }
+              : undefined
+          }
         />
       </div>
 

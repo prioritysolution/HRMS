@@ -165,6 +165,7 @@ export const API_ENDPOINTS = {
     maritalStatus: "/api/v1/appl-options/marital-status",
   },
   auditLog: {
+    list: "/api/v1/audit-log/list",
     create: "/api/v1/audit-log/create",
   },
   auth: {

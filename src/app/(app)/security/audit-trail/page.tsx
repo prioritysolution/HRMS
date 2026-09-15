@@ -21,7 +21,7 @@ function toApiDateTime(date: string, endOfDay = false): string | undefined {
   return endOfDay ? `${trimmed} 23:59:59` : `${trimmed} 00:00:00`;
 }
 
-export default function LoginHistoryPage() {
+export default function AuditTrailPage() {
   const defaults = useMemo(() => currentMonthRange(), []);
   const [fromDate, setFromDate] = useState(defaults.from);
   const [toDate, setToDate] = useState(defaults.to);
@@ -31,11 +31,11 @@ export default function LoginHistoryPage() {
       <div className="card-body">
         <div className="flex flex-wrap items-end gap-3">
           <div className="max-w-xs">
-            <label className="mb-1 block text-sm font-medium text-[var(--text-secondary)]" htmlFor="login-history-from">
+            <label className="mb-1 block text-sm font-medium text-[var(--text-secondary)]" htmlFor="audit-trail-from">
               From
             </label>
             <input
-              id="login-history-from"
+              id="audit-trail-from"
               type="date"
               className="form-control"
               value={fromDate}
@@ -43,11 +43,11 @@ export default function LoginHistoryPage() {
             />
           </div>
           <div className="max-w-xs">
-            <label className="mb-1 block text-sm font-medium text-[var(--text-secondary)]" htmlFor="login-history-to">
+            <label className="mb-1 block text-sm font-medium text-[var(--text-secondary)]" htmlFor="audit-trail-to">
               To
             </label>
             <input
-              id="login-history-to"
+              id="audit-trail-to"
               type="date"
               className="form-control"
               value={toDate}
@@ -61,13 +61,13 @@ export default function LoginHistoryPage() {
 
   return (
     <MasterDataPage
-      moduleId="login-history"
+      moduleId="audit-trail"
       topContent={topContent}
       fetchParams={{
         from_date: toApiDateTime(fromDate),
         to_date: toApiDateTime(toDate, true),
       }}
-      emptyStateMessage="Try adjusting the date range or filters."
+      emptyStateMessage="Try adjusting the date range or action filter."
     />
   );
 }

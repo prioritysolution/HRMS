@@ -1,14 +1,12 @@
 import { getCurrentOrgId } from "@/lib/auth/org-context";
 import { apiClient } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/endpoints";
+import { extractPaginatedList } from "@/lib/api/paginated-list";
 import type { LoginHistoryListQuery, LoginHistoryRecord } from "@/lib/api/types";
 import { formatDateDisplay, formatTimeDisplay } from "@/lib/date-utils";
 import type { HrmsRow } from "@/types/hrms";
 
-function asRecord(value: unknown): Record<string, unknown> | null {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
-  return value as Record<string, unknown>;
-}
+const DEFAULT_PER_PAGE = 100;
 
 function readValue(record: Record<string, unknown>, keys: string[]): unknown {
   for (const key of keys) {
@@ -26,14 +24,6 @@ function optionalId(value: unknown): number | "" {
   if (value === undefined || value === null || value === "") return "";
   const numeric = Number(value);
   return Number.isFinite(numeric) ? numeric : "";
-}
-
-function asList(payload: unknown): LoginHistoryRecord[] {
-  if (Array.isArray(payload)) return payload as LoginHistoryRecord[];
-  const record = asRecord(payload);
-  if (!record) return [];
-  if (Array.isArray(record.data)) return record.data as LoginHistoryRecord[];
-  return [];
 }
 
 function toLoginStatusFlag(value: unknown): 0 | 1 {
@@ -108,16 +98,41 @@ function withListQuery(basePath: string, query?: LoginHistoryListQuery) {
 
   if (query?.from_date) params.set("from_date", query.from_date);
   if (query?.to_date) params.set("to_date", query.to_date);
+  if (query?.page !== undefined) params.set("page", String(query.page));
+  if (query?.per_page !== undefined) params.set("per_page", String(query.per_page));
 
   const suffix = params.toString();
   return suffix ? `${basePath}?${suffix}` : basePath;
 }
 
+async function fetchPage(query?: LoginHistoryListQuery) {
+  const payload = await apiClient.get<unknown>(
+    withListQuery(API_ENDPOINTS.loginHistory.list, query),
+  );
+  return extractPaginatedList<LoginHistoryRecord>(payload);
+}
+
 export const loginHistoryService = {
+  listPage: async (query?: LoginHistoryListQuery) => {
+    const page = query?.page ?? 1;
+    const perPage = query?.per_page ?? DEFAULT_PER_PAGE;
+    const { items, meta } = await fetchPage({
+      ...query,
+      page,
+      per_page: perPage,
+    });
+    return {
+      rows: items.map(loginHistoryToRow),
+      total: Number(meta?.total ?? items.length),
+    };
+  },
+
   list: async (query?: LoginHistoryListQuery) => {
-    const payload = await apiClient.get<unknown>(
-      withListQuery(API_ENDPOINTS.loginHistory.list, query),
-    );
-    return asList(payload).map(loginHistoryToRow);
+    const result = await loginHistoryService.listPage({
+      ...query,
+      page: query?.page ?? 1,
+      per_page: query?.per_page ?? DEFAULT_PER_PAGE,
+    });
+    return result.rows;
   },
 };

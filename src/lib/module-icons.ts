@@ -32,6 +32,7 @@ import {
   UserPlus,
   Users,
   Wallet,
+  ScrollText,
   type LucideIcon,
 } from "lucide-react";
 
@@ -44,6 +45,9 @@ const MODULE_ICONS: Record<string, LucideIcon> = {
   "employee-categories": Tags,
   "employment-types": FileText,
   roles: ShieldCheck,
+  users: Users,
+  "login-history": LogIn,
+  "audit-trail": ScrollText,
   "job-types": Hammer,
   shifts: Clock,
   "salary-grades": IndianRupee,

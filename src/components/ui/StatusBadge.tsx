@@ -33,12 +33,17 @@ export function statusTone(status: string) {
       "complete",
       "login",
       "success",
+      "insert",
+      "create",
+      "approve",
     ].includes(value)
   ) {
     return "success" as const;
   }
   if (
-    ["pending", "late", "negotiation", "new", "under review"].includes(value)
+    ["pending", "late", "negotiation", "new", "under review", "update", "edit"].includes(
+      value,
+    )
   ) {
     return "warning" as const;
   }
@@ -51,6 +56,8 @@ export function statusTone(status: string) {
       "cancelled",
       "logout",
       "failed",
+      "delete",
+      "reject",
     ].includes(value)
   ) {
     return "danger" as const;

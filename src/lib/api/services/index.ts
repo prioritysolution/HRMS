@@ -1,5 +1,5 @@
 export { applOptionService, applOptionsToSelectOptions } from "@/lib/api/services/appl-options.service";
-export { auditLogService } from "@/lib/api/services/audit-log.service";
+export { auditLogService, auditLogToRow } from "@/lib/api/services/audit-log.service";
 export { authService } from "@/lib/api/services/auth.service";
 export { menuService } from "@/lib/api/services/menu.service";
 export { branchService } from "@/lib/api/services/branch.service";

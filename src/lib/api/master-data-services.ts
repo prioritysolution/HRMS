@@ -24,12 +24,18 @@ import { employeeAttendanceReportService } from "@/lib/api/services/employee-att
 import { lateComingReportService } from "@/lib/api/services/late-coming-report.service";
 import { earlyLeavingReportService } from "@/lib/api/services/early-leaving-report.service";
 import { attendanceService } from "@/lib/api/services/attendance.service";
+import { loginHistoryService } from "@/lib/api/services/login-history.service";
+import { auditLogService } from "@/lib/api/services/audit-log.service";
+import { userService } from "@/lib/api/services/user.service";
+import { toOrganizationStatus } from "@/lib/api/services/organization.service";
 import { MOCK_EMPLOYEES, MOCK_LEAVE_REGISTER, MOCK_EMPLOYEE_LEAVE } from "@/data/reports-mock";
 
 
 
 type MasterDataApiService = {
-  list: (params?: Record<string, any>) => Promise<HrmsRow[]>;
+  list: (
+    params?: Record<string, any>,
+  ) => Promise<HrmsRow[] | { rows: HrmsRow[]; total: number }>;
   create: (row: HrmsRow) => Promise<HrmsRow>;
   update: (
     id: string | number,
@@ -187,6 +193,25 @@ export const MASTER_DATA_API_SERVICES: Record<string, MasterDataApiService> = {
     create: roleService.create,
     update: roleService.update,
     remove: roleService.remove,
+  },
+  users: {
+    list: (params) => userService.list(params),
+    create: async (row) => row,
+    update: async (id, row) =>
+      userService.updateStatus(id, toOrganizationStatus(row.Status)),
+    remove: async (id) => userService.updateStatus(id, 0),
+  },
+  "login-history": {
+    list: (params) => loginHistoryService.listPage(params),
+    create: async (row) => row,
+    update: async (_id, row) => row,
+    remove: async () => ({}),
+  },
+  "audit-trail": {
+    list: (params) => auditLogService.listPage(params),
+    create: async (row) => row,
+    update: async (_id, row) => row,
+    remove: async () => ({}),
   },
   employees: {
     list: listEmployees,

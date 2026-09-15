@@ -53,7 +53,17 @@ export type FormSection = {
   fields: FormField[];
 };
 
-export type TableColumnType = "text" | "status" | "person" | "date" | "time" | "currency" | "boolean" | "duration";
+export type TableColumnType =
+  | "text"
+  | "status"
+  | "person"
+  | "date"
+  | "time"
+  | "currency"
+  | "boolean"
+  | "duration"
+  | "clamp"
+  | "json";
 
 export type TableColumn = {
   key: string;
@@ -90,6 +100,10 @@ export type HrmsModuleConfig = {
   searchKeys?: string[];
   usesApi?: boolean;
   statusToggle?: boolean;
+  /** List-only modules: hide row actions and add/edit flows. */
+  readOnly?: boolean;
+  /** Use API page/per_page instead of client-side table paging. */
+  serverPagination?: boolean;
   disableEditSubmit?: boolean;
   stats?: StatCardConfig[];
 };

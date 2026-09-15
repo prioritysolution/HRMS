@@ -79,6 +79,17 @@ type DataTableProps<T extends object> = {
   filterExtra?: React.ReactNode;
   /** Fires whenever search/filter results change (full filtered set, before pagination). */
   onFilteredRowsChange?: (rows: T[]) => void;
+  /**
+   * Server-driven pagination. When set, `rows` is treated as the current page
+   * and page/size changes are delegated to the parent (API reload).
+   */
+  serverPagination?: {
+    page: number;
+    pageSize: number;
+    total: number;
+    onPageChange: (page: number) => void;
+    onPageSizeChange: (pageSize: number) => void;
+  };
 };
 
 export function RowActions<T extends object>({
@@ -262,6 +273,7 @@ export function DataTable<T extends object>({
   extraActions,
   filterExtra,
   onFilteredRowsChange,
+  serverPagination,
 }: DataTableProps<T>) {
   const searchParams = useSearchParams();
   const [search, setSearch] = useState(() => searchParams?.get("search") ?? "");
@@ -275,6 +287,10 @@ export function DataTable<T extends object>({
   });
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(defaultPageSize);
+
+  const isServerPaged = Boolean(serverPagination);
+  const activePage = serverPagination?.page ?? page;
+  const activePageSize = serverPagination?.pageSize ?? pageSize;
 
   useEffect(() => {
     setFilters((prev) => {
@@ -306,26 +322,50 @@ export function DataTable<T extends object>({
     onFilteredRowsChange?.(filteredRows);
   }, [filteredRows, onFilteredRowsChange]);
 
-  const totalPages = getTotalPages(filteredRows.length, pageSize);
+  const totalCount = isServerPaged
+    ? Math.max(0, serverPagination?.total ?? 0)
+    : filteredRows.length;
+  const totalPages = getTotalPages(totalCount, activePageSize);
 
   useEffect(() => {
+    if (isServerPaged) return;
     setPage(1);
-  }, [search, filters, pageSize, rows.length]);
+  }, [search, filters, pageSize, rows.length, isServerPaged]);
 
   useEffect(() => {
+    if (isServerPaged) return;
     if (page > totalPages) setPage(totalPages);
-  }, [page, totalPages]);
+  }, [page, totalPages, isServerPaged]);
 
-  const paginatedRows = useMemo(
-    () => paginateRows(filteredRows, page, pageSize),
-    [filteredRows, page, pageSize],
+  const paginatedRows = useMemo(() => {
+    if (isServerPaged) return filteredRows;
+    return paginateRows(filteredRows, activePage, activePageSize);
+  }, [filteredRows, isServerPaged, activePage, activePageSize]);
+
+  const start = totalCount === 0 ? 0 : (activePage - 1) * activePageSize + 1;
+  const end = Math.min(
+    activePage * activePageSize,
+    isServerPaged ? totalCount : filteredRows.length,
   );
-
-  const start = filteredRows.length === 0 ? 0 : (page - 1) * pageSize + 1;
-  const end = Math.min(page * pageSize, filteredRows.length);
 
   const handleFilterChange = (key: string, value: string) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handlePageSizeChange = (nextSize: number) => {
+    if (serverPagination) {
+      serverPagination.onPageSizeChange(nextSize);
+      return;
+    }
+    setPageSize(nextSize);
+  };
+
+  const handlePageChange = (nextPage: number) => {
+    if (serverPagination) {
+      serverPagination.onPageChange(nextPage);
+      return;
+    }
+    setPage(nextPage);
   };
 
   const resetFilters = () => {
@@ -467,7 +507,7 @@ export function DataTable<T extends object>({
               ) : paginatedRows.length > 0 ? (
                 paginatedRows.map((row, index) => (
                   <tr key={"id" in row ? String((row as { id?: string }).id) : JSON.stringify(row)}>
-                    <td className="si-col">{(page - 1) * pageSize + index + 1}</td>
+                    <td className="si-col">{(activePage - 1) * activePageSize + index + 1}</td>
                     {columns.map((column) => (
                       <td key={column.key}>{column.render(row)}</td>
                     ))}
@@ -516,16 +556,16 @@ export function DataTable<T extends object>({
         <div className="table-footer">
           <div className="table-footer-left">
             <span className="table-result-text">
-              {loading ? TABLE_LOADING_LABEL : `Showing ${start}-${end} of ${filteredRows.length}`}
+              {loading ? TABLE_LOADING_LABEL : `Showing ${start}-${end} of ${totalCount}`}
             </span>
             <div className="table-page-size">
               <label htmlFor="table-page-size">Rows per page</label>
               <select
                 id="table-page-size"
                 className="form-control table-page-size-select"
-                value={pageSize}
+                value={activePageSize}
                 disabled={loading}
-                onChange={(event) => setPageSize(Number(event.target.value))}
+                onChange={(event) => handlePageSizeChange(Number(event.target.value))}
               >
                 {PAGE_SIZE_OPTIONS.map((size) => (
                   <option key={size} value={size}>
@@ -540,20 +580,20 @@ export function DataTable<T extends object>({
             <button
               type="button"
               className="table-page-btn"
-              disabled={loading || page <= 1}
-              onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+              disabled={loading || activePage <= 1}
+              onClick={() => handlePageChange(Math.max(1, activePage - 1))}
               aria-label="Previous page"
             >
               <ChevronLeft size={16} />
             </button>
             <span className="table-page-indicator">
-              {loading ? "—" : `Page ${page} of ${totalPages}`}
+              {loading ? "—" : `Page ${activePage} of ${totalPages}`}
             </span>
             <button
               type="button"
               className="table-page-btn"
-              disabled={loading || page >= totalPages}
-              onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+              disabled={loading || activePage >= totalPages}
+              onClick={() => handlePageChange(Math.min(totalPages, activePage + 1))}
               aria-label="Next page"
             >
               <ChevronRight size={16} />
@@ -607,16 +647,89 @@ export function SoftStatus({ value }: { value: string }) {
   return <StatusBadge label={value} tone={statusTone(value)} />;
 }
 
+function humanizeFieldLabel(key: string): string {
+  return key
+    .replace(/_/g, " ")
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/\b\w/g, (char) => char.toUpperCase())
+    .trim();
+}
+
+function formatSimpleFieldValue(value: unknown): string {
+  if (value === undefined || value === null || value === "") return "—";
+  if (typeof value === "boolean") return value ? "Yes" : "No";
+  if (typeof value === "object") {
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return String(value);
+    }
+  }
+  const text = String(value).trim();
+  if (text === "true") return "Yes";
+  if (text === "false") return "No";
+  return text || "—";
+}
+
+/** Turn audit JSON into readable `Label: value` lines. */
+export function formatJsonAsSimpleLines(value: unknown): string {
+  if (value === undefined || value === null || value === "") return "";
+
+  let parsed: unknown = value;
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed || trimmed === "—" || trimmed === "-") return "";
+    try {
+      parsed = JSON.parse(trimmed);
+    } catch {
+      return trimmed;
+    }
+  }
+
+  if (Array.isArray(parsed)) {
+    if (parsed.length === 0) return "";
+    return parsed
+      .map((item, index) => {
+        if (item && typeof item === "object" && !Array.isArray(item)) {
+          const nested = formatJsonAsSimpleLines(item);
+          return nested ? `[${index + 1}]\n${nested}` : `[${index + 1}]`;
+        }
+        return `${index + 1}. ${formatSimpleFieldValue(item)}`;
+      })
+      .join("\n");
+  }
+
+  if (!parsed || typeof parsed !== "object") {
+    return formatSimpleFieldValue(parsed);
+  }
+
+  return Object.entries(parsed as Record<string, unknown>)
+    .filter(([, entry]) => entry !== undefined)
+    .map(([key, entry]) => `${humanizeFieldLabel(key)}: ${formatSimpleFieldValue(entry)}`)
+    .join("\n");
+}
+
+function shortenPreview(text: string, maxLength = 42): string {
+  const compact = text.replace(/\s+/g, " ").trim();
+  if (!compact) return "";
+  if (compact.length <= maxLength) return compact;
+  return `${compact.slice(0, Math.max(0, maxLength - 1)).trimEnd()}…`;
+}
+
 export function ClampedText({
   text,
+  preview,
   empty = "—",
   maxWidth = "14rem",
 }: {
   text: string;
+  /** Optional short label in the cell; defaults to truncated `text`. */
+  preview?: string;
   empty?: string;
   maxWidth?: string;
 }) {
   const value = text.trim();
+  const previewText = (preview ?? value).trim();
   const triggerRef = useRef<HTMLSpanElement>(null);
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -638,7 +751,7 @@ export function ClampedText({
       const rect = triggerRef.current?.getBoundingClientRect();
       if (!rect) return;
 
-      const width = Math.min(Math.max(rect.width, 260), 360);
+      const width = Math.min(Math.max(rect.width, 280), 420);
       const left = Math.min(
         Math.max(8, rect.left),
         Math.max(8, window.innerWidth - width - 8),
@@ -663,7 +776,7 @@ export function ClampedText({
     };
   }, [open]);
 
-  if (!value) return <>{empty}</>;
+  if (!value && !previewText) return <>{empty}</>;
 
   const tooltip =
     open && coords ? (
@@ -677,7 +790,7 @@ export function ClampedText({
           transform: coords.placeAbove ? "translateY(-100%)" : undefined,
         }}
       >
-        {value}
+        {value || previewText}
       </span>
     ) : null;
 
@@ -693,9 +806,32 @@ export function ClampedText({
         onFocus={() => setOpen(true)}
         onBlur={() => setOpen(false)}
       >
-        <span className="clamped-text-preview">{value}</span>
+        <span className="clamped-text-preview">{previewText || empty}</span>
       </span>
       {mounted && tooltip ? createPortal(tooltip, document.body) : null}
     </>
+  );
+}
+
+/** Short cell + hover detail for JSON / audit old-new values. */
+export function JsonClampedText({
+  value,
+  empty = "—",
+  maxWidth = "12rem",
+}: {
+  value: unknown;
+  empty?: string;
+  maxWidth?: string;
+}) {
+  const detail = formatJsonAsSimpleLines(value);
+  if (!detail) return <>{empty}</>;
+
+  return (
+    <ClampedText
+      text={detail}
+      preview={shortenPreview(detail)}
+      empty={empty}
+      maxWidth={maxWidth}
+    />
   );
 }

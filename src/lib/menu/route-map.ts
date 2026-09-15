@@ -171,6 +171,11 @@ const ROUTE_ALIASES: Record<string, string> = {
   "/security/loginhistory": "/security/login-history",
   "/login-history": "/security/login-history",
   "/loginhistory": "/security/login-history",
+  "/security/audit-trail": "/security/audit-trail",
+  "/security/audit-log": "/security/audit-trail",
+  "/security/audit": "/security/audit-trail",
+  "/audit-trail": "/security/audit-trail",
+  "/audit-log": "/security/audit-trail",
 };
 
 /**
@@ -255,6 +260,7 @@ const LABEL_ROUTES: Array<{ match: RegExp; href: string }> = [
   { match: /^security\s*users?$/i, href: "/security/user" },
   { match: /^login\s*history$/i, href: "/security/login-history" },
   { match: /^user\s*login\s*history$/i, href: "/security/login-history" },
+  { match: /^audit\s*(trail|log|logs)?$/i, href: "/security/audit-trail" },
 ];
 
 function normalizePath(route: string): string {
