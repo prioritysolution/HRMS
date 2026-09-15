@@ -9,6 +9,7 @@ import { employmentTypeService } from "@/lib/api/services/employment-type.servic
 import { employmentStatusService } from "@/lib/api/services/employment-status.service";
 import { holidayService } from "./services/holiday.service";
 import { roleService } from "@/lib/api/services/role.service";
+import { finYearService } from "@/lib/api/services/fin-year.service";
 import { leaveAllocationService } from "@/lib/api/services/leave-allocation.service";
 import { leaveMasterService } from "@/lib/api/services/leave-master.service";
 import { leaveApplicationService } from "@/lib/api/services/leave-application.service";
@@ -193,6 +194,12 @@ export const MASTER_DATA_API_SERVICES: Record<string, MasterDataApiService> = {
     create: roleService.create,
     update: roleService.update,
     remove: roleService.remove,
+  },
+  "financial-year": {
+    list: () => finYearService.list(),
+    create: finYearService.create,
+    update: finYearService.update,
+    remove: finYearService.remove,
   },
   users: {
     list: (params) => userService.list(params),

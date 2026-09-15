@@ -151,6 +151,11 @@ const ROUTE_ALIASES: Record<string, string> = {
   "/settings/notification-settings": "/settings/notifications",
   "/settings/configure-numbering-sequence": "/settings/configure-numbering-sequence",
   "/settings/numbering-sequence": "/settings/configure-numbering-sequence",
+  "/settings/financial-year": "/settings/financial-year",
+  "/settings/financial-years": "/settings/financial-year",
+  "/settings/fin-year": "/settings/financial-year",
+  "/financial-year": "/settings/financial-year",
+  "/fin-year": "/settings/financial-year",
 
   // Security
   "/security/role": "/security/role",
@@ -249,6 +254,8 @@ const LABEL_ROUTES: Array<{ match: RegExp; href: string }> = [
   { match: /^smtp(\s*configuration)?$/i, href: "/settings/email" },
   { match: /^notifications?(\s*settings)?$/i, href: "/settings/notifications" },
   { match: /^(configure\s*)?numbering\s*sequence$/i, href: "/settings/configure-numbering-sequence" },
+  { match: /^financial\s*years?$/i, href: "/settings/financial-year" },
+  { match: /^fin(ancial)?\s*year$/i, href: "/settings/financial-year" },
   { match: /^role\s*management$/i, href: "/security/role" },
   { match: /^roles?$/i, href: "/security/role" },
   { match: /^security\s*roles?$/i, href: "/security/role" },

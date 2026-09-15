@@ -1354,7 +1354,7 @@ export type LeaveBalanceQuery = {
   leave_id?: number;
 };
 
-/** Financial Year — `USP_FIN_YEAR_LIST` / FinYearController@list */
+/** Financial Year — `USP_FIN_YEAR_*` / `mst_fin_year` */
 export type FinYearStatus = 0 | 1;
 
 export type FinYearRecord = {
@@ -1373,6 +1373,13 @@ export type FinYearRecord = {
 export type FinYearListQuery = {
   year_id?: number;
   year_name?: string;
+  status?: FinYearStatus;
+};
+
+export type FinYearWritePayload = {
+  year_name: string;
+  start_date: string;
+  end_date: string;
   status?: FinYearStatus;
 };
 

@@ -53,7 +53,14 @@ export {
 } from "@/lib/api/services/leave-application.service";
 export { leaveApprovalService } from "@/lib/api/services/leave-approval.service";
 export { leaveAllocationService } from "@/lib/api/services/leave-allocation.service";
-export { finYearService, finYearsToSelectOptions } from "@/lib/api/services/fin-year.service";
+export {
+  currentFinYearConflictMessage,
+  findCurrentFinYearConflict,
+  finYearService,
+  finYearsToSelectOptions,
+  isFinYearMarkedCurrent,
+  toFinancialYearCode,
+} from "@/lib/api/services/fin-year.service";
 export {
   attendanceToRow,
   filterAttendanceSourceOptions,

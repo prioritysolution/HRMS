@@ -48,6 +48,7 @@ const MODULE_ICONS: Record<string, LucideIcon> = {
   users: Users,
   "login-history": LogIn,
   "audit-trail": ScrollText,
+  "financial-year": CalendarRange,
   "job-types": Hammer,
   shifts: Clock,
   "salary-grades": IndianRupee,

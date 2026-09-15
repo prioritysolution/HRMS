@@ -66,7 +66,12 @@ import {
   withLeaveEntitlementFilters,
 } from "@/lib/config-module-helpers";
 import { leaveApprovalService } from "@/lib/api/services/leave-approval.service";
-import { finYearService } from "@/lib/api/services/fin-year.service";
+import {
+  currentFinYearConflictMessage,
+  findCurrentFinYearConflict,
+  finYearService,
+  isFinYearMarkedCurrent,
+} from "@/lib/api/services/fin-year.service";
 import { authService } from "@/lib/api/services/auth.service";
 import type { AuthMeProfile } from "@/lib/api/types";
 
@@ -311,6 +316,7 @@ export function MasterDataPage({
   const isLeaveRequisitionModule = moduleId === "leave-requisition";
   const isLeaveApprovalModule = moduleId === "leave-approval";
   const isLeaveEntitlementModule = moduleId === "leave-entitlement";
+  const isFinancialYearModule = moduleId === "financial-year";
   const isReadOnlyModule = Boolean(config.readOnly);
   const isServerPagedModule = Boolean(config.serverPagination);
   const hasEditableForm = Boolean(
@@ -1799,15 +1805,38 @@ export function MasterDataPage({
         [statusKey]: "Active",
       };
 
-      await apiService.update(row.id, activated);
-      queueAuditLog({
-        moduleId,
-        action: "update",
-        recordId: resolveAuditRecordId(row as Record<string, unknown>),
-        oldValues: row,
-        newValues: activated,
-      });
-      await loadRows();
+      if (isFinancialYearModule && isFinYearMarkedCurrent(activated)) {
+        const conflict = findCurrentFinYearConflict(rows, row.id);
+        if (conflict) {
+          toast.error({
+            title: "Validation failed",
+            message: currentFinYearConflictMessage(conflict),
+          });
+          return;
+        }
+      }
+
+      try {
+        await apiService.update(row.id, activated);
+        queueAuditLog({
+          moduleId,
+          action: "update",
+          recordId: resolveAuditRecordId(row as Record<string, unknown>),
+          oldValues: row,
+          newValues: activated,
+        });
+        await loadRows();
+      } catch (error) {
+        toast.error({
+          title: "Failed to activate",
+          message:
+            error instanceof ApiError
+              ? error.message
+              : error instanceof Error
+                ? error.message
+                : "Unable to activate record.",
+        });
+      }
       return;
     }
 
@@ -1861,6 +1890,20 @@ export function MasterDataPage({
       );
 
       if (usesApi && apiService) {
+        if (isFinancialYearModule && isFinYearMarkedCurrent(payload)) {
+          const conflict = findCurrentFinYearConflict(
+            rows,
+            mode === "edit" ? payload.id : undefined,
+          );
+          if (conflict) {
+            toast.error({
+              title: "Validation failed",
+              message: currentFinYearConflictMessage(conflict),
+            });
+            return;
+          }
+        }
+
         const previous = mode === "edit" ? editRow ?? payload : undefined;
         saved =
           mode === "edit"
@@ -1925,7 +1968,9 @@ export function MasterDataPage({
         message:
           error instanceof ApiError
             ? error.message
-            : "Unable to save employee data.",
+            : error instanceof Error
+              ? error.message
+              : "Unable to save record.",
       });
     }
   };

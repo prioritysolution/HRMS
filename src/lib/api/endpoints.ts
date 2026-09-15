@@ -101,6 +101,9 @@ export const API_ENDPOINTS = {
   },
   finYear: {
     list: "/api/v1/fin-year/list",
+    create: "/api/v1/fin-year/create",
+    update: (id: string | number) => `/api/v1/fin-year/update/${id}`,
+    delete: (id: string | number) => `/api/v1/fin-year/delete/${id}`,
   },
   leaveAllocation: {
     list: "/api/v1/leave-allocation/list",
