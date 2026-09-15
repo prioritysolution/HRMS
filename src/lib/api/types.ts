@@ -458,6 +458,59 @@ export type AttendanceSummaryReportQuery = {
   org_id?: number | string;
 };
 
+/** Employee Attendance Report — GET /api/v1/employee-attendance-report */
+export type EmployeeAttendanceReportRecord = {
+  Attendance_id: number;
+  Employee_id: number;
+  Employee_code?: string | null;
+  Employee_name?: string | null;
+  Photo_path?: string | null;
+  Mobile?: string | null;
+  Branch_Id?: number | null;
+  Branch_Code?: string | null;
+  Branch_Name?: string | null;
+  Dept_Id?: number | null;
+  Dept_Name?: string | null;
+  Desig_Id?: number | null;
+  Desig_Name?: string | null;
+  Attendance_date?: string | null;
+  Shift_id?: number | null;
+  Shift_code?: string | null;
+  Shift_name?: string | null;
+  Shift_start?: string | null;
+  Shift_late_after?: string | null;
+  Shift_end?: string | null;
+  Check_in?: string | null;
+  Check_out?: string | null;
+  Working_minutes?: number | null;
+  Working_hours?: string | number | null;
+  Overtime_minutes?: number | null;
+  Overtime_hours?: string | number | null;
+  Late_minutes?: number | null;
+  Early_leave_minutes?: number | null;
+  Attendance_status?: number | null;
+  Attendance_status_code?: number | null;
+  Attendance_status_name?: string | null;
+  Source?: number | null;
+  Source_code?: number | null;
+  Source_name?: string | null;
+  Remarks?: string | null;
+  Employee_status?: number | null;
+  Created_at?: string | null;
+  Updated_at?: string | null;
+};
+
+export type EmployeeAttendanceReportQuery = {
+  from_date?: string;
+  to_date?: string;
+  branch_id?: number | string;
+  dept_id?: number | string;
+  employee_id?: number | string;
+  attendance_status?: number | string;
+  search?: string;
+  org_id?: number | string;
+};
+
 export type DeviceStatus = OrganizationStatus;
 
 export type DeviceRecord = {

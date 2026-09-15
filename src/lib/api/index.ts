@@ -20,6 +20,7 @@ export {
   employeeRegisterReportService,
   employeeServiceHistoryReportService,
   attendanceSummaryReportService,
+  employeeAttendanceReportService,
   employmentTypeService,
   employmentStatusService,
   holidayService,

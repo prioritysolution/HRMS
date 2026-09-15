@@ -224,8 +224,8 @@ export default function AttendanceSummaryReportPage() {
           emptyStateIcon={getModuleEmptyIcon(MODULE_ID)}
           emptyStateTitle="No attendance summary found"
           emptyStateMessage="Try adjusting the date range or filters."
-          extraActions={
-            <div className="flex flex-wrap items-end gap-2">
+          filterExtra={
+            <>
               <div className="table-filter-item">
                 <label className="table-filter-label" htmlFor="attendance-summary-from">
                   From
@@ -250,24 +250,26 @@ export default function AttendanceSummaryReportPage() {
                   onChange={(event) => setToDate(event.target.value)}
                 />
               </div>
-              <ReportExportButtons
-                title="Attendance Summary Report"
-                rows={filteredRows}
-                columns={EXPORT_COLUMNS}
-                filterSummary={filterSummary}
-                pdfLayout="cards"
-                fieldGroups={PDF_FIELD_GROUPS}
-                cardTitle={{
-                  primaryKey: "Display_name",
-                  secondaryKey: "Employee_code",
-                  badgeKey: "Dept_Name",
-                }}
-                sheetName="Attendance Summary"
-                disabled={loading}
-                emptyMessage="No attendance summary records match the current filters."
-                successMessage="Download started for the filtered attendance summary."
-              />
-            </div>
+            </>
+          }
+          extraActions={
+            <ReportExportButtons
+              title="Attendance Summary Report"
+              rows={filteredRows}
+              columns={EXPORT_COLUMNS}
+              filterSummary={filterSummary}
+              pdfLayout="cards"
+              fieldGroups={PDF_FIELD_GROUPS}
+              cardTitle={{
+                primaryKey: "Display_name",
+                secondaryKey: "Employee_code",
+                badgeKey: "Dept_Name",
+              }}
+              sheetName="Attendance Summary"
+              disabled={loading}
+              emptyMessage="No attendance summary records match the current filters."
+              successMessage="Download started for the filtered attendance summary."
+            />
           }
           columns={[
             {

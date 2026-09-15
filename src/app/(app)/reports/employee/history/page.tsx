@@ -222,8 +222,8 @@ export default function EmployeeServiceHistoryReportPage() {
           emptyStateIcon={getModuleEmptyIcon(MODULE_ID)}
           emptyStateTitle="No service history found"
           emptyStateMessage="Try adjusting filters or date range to find records."
-          extraActions={
-            <div className="flex flex-wrap items-end gap-2">
+          filterExtra={
+            <>
               <div className="table-filter-item">
                 <label className="table-filter-label" htmlFor="service-history-from">
                   From
@@ -248,24 +248,26 @@ export default function EmployeeServiceHistoryReportPage() {
                   onChange={(event) => setToDate(event.target.value)}
                 />
               </div>
-              <ReportExportButtons
-                title="Employee Service History Report"
-                rows={filteredRows}
-                columns={EXPORT_COLUMNS}
-                filterSummary={filterSummary}
-                pdfLayout="cards"
-                fieldGroups={PDF_FIELD_GROUPS}
-                cardTitle={{
-                  primaryKey: "Display_name",
-                  secondaryKey: "Employee_code",
-                  badgeKey: "Event_type",
-                }}
-                sheetName="Service History"
-                disabled={loading}
-                emptyMessage="No service history records match the current filters."
-                successMessage="Download started for the filtered service history report."
-              />
-            </div>
+            </>
+          }
+          extraActions={
+            <ReportExportButtons
+              title="Employee Service History Report"
+              rows={filteredRows}
+              columns={EXPORT_COLUMNS}
+              filterSummary={filterSummary}
+              pdfLayout="cards"
+              fieldGroups={PDF_FIELD_GROUPS}
+              cardTitle={{
+                primaryKey: "Display_name",
+                secondaryKey: "Employee_code",
+                badgeKey: "Event_type",
+              }}
+              sheetName="Service History"
+              disabled={loading}
+              emptyMessage="No service history records match the current filters."
+              successMessage="Download started for the filtered service history report."
+            />
           }
           columns={[
             {

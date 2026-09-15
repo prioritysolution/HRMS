@@ -209,6 +209,9 @@ export const API_ENDPOINTS = {
   attendanceSummaryReport: {
     list: "/api/v1/attendance-summary-report",
   },
+  employeeAttendanceReport: {
+    list: "/api/v1/employee-attendance-report",
+  },
   employeeOnboarding: {
     list: "/api/v1/employee-onboarding/list",
     get: (id: number | string) => `/api/v1/employee-onboarding/get/${id}`,

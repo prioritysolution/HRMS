@@ -95,7 +95,7 @@ export function ReportExportButtons({
   const busy = disabled || exporting !== null || rows.length === 0;
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="report-header-actions">
       <button
         type="button"
         className="btn btn-primary"

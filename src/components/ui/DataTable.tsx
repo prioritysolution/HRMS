@@ -75,6 +75,8 @@ type DataTableProps<T extends object> = {
   emptyStateTitle?: string;
   emptyStateMessage?: string;
   extraActions?: React.ReactNode;
+  /** Extra controls rendered inside the Filters bar (e.g. date range). */
+  filterExtra?: React.ReactNode;
   /** Fires whenever search/filter results change (full filtered set, before pagination). */
   onFilteredRowsChange?: (rows: T[]) => void;
 };
@@ -256,6 +258,7 @@ export function DataTable<T extends object>({
   emptyStateTitle,
   emptyStateMessage,
   extraActions,
+  filterExtra,
   onFilteredRowsChange,
 }: DataTableProps<T>) {
   const searchParams = useSearchParams();
@@ -411,6 +414,7 @@ export function DataTable<T extends object>({
                 ) : null}
               </div>
             </div>
+            {filterExtra}
             {filterFields.map((field) => {
               const options = field.options && field.options.length > 0
                 ? field.options
