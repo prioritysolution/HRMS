@@ -976,6 +976,95 @@ export type RoleListQuery = {
   status?: RoleStatus;
 };
 
+/** Role Menu Permission — `mst_role_menu` / USP_ROLE_MENU_* */
+export type RoleMenuStatus = OrganizationStatus;
+
+export type RoleMenuRecord = {
+  Id?: number;
+  id?: number;
+  Role_Id?: number;
+  role_id?: number;
+  Role_Name?: string | null;
+  role_name?: string | null;
+  Is_Admin?: number | boolean | null;
+  is_admin?: number | boolean | null;
+  Menu_Sl?: number;
+  menu_sl?: number;
+  Menu_Id?: number;
+  menu_id?: number;
+  Menu_Name?: string | null;
+  menu_name?: string | null;
+  SubMenu_Id?: number | null;
+  sub_menu_id?: number | null;
+  SubMenu_Name?: string | null;
+  sub_menu_name?: string | null;
+  Icon?: string | null;
+  icon?: string | null;
+  Route?: string | null;
+  route?: string | null;
+  Status?: RoleMenuStatus | number | string | null;
+  status?: RoleMenuStatus | number | string | null;
+  Created_by?: number | null;
+  created_by?: number | null;
+  Created_at?: string | null;
+  created_at?: string | null;
+};
+
+export type RoleMenuMatrixItem = {
+  Role_Id?: number;
+  role_id?: number;
+  Is_Admin?: number | boolean | null;
+  is_admin?: number | boolean | null;
+  Menu_Sl?: number;
+  menu_sl?: number;
+  Menu_Id?: number;
+  menu_id?: number;
+  Menu_Name?: string | null;
+  menu_name?: string | null;
+  SubMenu_Id?: number | null;
+  sub_menu_id?: number | null;
+  SubMenu_Name?: string | null;
+  sub_menu_name?: string | null;
+  Icon?: string | null;
+  icon?: string | null;
+  Route?: string | null;
+  route?: string | null;
+  Menu_Status?: number | null;
+  menu_status?: number | null;
+  Role_Menu_Id?: number | null;
+  role_menu_id?: number | null;
+  Is_Assigned?: number | boolean | null;
+  is_assigned?: number | boolean | null;
+  Assignment_Status?: number | null;
+  assignment_status?: number | null;
+};
+
+export type RoleMenuListQuery = {
+  id?: number;
+  role_menu_id?: number;
+  role_id?: number;
+  menu_sl?: number;
+  status?: RoleMenuStatus;
+};
+
+export type RoleMenuMatrixQuery = {
+  role_id: number;
+  status?: RoleMenuStatus;
+};
+
+export type RoleMenuWritePayload = {
+  role_id: number;
+  menu_sl: number;
+  status?: RoleMenuStatus;
+  created_by?: number;
+};
+
+export type RoleMenuSyncPayload = {
+  role_id: number;
+  menu_sls?: number[];
+  created_by?: number;
+};
+
 /** Leave Master — `mst_leave_master` / USP_LEAVE_* */
 export type LeaveMasterStatus = 0 | 1;
 export type LeaveMasterGender = "A" | "M" | "F";

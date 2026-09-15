@@ -22,6 +22,15 @@ export { employmentTypeService } from "@/lib/api/services/employment-type.servic
 export { employmentStatusService } from "@/lib/api/services/employment-status.service";
 export { organizationService } from "@/lib/api/services/organization.service";
 export { roleService } from "@/lib/api/services/role.service";
+export {
+  groupMatrixRows,
+  normalizeMatrixItem,
+  roleMenuService,
+} from "@/lib/api/services/role-menu.service";
+export type {
+  RoleMenuMatrixGroup,
+  RoleMenuMatrixRow,
+} from "@/lib/api/services/role-menu.service";
 export { holidayService } from "@/lib/api/services/holiday.service";
 export { HOLIDAY_TYPE_OPT_GRP_ID } from "@/lib/api/services/holiday.service";
 export {

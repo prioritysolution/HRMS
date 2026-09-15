@@ -50,6 +50,8 @@ export {
   projectsService,
   reportsService,
   roleService,
+  roleMenuService,
+  groupMatrixRows,
   workShiftService,
   codeSeriesService,
   emailConfigService,

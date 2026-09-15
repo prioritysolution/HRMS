@@ -157,6 +157,12 @@ const ROUTE_ALIASES: Record<string, string> = {
   "/security/roles": "/security/role",
   "/role": "/security/role",
   "/roles": "/security/role",
+  "/security/permission": "/security/permission",
+  "/security/permissions": "/security/permission",
+  "/security/role-menu": "/security/permission",
+  "/security/role-menu-permission": "/security/permission",
+  "/role-menu": "/security/permission",
+  "/permissions": "/security/permission",
 };
 
 /**
@@ -233,6 +239,9 @@ const LABEL_ROUTES: Array<{ match: RegExp; href: string }> = [
   { match: /^role\s*management$/i, href: "/security/role" },
   { match: /^roles?$/i, href: "/security/role" },
   { match: /^security\s*roles?$/i, href: "/security/role" },
+  { match: /^role\s*menu\s*permission$/i, href: "/security/permission" },
+  { match: /^(menu\s*)?permissions?$/i, href: "/security/permission" },
+  { match: /^role\s*permissions?$/i, href: "/security/permission" },
 ];
 
 function normalizePath(route: string): string {

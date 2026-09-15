@@ -165,7 +165,10 @@ export const navigation: NavSection[] = [
       {
         label: "Security",
         icon: "shield",
-        children: [{ label: "Role Management", href: "/security/role" }],
+        children: [
+          { label: "Role Management", href: "/security/role" },
+          { label: "Role Menu Permission", href: "/security/permission" },
+        ],
       },
     ],
   },

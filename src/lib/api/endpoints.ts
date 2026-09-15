@@ -291,4 +291,12 @@ export const API_ENDPOINTS = {
     update: (id: string | number) => `/api/v1/role/update/${id}`,
     delete: (id: string | number) => `/api/v1/role/delete/${id}`,
   },
+  roleMenu: {
+    list: "/api/v1/role-menu/list",
+    matrix: "/api/v1/role-menu/matrix",
+    create: "/api/v1/role-menu/create",
+    update: (id: string | number) => `/api/v1/role-menu/update/${id}`,
+    delete: (id: string | number) => `/api/v1/role-menu/delete/${id}`,
+    sync: "/api/v1/role-menu/sync",
+  },
 } as const;
