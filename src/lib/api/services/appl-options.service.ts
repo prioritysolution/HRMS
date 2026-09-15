@@ -32,6 +32,19 @@ export function applOptionsToSelectOptions(records: ApplOptionRecord[]) {
     }));
 }
 
+export const OPT_GRP_IDS = {
+  MESSAGE_TYPE: 20,
+  WORKING_DAYS_BASIS: 21,
+  SALARY_CALCULATION_BASED_ON: 22,
+  OT_CALCULATION: 23,
+  SALARY_SLIP_FORMAT: 24,
+  SALARY_BASIS: 25,
+  TAX_REGIME: 26,
+  TDS_CALCULATION_METHOD: 27,
+  PT_BASED_ON: 28,
+  DEDUCTION_FREQUENCY: 29,
+} as const;
+
 export const applOptionService = {
   list: async (query?: ApplOptionListQuery) => {
     const payload = await apiClient.get<unknown>(withListQuery(API_ENDPOINTS.applOptions.list, query));
@@ -59,3 +72,4 @@ export const applOptionService = {
     return asApplOptionList(payload);
   },
 };
+

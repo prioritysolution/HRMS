@@ -1,4 +1,6 @@
-import { MOCK_LEAVE_SETTINGS, type LeaveSettings } from "@/data/settings-mock";
+import { apiClient } from "@/lib/api/client";
+import { API_ENDPOINTS } from "@/lib/api/endpoints";
+import type { LeaveSettingsRecord, LeaveSettingsWritePayload } from "@/lib/api/types";
 
 export type LeaveSettingsActionResult<T> = {
   ok: boolean;
@@ -6,47 +8,63 @@ export type LeaveSettingsActionResult<T> = {
   message: string;
 };
 
-function cloneSettings(source: LeaveSettings): LeaveSettings {
-  return { ...source };
-}
+function asLeaveSettingsRecord(value: unknown): LeaveSettingsRecord | undefined {
+  if (!value || typeof value !== "object") return undefined;
+  
+  const hasDataKey = "data" in (value as Record<string, unknown>);
+  const rawData = hasDataKey ? (value as Record<string, unknown>).data : value;
+  
+  if (!rawData || typeof rawData !== "object") return undefined;
+  
+  const data = Array.isArray(rawData) ? rawData[0] : rawData;
+  if (!data) return undefined;
 
-/** In-memory demo store until Leave Settings API is available. */
-let settingsStore = cloneSettings(MOCK_LEAVE_SETTINGS);
-
-function delay(ms = 250) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function toFlag(value: unknown): 0 | 1 {
-  return String(value ?? "").trim() === "0" ? 0 : 1;
+  return {
+    setting_id: Number(data.Setting_Id ?? data.setting_id) || undefined,
+    apply_future_leave: Number(data.Apply_Future_Leave ?? data.apply_future_leave) ? 1 : 0,
+    apply_previous_leave: Number(data.Apply_Previous_Leave ?? data.apply_previous_leave) ? 1 : 0,
+    half_day_allowed: Number(data.Half_Day_Allowed ?? data.half_day_allowed) ? 1 : 0,
+    apply_during_probation: Number(data.Apply_During_Probation ?? data.apply_during_probation) ? 1 : 0,
+    reason_mandatory: Number(data.Reason_Mandatory ?? data.reason_mandatory) ? 1 : 0,
+    prevent_overlapping_leave: Number(data.Prevent_Overlapping_Leave ?? data.prevent_overlapping_leave) ? 1 : 0,
+  } as LeaveSettingsRecord;
 }
 
 export const leaveSettingsService = {
-  get: async (): Promise<LeaveSettingsActionResult<LeaveSettings>> => {
-    await delay();
-    return {
-      ok: true,
-      data: cloneSettings(settingsStore),
-      message: "Leave settings loaded (demo).",
-    };
+  get: async (): Promise<LeaveSettingsActionResult<LeaveSettingsRecord>> => {
+    try {
+      const payload = await apiClient.get<unknown>(API_ENDPOINTS.leaveSettings.list);
+      const data = asLeaveSettingsRecord(payload);
+      if (!data) throw new Error("Invalid response format");
+      return { ok: true, data, message: "Leave settings loaded." };
+    } catch (error) {
+      return {
+        ok: false,
+        message: error instanceof Error ? error.message : "Failed to load leave settings",
+      };
+    }
   },
 
   update: async (
-    payload: LeaveSettings,
-  ): Promise<LeaveSettingsActionResult<LeaveSettings>> => {
-    await delay();
-    settingsStore = cloneSettings({
-      apply_for_future_leave: toFlag(payload.apply_for_future_leave),
-      apply_for_previous_date_leave: toFlag(payload.apply_for_previous_date_leave),
-      half_day_leave_allowed: toFlag(payload.half_day_leave_allowed),
-      apply_during_probation: toFlag(payload.apply_during_probation),
-      reason_mandatory: toFlag(payload.reason_mandatory),
-      prevent_overlapping_leave: toFlag(payload.prevent_overlapping_leave),
-    });
-    return {
-      ok: true,
-      data: cloneSettings(settingsStore),
-      message: "Leave settings saved (demo).",
-    };
+    payload: LeaveSettingsWritePayload,
+  ): Promise<LeaveSettingsActionResult<LeaveSettingsRecord>> => {
+    try {
+      const response = await apiClient.put<unknown>(API_ENDPOINTS.leaveSettings.save, payload);
+      const data = asLeaveSettingsRecord(response);
+      return {
+        ok: true,
+        data,
+        message:
+          response && typeof response === "object" && "message" in response
+            ? String(response.message)
+            : "Leave settings saved.",
+      };
+    } catch (error) {
+      return {
+        ok: false,
+        message: error instanceof Error ? error.message : "Failed to save leave settings",
+      };
+    }
   },
 };
+

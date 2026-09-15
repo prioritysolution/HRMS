@@ -300,6 +300,10 @@ export const API_ENDPOINTS = {
     list: "/api/v1/document-settings/list",
     save: "/api/v1/document-settings/save",
   },
+  leaveSettings: {
+    list: "/api/v1/leave-settings/list",
+    save: "/api/v1/leave-settings/save",
+  },
   lateEarlyRules: {
     list: "/api/v1/late-early-rules/list",
     save: "/api/v1/late-early-rules/save",

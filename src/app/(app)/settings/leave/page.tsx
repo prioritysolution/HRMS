@@ -14,25 +14,25 @@ import { RoundLoader } from "@/components/ui/RoundLoader";
 import { StatusToggle } from "@/components/ui/StatusToggle";
 import { TableSectionHeader } from "@/components/ui/TableSectionHeader";
 import { useToast } from "@/components/ui/ToastProvider";
-import type { LeaveSettings } from "@/data/settings-mock";
+import type { LeaveSettingsRecord, LeaveSettingsWritePayload } from "@/lib/api/types";
 import { leaveSettingsService } from "@/lib/api/services/leave-settings.service";
 import type { FormValue } from "@/lib/form-validation";
 
 const OPTIONS = [
   {
-    name: "apply_for_future_leave" as const,
+    name: "apply_future_leave" as const,
     label: "Apply for Future Leave",
     description: "Allow employees to apply leave for future dates.",
     icon: CalendarRange,
   },
   {
-    name: "apply_for_previous_date_leave" as const,
+    name: "apply_previous_leave" as const,
     label: "Apply for Previous-date Leave",
     description: "Allow employees to apply leave for past dates.",
     icon: CalendarClock,
   },
   {
-    name: "half_day_leave_allowed" as const,
+    name: "half_day_allowed" as const,
     label: "Half-day Leave Allowed",
     description: "Allow employees to apply half-day leave.",
     icon: Split,
@@ -61,14 +61,14 @@ function toFlag(value: FormValue): 0 | 1 {
   return String(value ?? "").trim() === "0" ? 0 : 1;
 }
 
-function toFormValues(data: LeaveSettings): Record<string, FormValue> {
+function toFormValues(data: LeaveSettingsRecord): Record<string, FormValue> {
   return {
-    apply_for_future_leave: String(data.apply_for_future_leave),
-    apply_for_previous_date_leave: String(data.apply_for_previous_date_leave),
-    half_day_leave_allowed: String(data.half_day_leave_allowed),
-    apply_during_probation: String(data.apply_during_probation),
-    reason_mandatory: String(data.reason_mandatory),
-    prevent_overlapping_leave: String(data.prevent_overlapping_leave),
+    apply_future_leave: String(data.apply_future_leave ?? "0"),
+    apply_previous_leave: String(data.apply_previous_leave ?? "0"),
+    half_day_allowed: String(data.half_day_allowed ?? "0"),
+    apply_during_probation: String(data.apply_during_probation ?? "0"),
+    reason_mandatory: String(data.reason_mandatory ?? "0"),
+    prevent_overlapping_leave: String(data.prevent_overlapping_leave ?? "0"),
   };
 }
 
@@ -77,9 +77,9 @@ export default function LeaveSettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [values, setValues] = useState<Record<string, FormValue>>({
-    apply_for_future_leave: "1",
-    apply_for_previous_date_leave: "1",
-    half_day_leave_allowed: "1",
+    apply_future_leave: "1",
+    apply_previous_leave: "1",
+    half_day_allowed: "1",
     apply_during_probation: "1",
     reason_mandatory: "1",
     prevent_overlapping_leave: "1",
@@ -121,9 +121,9 @@ export default function LeaveSettingsPage() {
     setSaving(true);
     try {
       const result = await leaveSettingsService.update({
-        apply_for_future_leave: toFlag(values.apply_for_future_leave),
-        apply_for_previous_date_leave: toFlag(values.apply_for_previous_date_leave),
-        half_day_leave_allowed: toFlag(values.half_day_leave_allowed),
+        apply_future_leave: toFlag(values.apply_future_leave),
+        apply_previous_leave: toFlag(values.apply_previous_leave),
+        half_day_allowed: toFlag(values.half_day_allowed),
         apply_during_probation: toFlag(values.apply_during_probation),
         reason_mandatory: toFlag(values.reason_mandatory),
         prevent_overlapping_leave: toFlag(values.prevent_overlapping_leave),

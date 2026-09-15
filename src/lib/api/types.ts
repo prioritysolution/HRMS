@@ -2481,3 +2481,24 @@ export type MyAttendanceCalendar = {
   summary: MyAttendanceCalendarSummary;
   days: MyAttendanceCalendarDay[];
 };
+
+/** Leave Settings - GET /api/v1/leave-settings/list, PUT /api/v1/leave-settings/save */
+export type LeaveSettingsRecord = {
+  setting_id?: number | null;
+  apply_future_leave: 0 | 1;
+  apply_previous_leave: 0 | 1;
+  half_day_allowed: 0 | 1;
+  apply_during_probation: 0 | 1;
+  reason_mandatory: 0 | 1;
+  prevent_overlapping_leave: 0 | 1;
+};
+
+export type LeaveSettingsWritePayload = {
+  apply_future_leave: 0 | 1;
+  apply_previous_leave: 0 | 1;
+  half_day_allowed: 0 | 1;
+  apply_during_probation: 0 | 1;
+  reason_mandatory: 0 | 1;
+  prevent_overlapping_leave: 0 | 1;
+};
+
