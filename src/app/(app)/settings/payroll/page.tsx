@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Banknote,
   Building2,
@@ -19,125 +19,166 @@ import { RoundLoader } from "@/components/ui/RoundLoader";
 import { StatusToggle } from "@/components/ui/StatusToggle";
 import { TableSectionHeader } from "@/components/ui/TableSectionHeader";
 import { useToast } from "@/components/ui/ToastProvider";
-import type { PayrollSettings } from "@/data/settings-mock";
+import { applOptionService, OPT_GRP_IDS } from "@/lib/api/services/appl-options.service";
+import type { ApplOptionRecord, CombinedPayrollSettings } from "@/lib/api/types";
 import { payrollSettingsService } from "@/lib/api/services/payroll-settings.service";
 import { validateFormField, validateFormFields, type FormValue } from "@/lib/form-validation";
 import type { FormField } from "@/types/hrms";
 
-const salaryCalculationFields: FormField[] = [
-  {
-    label: "Salary Basis",
-    name: "salary_basis",
-    type: "select",
-    required: true,
-    defaultValue: "monthly",
-    options: [
-      { value: "monthly", label: "Monthly" },
-      { value: "daily", label: "Daily" },
-      { value: "hourly", label: "Hourly" },
-    ],
-  },
-  {
-    label: "Working Days Basis",
-    name: "working_days_basis",
-    type: "select",
-    required: true,
-    defaultValue: "calendar_days",
-    options: [
-      { value: "calendar_days", label: "Calendar Days" },
-      { value: "actual_working_days", label: "Actual Working Days" },
-      { value: "fixed_26", label: "Fixed 26 Days" },
-      { value: "fixed_30", label: "Fixed 30 Days" },
-    ],
-  },
-  {
-    label: "Salary Calculation Based On",
-    name: "salary_calculation_based_on",
-    type: "select",
-    required: true,
-    defaultValue: "attendance",
-    options: [
-      { value: "attendance", label: "Attendance" },
-      { value: "paid_days", label: "Paid Days" },
-      { value: "working_days", label: "Working Days" },
-    ],
-  },
+type DynamicOption = {
+  value: string;
+  label: string;
+  code: string;
+  optionId: string;
+};
+
+const DEFAULT_SALARY_BASIS_OPTIONS: DynamicOption[] = [
+  { value: "1", label: "Monthly", code: "1", optionId: "110" },
+  { value: "2", label: "Daily", code: "2", optionId: "111" },
+  { value: "3", label: "Hourly", code: "3", optionId: "112" },
 ];
 
-const overtimeValueFields: FormField[] = [
-  {
-    label: "OT Calculation Based On",
-    name: "ot_calculation_based_on",
-    type: "select",
-    required: true,
-    defaultValue: "basic",
-    options: [
-      { value: "basic", label: "Basic" },
-      { value: "hourly_rate", label: "Hourly Rate" },
-    ],
-  },
-  {
-    label: "Normal Day OT Rate (×)",
-    name: "normal_day_ot_rate",
-    type: "number",
-    required: true,
-    min: 0,
-    max: 10,
-    defaultValue: "1.5",
-  },
-  {
-    label: "Weekly Off OT Rate (×)",
-    name: "weekly_off_ot_rate",
-    type: "number",
-    required: true,
-    min: 0,
-    max: 10,
-    defaultValue: "2",
-  },
-  {
-    label: "Holiday OT Rate (×)",
-    name: "holiday_ot_rate",
-    type: "number",
-    required: true,
-    min: 0,
-    max: 10,
-    defaultValue: "2",
-  },
-  {
-    label: "Minimum OT (Minutes)",
-    name: "minimum_ot_minutes",
-    type: "number",
-    required: true,
-    min: 0,
-    max: 480,
-    defaultValue: "30",
-  },
+const DEFAULT_WORKING_DAYS_OPTIONS: DynamicOption[] = [
+  { value: "1", label: "Calendar Days", code: "1", optionId: "98" },
+  { value: "2", label: "Actual Working Days", code: "2", optionId: "99" },
+  { value: "3", label: "Fixed 26 Days", code: "3", optionId: "100" },
+  { value: "4", label: "Fixed 30 Days", code: "4", optionId: "101" },
 ];
 
-const slipFormatField: FormField[] = [
-  {
-    label: "Salary Slip Format",
-    name: "salary_slip_format",
-    type: "select",
-    required: true,
-    defaultValue: "a4",
-    options: [
-      { value: "a4", label: "A4" },
-      { value: "a5", label: "A5" },
-      { value: "letter", label: "Letter" },
-    ],
-  },
+const DEFAULT_SALARY_CALC_OPTIONS: DynamicOption[] = [
+  { value: "1", label: "Attendance", code: "1", optionId: "102" },
+  { value: "2", label: "Paid Days", code: "2", optionId: "103" },
+  { value: "3", label: "Working Days", code: "3", optionId: "104" },
 ];
 
-const allFields: FormField[] = [
-  ...salaryCalculationFields,
-  ...overtimeValueFields,
-  ...slipFormatField,
+const DEFAULT_OT_CALC_OPTIONS: DynamicOption[] = [
+  { value: "Basic", label: "Basic", code: "1", optionId: "105" },
+  { value: "Hourly Rate", label: "Hourly Rate", code: "2", optionId: "106" },
 ];
+
+const DEFAULT_SLIP_FORMAT_OPTIONS: DynamicOption[] = [
+  { value: "1", label: "A4", code: "1", optionId: "107" },
+  { value: "2", label: "A5", code: "2", optionId: "108" },
+  { value: "3", label: "Letter", code: "3", optionId: "109" },
+];
+
+function toDynamicOptions(
+  records: ApplOptionRecord[],
+  valueMode: "code" | "description" = "code",
+): DynamicOption[] {
+  return [...records]
+    .sort((a, b) => Number(a.Srl_No ?? 0) - Number(b.Srl_No ?? 0))
+    .map((rec) => ({
+      value: String(
+        valueMode === "description"
+          ? rec.Opt_Description || rec.Opt_Code
+          : rec.Opt_Code ?? rec.Option_Id,
+      ).trim(),
+      label: String(rec.Opt_Description || rec.Opt_Code || "").trim(),
+      code: String(rec.Opt_Code ?? "").trim(),
+      optionId: String(rec.Option_Id ?? "").trim(),
+    }))
+    .filter((opt) => opt.value && opt.label);
+}
+
+function buildSalaryCalculationFields(
+  salaryBasisOptions: DynamicOption[],
+  workingDaysOptions: DynamicOption[],
+  salaryCalcOptions: DynamicOption[],
+): FormField[] {
+  return [
+    {
+      label: "Salary Basis",
+      name: "salary_basis",
+      type: "select",
+      required: true,
+      defaultValue: salaryBasisOptions[0]?.value ?? "1",
+      options: salaryBasisOptions,
+    },
+    {
+      label: "Working Days Basis",
+      name: "working_days_basis",
+      type: "select",
+      required: true,
+      defaultValue: workingDaysOptions[0]?.value ?? "1",
+      options: workingDaysOptions,
+    },
+    {
+      label: "Salary Calculation Based On",
+      name: "salary_calculation_based_on",
+      type: "select",
+      required: true,
+      defaultValue: salaryCalcOptions[0]?.value ?? "1",
+      options: salaryCalcOptions,
+    },
+  ];
+}
+
+function buildOvertimeValueFields(otCalculationOptions: DynamicOption[]): FormField[] {
+  return [
+    {
+      label: "OT Calculation Based On",
+      name: "ot_calculation_based_on",
+      type: "select",
+      required: true,
+      defaultValue: otCalculationOptions[0]?.value ?? "Basic",
+      options: otCalculationOptions,
+    },
+    {
+      label: "Normal Day OT Rate (×)",
+      name: "normal_day_ot_rate",
+      type: "number",
+      required: true,
+      min: 0,
+      max: 10,
+      defaultValue: "1.5",
+    },
+    {
+      label: "Weekly Off OT Rate (×)",
+      name: "weekly_off_ot_rate",
+      type: "number",
+      required: true,
+      min: 0,
+      max: 10,
+      defaultValue: "2",
+    },
+    {
+      label: "Holiday OT Rate (×)",
+      name: "holiday_ot_rate",
+      type: "number",
+      required: true,
+      min: 0,
+      max: 10,
+      defaultValue: "2",
+    },
+    {
+      label: "Minimum OT (Minutes)",
+      name: "min_ot_minutes",
+      type: "number",
+      required: true,
+      min: 0,
+      max: 480,
+      defaultValue: "30",
+    },
+  ];
+}
+
+function buildSlipFormatField(slipFormatOptions: DynamicOption[]): FormField[] {
+  return [
+    {
+      label: "Salary Slip Format",
+      name: "salary_slip_format",
+      type: "select",
+      required: true,
+      defaultValue: slipFormatOptions[0]?.value ?? "1",
+      options: slipFormatOptions,
+    },
+  ];
+}
 
 const SLIP_TOGGLES = [
   {
-    name: "generate_salary_slip_automatically" as const,
+    name: "generate_automatically" as const,
     label: "Generate Salary Slip Automatically",
     description: "Create salary slips automatically after payroll processing.",
     icon: FileText,
@@ -195,26 +236,67 @@ function toNumber(value: FormValue, fallback = 0): number {
   return Number.isFinite(numeric) ? numeric : fallback;
 }
 
-function toFormValues(data: PayrollSettings): Record<string, FormValue> {
+function resolveOptionValue(
+  rawCode: unknown,
+  rawName: unknown,
+  options: DynamicOption[],
+  fallbackDefault = "",
+): string {
+  const code = String(rawCode ?? "").trim().toLowerCase();
+  const name = String(rawName ?? "").trim().toLowerCase();
+
+  if (code) {
+    const byVal = options.find((o) => o.value.toLowerCase() === code);
+    if (byVal) return byVal.value;
+    const byCode = options.find((o) => o.code.toLowerCase() === code);
+    if (byCode) return byCode.value;
+    const byId = options.find((o) => o.optionId.toLowerCase() === code);
+    if (byId) return byId.value;
+    const byLabel = options.find((o) => o.label.toLowerCase() === code);
+    if (byLabel) return byLabel.value;
+  }
+
+  if (name) {
+    const byName = options.find(
+      (o) => o.label.toLowerCase() === name || o.value.toLowerCase() === name,
+    );
+    if (byName) return byName.value;
+  }
+
+  return options[0]?.value ?? fallbackDefault;
+}
+
+type OptGroups = {
+  salaryBasis: DynamicOption[];
+  workingDays: DynamicOption[];
+  salaryCalc: DynamicOption[];
+  otCalc: DynamicOption[];
+  slipFormat: DynamicOption[];
+};
+
+function toFormValues(
+  data: CombinedPayrollSettings,
+  opts: OptGroups,
+): Record<string, FormValue> {
   return {
-    salary_basis: data.salary_basis,
-    working_days_basis: data.working_days_basis,
-    salary_calculation_based_on: data.salary_calculation_based_on,
-    ot_applicable: String(data.ot_applicable),
-    ot_calculation_based_on: data.ot_calculation_based_on,
-    normal_day_ot_rate: String(data.normal_day_ot_rate),
-    weekly_off_ot_rate: String(data.weekly_off_ot_rate),
-    holiday_ot_rate: String(data.holiday_ot_rate),
-    minimum_ot_minutes: String(data.minimum_ot_minutes),
-    generate_salary_slip_automatically: String(data.generate_salary_slip_automatically),
-    salary_slip_format: data.salary_slip_format,
-    show_attendance_details: String(data.show_attendance_details),
-    show_leave_details: String(data.show_leave_details),
-    show_earnings: String(data.show_earnings),
-    show_deductions: String(data.show_deductions),
-    show_employer_contributions: String(data.show_employer_contributions),
-    show_bank_details: String(data.show_bank_details),
-    digital_signature: String(data.digital_signature),
+    salary_basis: resolveOptionValue(data.salary_basis, data.salary_basis_name, opts.salaryBasis, "1"),
+    working_days_basis: resolveOptionValue(data.working_days_basis, data.working_days_basis_name, opts.workingDays, "1"),
+    salary_calculation_based_on: resolveOptionValue(data.salary_calculation_based_on, data.salary_calculation_based_on_name, opts.salaryCalc, "1"),
+    ot_applicable: String(data.ot_applicable ?? "0"),
+    ot_calculation_based_on: resolveOptionValue(data.ot_calculation_based_on, data.ot_calculation_based_on_name, opts.otCalc, "Basic"),
+    normal_day_ot_rate: String(data.normal_day_ot_rate ?? "1.5"),
+    weekly_off_ot_rate: String(data.weekly_off_ot_rate ?? "2"),
+    holiday_ot_rate: String(data.holiday_ot_rate ?? "2"),
+    min_ot_minutes: String(data.min_ot_minutes ?? "30"),
+    salary_slip_format: resolveOptionValue(data.salary_slip_format, data.salary_slip_format_name, opts.slipFormat, "1"),
+    generate_automatically: String(data.generate_automatically ?? "0"),
+    show_attendance_details: String(data.show_attendance_details ?? "0"),
+    show_leave_details: String(data.show_leave_details ?? "0"),
+    show_earnings: String(data.show_earnings ?? "0"),
+    show_deductions: String(data.show_deductions ?? "0"),
+    show_employer_contributions: String(data.show_employer_contributions ?? "0"),
+    show_bank_details: String(data.show_bank_details ?? "0"),
+    digital_signature: String(data.digital_signature ?? "0"),
   };
 }
 
@@ -222,19 +304,53 @@ export default function PayrollSettingsPage() {
   const toast = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [values, setValues] = useState<Record<string, FormValue>>(() =>
-    buildInitialFormValues(allFields, {
-      ot_applicable: "1",
-      generate_salary_slip_automatically: "1",
-      show_attendance_details: "1",
-      show_leave_details: "1",
-      show_earnings: "1",
-      show_deductions: "1",
-      show_employer_contributions: "1",
-      show_bank_details: "1",
-      digital_signature: "1",
-    }),
+
+  const [salaryBasisOptions, setSalaryBasisOptions] = useState<DynamicOption[]>(DEFAULT_SALARY_BASIS_OPTIONS);
+  const [workingDaysOptions, setWorkingDaysOptions] = useState<DynamicOption[]>(DEFAULT_WORKING_DAYS_OPTIONS);
+  const [salaryCalcOptions, setSalaryCalcOptions] = useState<DynamicOption[]>(DEFAULT_SALARY_CALC_OPTIONS);
+  const [otCalcOptions, setOtCalcOptions] = useState<DynamicOption[]>(DEFAULT_OT_CALC_OPTIONS);
+  const [slipFormatOptions, setSlipFormatOptions] = useState<DynamicOption[]>(DEFAULT_SLIP_FORMAT_OPTIONS);
+
+  const salaryCalculationFields = useMemo(
+    () => buildSalaryCalculationFields(salaryBasisOptions, workingDaysOptions, salaryCalcOptions),
+    [salaryBasisOptions, workingDaysOptions, salaryCalcOptions],
   );
+
+  const overtimeValueFields = useMemo(
+    () => buildOvertimeValueFields(otCalcOptions),
+    [otCalcOptions],
+  );
+
+  const slipFormatField = useMemo(
+    () => buildSlipFormatField(slipFormatOptions),
+    [slipFormatOptions],
+  );
+
+  const allFields = useMemo(
+    () => [...salaryCalculationFields, ...overtimeValueFields, ...slipFormatField],
+    [salaryCalculationFields, overtimeValueFields, slipFormatField],
+  );
+
+  const [values, setValues] = useState<Record<string, FormValue>>(() => ({
+    salary_basis: "1",
+    working_days_basis: "1",
+    salary_calculation_based_on: "1",
+    ot_applicable: "1",
+    ot_calculation_based_on: "Basic",
+    normal_day_ot_rate: "1.5",
+    weekly_off_ot_rate: "2",
+    holiday_ot_rate: "2",
+    min_ot_minutes: "30",
+    salary_slip_format: "1",
+    generate_automatically: "1",
+    show_attendance_details: "1",
+    show_leave_details: "1",
+    show_earnings: "1",
+    show_deductions: "1",
+    show_employer_contributions: "1",
+    show_bank_details: "1",
+    digital_signature: "1",
+  }));
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -242,16 +358,71 @@ export default function PayrollSettingsPage() {
 
     async function loadSettings() {
       try {
-        const result = await payrollSettingsService.get();
+        const [
+          optBasis,
+          optWorkingDays,
+          optSalaryCalc,
+          optOtCalc,
+          optSlipFormat,
+          settingsResult,
+        ] = await Promise.all([
+          applOptionService.list({ opt_grp_id: OPT_GRP_IDS.SALARY_BASIS, is_active: 1 }).catch(() => []),
+          applOptionService.list({ opt_grp_id: OPT_GRP_IDS.WORKING_DAYS_BASIS, is_active: 1 }).catch(() => []),
+          applOptionService.list({ opt_grp_id: OPT_GRP_IDS.SALARY_CALCULATION_BASED_ON, is_active: 1 }).catch(() => []),
+          applOptionService.list({ opt_grp_id: OPT_GRP_IDS.OT_CALCULATION, is_active: 1 }).catch(() => []),
+          applOptionService.list({ opt_grp_id: OPT_GRP_IDS.SALARY_SLIP_FORMAT, is_active: 1 }).catch(() => []),
+          payrollSettingsService.get(),
+        ]);
+
         if (cancelled) return;
-        if (result.data) {
-          setValues(buildInitialFormValues(allFields, toFormValues(result.data)));
+
+        const mappedBasis = optBasis.length
+          ? toDynamicOptions(optBasis, "code")
+          : DEFAULT_SALARY_BASIS_OPTIONS;
+        const mappedWorkingDays = optWorkingDays.length
+          ? toDynamicOptions(optWorkingDays, "code")
+          : DEFAULT_WORKING_DAYS_OPTIONS;
+        const mappedSalaryCalc = optSalaryCalc.length
+          ? toDynamicOptions(optSalaryCalc, "code")
+          : DEFAULT_SALARY_CALC_OPTIONS;
+        const mappedOtCalc = optOtCalc.length
+          ? toDynamicOptions(optOtCalc, "description")
+          : DEFAULT_OT_CALC_OPTIONS;
+        const mappedSlipFormat = optSlipFormat.length
+          ? toDynamicOptions(optSlipFormat, "code")
+          : DEFAULT_SLIP_FORMAT_OPTIONS;
+
+        setSalaryBasisOptions(mappedBasis);
+        setWorkingDaysOptions(mappedWorkingDays);
+        setSalaryCalcOptions(mappedSalaryCalc);
+        setOtCalcOptions(mappedOtCalc);
+        setSlipFormatOptions(mappedSlipFormat);
+
+        const currentOptGroups: OptGroups = {
+          salaryBasis: mappedBasis,
+          workingDays: mappedWorkingDays,
+          salaryCalc: mappedSalaryCalc,
+          otCalc: mappedOtCalc,
+          slipFormat: mappedSlipFormat,
+        };
+
+        if (settingsResult.data) {
+          const dynamicFields = [
+            ...buildSalaryCalculationFields(mappedBasis, mappedWorkingDays, mappedSalaryCalc),
+            ...buildOvertimeValueFields(mappedOtCalc),
+            ...buildSlipFormatField(mappedSlipFormat),
+          ];
+          setValues({
+            ...buildInitialFormValues(dynamicFields),
+            ...toFormValues(settingsResult.data, currentOptGroups),
+          });
           setErrors({});
         }
-        if (!result.ok) {
+
+        if (!settingsResult.ok) {
           toast.error({
             title: "Unable to load settings",
-            message: result.message,
+            message: settingsResult.message,
           });
         }
       } catch {
@@ -299,40 +470,17 @@ export default function PayrollSettingsPage() {
     setSaving(true);
     try {
       const result = await payrollSettingsService.update({
-        salary_basis:
-          String(values.salary_basis) === "daily"
-            ? "daily"
-            : String(values.salary_basis) === "hourly"
-              ? "hourly"
-              : "monthly",
-        working_days_basis:
-          String(values.working_days_basis) === "actual_working_days"
-            ? "actual_working_days"
-            : String(values.working_days_basis) === "fixed_26"
-              ? "fixed_26"
-              : String(values.working_days_basis) === "fixed_30"
-                ? "fixed_30"
-                : "calendar_days",
-        salary_calculation_based_on:
-          String(values.salary_calculation_based_on) === "paid_days"
-            ? "paid_days"
-            : String(values.salary_calculation_based_on) === "working_days"
-              ? "working_days"
-              : "attendance",
+        salary_basis: Number(values.salary_basis) || String(values.salary_basis ?? "1"),
+        working_days_basis: Number(values.working_days_basis) || 1,
+        salary_calculation_based_on: Number(values.salary_calculation_based_on) || 1,
         ot_applicable: toFlag(values.ot_applicable),
-        ot_calculation_based_on:
-          String(values.ot_calculation_based_on) === "hourly_rate" ? "hourly_rate" : "basic",
+        ot_calculation_based_on: String(values.ot_calculation_based_on || "Basic"),
         normal_day_ot_rate: toNumber(values.normal_day_ot_rate, 1.5),
         weekly_off_ot_rate: toNumber(values.weekly_off_ot_rate, 2),
         holiday_ot_rate: toNumber(values.holiday_ot_rate, 2),
-        minimum_ot_minutes: toNumber(values.minimum_ot_minutes, 30),
-        generate_salary_slip_automatically: toFlag(values.generate_salary_slip_automatically),
-        salary_slip_format:
-          String(values.salary_slip_format) === "a5"
-            ? "a5"
-            : String(values.salary_slip_format) === "letter"
-              ? "letter"
-              : "a4",
+        min_ot_minutes: toNumber(values.min_ot_minutes, 30),
+        salary_slip_format: Number(values.salary_slip_format) || 1,
+        generate_automatically: toFlag(values.generate_automatically),
         show_attendance_details: toFlag(values.show_attendance_details),
         show_leave_details: toFlag(values.show_leave_details),
         show_earnings: toFlag(values.show_earnings),
@@ -341,11 +489,22 @@ export default function PayrollSettingsPage() {
         show_bank_details: toFlag(values.show_bank_details),
         digital_signature: toFlag(values.digital_signature),
       });
+
       if (!result.ok || !result.data) {
         toast.error({ title: "Save failed", message: result.message });
         return;
       }
-      setValues(buildInitialFormValues(allFields, toFormValues(result.data)));
+
+      setValues((prev) => ({
+        ...prev,
+        ...toFormValues(result.data!, {
+          salaryBasis: salaryBasisOptions,
+          workingDays: workingDaysOptions,
+          salaryCalc: salaryCalcOptions,
+          otCalc: otCalcOptions,
+          slipFormat: slipFormatOptions,
+        }),
+      }));
       toast.success({ title: "Saved", message: result.message });
     } catch {
       toast.error({

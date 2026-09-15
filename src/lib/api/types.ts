@@ -2502,3 +2502,64 @@ export type LeaveSettingsWritePayload = {
   prevent_overlapping_leave: 0 | 1;
 };
 
+/** Payroll Settings */
+export type PayrollSettingsRecord = {
+  setting_id?: number | null;
+  salary_basis: string | number;
+  salary_basis_name?: string;
+  working_days_basis: string | number;
+  working_days_basis_name?: string;
+  salary_calculation_based_on: string | number;
+  salary_calculation_based_on_name?: string;
+  ot_applicable: 0 | 1;
+  ot_calculation_based_on: string;
+  ot_calculation_based_on_name?: string;
+  normal_day_ot_rate: number;
+  weekly_off_ot_rate: number;
+  holiday_ot_rate: number;
+  min_ot_minutes: number;
+};
+
+export type PayrollSettingsWritePayload = {
+  salary_basis: string | number;
+  working_days_basis: string | number;
+  salary_calculation_based_on: string | number;
+  ot_applicable: 0 | 1;
+  ot_calculation_based_on: string;
+  normal_day_ot_rate: number;
+  weekly_off_ot_rate: number;
+  holiday_ot_rate: number;
+  min_ot_minutes: number;
+};
+
+/** Salary Slip Settings */
+export type SalarySlipSettingsRecord = {
+  setting_id?: number | null;
+  salary_slip_format: string | number;
+  salary_slip_format_name?: string;
+  generate_automatically: 0 | 1;
+  show_attendance_details: 0 | 1;
+  show_leave_details: 0 | 1;
+  show_earnings: 0 | 1;
+  show_deductions: 0 | 1;
+  show_employer_contributions: 0 | 1;
+  show_bank_details: 0 | 1;
+  digital_signature: 0 | 1;
+};
+
+export type SalarySlipSettingsWritePayload = {
+  salary_slip_format: string | number;
+  generate_automatically: 0 | 1;
+  show_attendance_details: 0 | 1;
+  show_leave_details: 0 | 1;
+  show_earnings: 0 | 1;
+  show_deductions: 0 | 1;
+  show_employer_contributions: 0 | 1;
+  show_bank_details: 0 | 1;
+  digital_signature: 0 | 1;
+};
+
+/** Combined UI Record */
+export type CombinedPayrollSettings = Omit<PayrollSettingsRecord, "setting_id"> &
+  Omit<SalarySlipSettingsRecord, "setting_id">;
+

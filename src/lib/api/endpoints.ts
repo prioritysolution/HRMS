@@ -300,6 +300,14 @@ export const API_ENDPOINTS = {
     list: "/api/v1/document-settings/list",
     save: "/api/v1/document-settings/save",
   },
+  payrollSettings: {
+    list: "/api/v1/payroll-settings/list",
+    save: "/api/v1/payroll-settings/save",
+  },
+  salarySlipSettings: {
+    list: "/api/v1/salary-slip-settings/list",
+    save: "/api/v1/salary-slip-settings/save",
+  },
   leaveSettings: {
     list: "/api/v1/leave-settings/list",
     save: "/api/v1/leave-settings/save",

@@ -300,7 +300,7 @@ export function FormFieldsRenderer({
 
 export function buildInitialFormValues(
   fields: FormField[],
-  initialValues?: HrmsRow,
+  initialValues?: Record<string, unknown>,
 ): Record<string, FormValue> {
   const values: Record<string, FormValue> = {};
 
