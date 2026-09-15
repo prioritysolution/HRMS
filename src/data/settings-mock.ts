@@ -151,6 +151,52 @@ export const MOCK_PAYROLL_SETTINGS: PayrollSettings = {
   digital_signature: 1,
 };
 
+export type ProfessionalTaxSlab = {
+  id: string;
+  from_amount: number;
+  to_amount: number | null;
+  tax_amount: number;
+};
+
+export type TaxSettings = {
+  pt_applicable: 0 | 1;
+  pt_state: string;
+  pt_deduction_frequency: "monthly" | "half_yearly" | "yearly";
+  pt_based_on: "gross" | "basic";
+  pt_slabs: ProfessionalTaxSlab[];
+  tds_applicable: 0 | 1;
+  tax_regime: "old" | "new";
+  financial_year: string;
+  tds_calculation_method: "monthly_projection" | "actual";
+  standard_deduction: number;
+  round_off_tds: 0 | 1;
+  consider_previous_employment: 0 | 1;
+  auto_generate_form16: 0 | 1;
+  show_tds_on_payslip: 0 | 1;
+};
+
+export const MOCK_TAX_SETTINGS: TaxSettings = {
+  pt_applicable: 1,
+  pt_state: "gujarat",
+  pt_deduction_frequency: "monthly",
+  pt_based_on: "gross",
+  pt_slabs: [
+    { id: "1", from_amount: 0, to_amount: 5999, tax_amount: 0 },
+    { id: "2", from_amount: 6000, to_amount: 8999, tax_amount: 80 },
+    { id: "3", from_amount: 9000, to_amount: 11999, tax_amount: 150 },
+    { id: "4", from_amount: 12000, to_amount: null, tax_amount: 200 },
+  ],
+  tds_applicable: 1,
+  tax_regime: "new",
+  financial_year: "2026-2027",
+  tds_calculation_method: "monthly_projection",
+  standard_deduction: 75000,
+  round_off_tds: 1,
+  consider_previous_employment: 1,
+  auto_generate_form16: 1,
+  show_tds_on_payslip: 1,
+};
+
 export const MOCK_SMS_GATEWAY: SmsGatewayConfig = {
   api_url: "https://sms.prioritysolutions.in/api/v1/send",
   api_key: "demo-sms-api-key-••••••••",
