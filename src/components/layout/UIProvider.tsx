@@ -30,21 +30,29 @@ type UIContextValue = {
 
 const UIContext = createContext<UIContextValue | null>(null);
 
+function readStoredTheme(): Theme | null {
+  const saved = window.localStorage.getItem("priohrm-theme");
+  return saved === "dark" || saved === "light" ? saved : null;
+}
+
 export function UIProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>("light");
+  const [themeReady, setThemeReady] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const saved = window.localStorage.getItem("priohrm-theme") as Theme | null;
+    const saved = readStoredTheme();
     if (saved) setTheme(saved);
+    setThemeReady(true);
   }, []);
 
   useEffect(() => {
+    if (!themeReady) return;
     document.documentElement.setAttribute("data-theme", theme);
     window.localStorage.setItem("priohrm-theme", theme);
-  }, [theme]);
+  }, [theme, themeReady]);
 
   useEffect(() => {
     if (!mobileOpen) return;

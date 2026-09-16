@@ -6,7 +6,7 @@ export const REPORT_TEXT_MUTED: [number, number, number] = [100, 116, 139];
 export const REPORT_TEXT_DARK: [number, number, number] = [15, 23, 42];
 export const REPORT_BORDER: [number, number, number] = [226, 232, 240];
 export const REPORT_CARD_BG: [number, number, number] = [248, 250, 252];
-export const DEFAULT_REPORT_LOGO = "/images/logos/logo.jpeg";
+export const DEFAULT_REPORT_LOGO = "/images/logos/logo-light.png";
 
 export const DEFAULT_REPORT_BRAND: ReportBrand = {
   companyName: "PrioHRM",

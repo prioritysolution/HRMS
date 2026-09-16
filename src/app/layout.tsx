@@ -49,6 +49,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${nunito.variable} h-full`} suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem("priohrm-theme");if(t==="dark"||t==="light")document.documentElement.setAttribute("data-theme",t);}catch(e){}})();`,
+          }}
+        />
+      </head>
       <body className={`${nunito.className} min-h-full antialiased`}>
         <AuthProvider>{children}</AuthProvider>
       </body>
