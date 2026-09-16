@@ -2411,14 +2411,26 @@ export type SmsTemplateListQuery = {
 export type NotificationChannelStatus = 0 | 1;
 
 export type NotificationSettingsRecord = {
+  setting_id?: number;
   inapp_notification: NotificationChannelStatus;
   email_notification: NotificationChannelStatus;
   sms_notification: NotificationChannelStatus;
   push_notification: NotificationChannelStatus;
   whatsapp_notification: NotificationChannelStatus;
+  in_app?: NotificationChannelStatus;
+  email?: NotificationChannelStatus;
+  sms?: NotificationChannelStatus;
+  push?: NotificationChannelStatus;
+  whatsapp?: NotificationChannelStatus;
 };
 
-export type NotificationSettingsWritePayload = NotificationSettingsRecord;
+export type NotificationSettingsWritePayload = {
+  in_app: NotificationChannelStatus;
+  email: NotificationChannelStatus;
+  sms: NotificationChannelStatus;
+  push: NotificationChannelStatus;
+  whatsapp: NotificationChannelStatus;
+};
 export type MyAttendanceCalendarQuery = {
   year: number;
   month: number;

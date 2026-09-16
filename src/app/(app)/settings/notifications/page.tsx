@@ -7,8 +7,8 @@ import { RoundLoader } from "@/components/ui/RoundLoader";
 import { StatusToggle } from "@/components/ui/StatusToggle";
 import { TableSectionHeader } from "@/components/ui/TableSectionHeader";
 import { useToast } from "@/components/ui/ToastProvider";
-import type { NotificationChannelSettings } from "@/data/settings-mock";
 import { notificationSettingsService } from "@/lib/api/services/notification-settings.service";
+import type { NotificationSettingsRecord } from "@/lib/api/types";
 import type { FormValue } from "@/lib/form-validation";
 
 const CHANNELS = [
@@ -49,13 +49,13 @@ function toFlag(value: FormValue): 0 | 1 {
   return String(value ?? "").trim() === "0" ? 0 : 1;
 }
 
-function toFormValues(data: NotificationChannelSettings): Record<string, FormValue> {
+function toFormValues(data: NotificationSettingsRecord): Record<string, FormValue> {
   return {
-    inapp_notification: String(data.inapp_notification),
-    email_notification: String(data.email_notification),
-    sms_notification: String(data.sms_notification),
-    push_notification: String(data.push_notification),
-    whatsapp_notification: String(data.whatsapp_notification),
+    inapp_notification: String(data.in_app ?? data.inapp_notification ?? "0"),
+    email_notification: String(data.email ?? data.email_notification ?? "0"),
+    sms_notification: String(data.sms ?? data.sms_notification ?? "0"),
+    push_notification: String(data.push ?? data.push_notification ?? "0"),
+    whatsapp_notification: String(data.whatsapp ?? data.whatsapp_notification ?? "0"),
   };
 }
 
@@ -107,11 +107,11 @@ export default function NotificationSettingsPage() {
     setSaving(true);
     try {
       const result = await notificationSettingsService.update({
-        inapp_notification: toFlag(values.inapp_notification),
-        email_notification: toFlag(values.email_notification),
-        sms_notification: toFlag(values.sms_notification),
-        push_notification: toFlag(values.push_notification),
-        whatsapp_notification: toFlag(values.whatsapp_notification),
+        in_app: toFlag(values.inapp_notification),
+        email: toFlag(values.email_notification),
+        sms: toFlag(values.sms_notification),
+        push: toFlag(values.push_notification),
+        whatsapp: toFlag(values.whatsapp_notification),
       });
       if (!result.ok || !result.data) {
         toast.error({

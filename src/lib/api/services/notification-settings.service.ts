@@ -1,7 +1,5 @@
-import {
-  MOCK_NOTIFICATION_SETTINGS,
-  type NotificationChannelSettings,
-} from "@/data/settings-mock";
+import { apiClient } from "@/lib/api/client";
+import { API_ENDPOINTS } from "@/lib/api/endpoints";
 import type {
   NotificationSettingsRecord,
   NotificationSettingsWritePayload,
@@ -11,49 +9,101 @@ export type NotificationSettingsActionResult<T> = {
   ok: boolean;
   data?: T;
   message: string;
-  missingRoute?: boolean;
 };
 
-function cloneSettings(source: NotificationChannelSettings): NotificationSettingsRecord {
-  return { ...source };
+function readFirstDataRecord(value: unknown): Record<string, unknown> | undefined {
+  if (!value || typeof value !== "object") return undefined;
+  const rec = value as Record<string, unknown>;
+  const rawData = "data" in rec ? rec.data : value;
+  if (!rawData || typeof rawData !== "object") return undefined;
+  const data = Array.isArray(rawData) ? rawData[0] : rawData;
+  if (!data || typeof data !== "object") return undefined;
+  return data as Record<string, unknown>;
 }
 
-/** In-memory demo store until Notification Settings API supports all channels. */
-let settingsStore = cloneSettings(MOCK_NOTIFICATION_SETTINGS);
+function asNotificationSettingsRecord(value: unknown): NotificationSettingsRecord | undefined {
+  const rec = readFirstDataRecord(value);
+  if (!rec) return undefined;
 
-function delay(ms = 250) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
+  const inApp = Number(rec.In_App ?? rec.in_app ?? rec.inapp_notification) === 1 ? 1 : 0;
+  const email = Number(rec.Email ?? rec.email ?? rec.email_notification) === 1 ? 1 : 0;
+  const sms = Number(rec.Sms ?? rec.sms ?? rec.sms_notification) === 1 ? 1 : 0;
+  const push = Number(rec.Push ?? rec.push ?? rec.push_notification) === 1 ? 1 : 0;
+  const whatsapp = Number(rec.Whatsapp ?? rec.whatsapp ?? rec.whatsapp_notification) === 1 ? 1 : 0;
 
-function toFlag(value: unknown): 0 | 1 {
-  return String(value ?? "").trim() === "0" ? 0 : 1;
+  return {
+    setting_id: Number(rec.Setting_Id ?? rec.setting_id) || undefined,
+    inapp_notification: inApp,
+    email_notification: email,
+    sms_notification: sms,
+    push_notification: push,
+    whatsapp_notification: whatsapp,
+    in_app: inApp,
+    email: email,
+    sms: sms,
+    push: push,
+    whatsapp: whatsapp,
+  };
 }
 
 export const notificationSettingsService = {
   get: async (): Promise<NotificationSettingsActionResult<NotificationSettingsRecord>> => {
-    await delay();
-    return {
-      ok: true,
-      data: cloneSettings(settingsStore),
-      message: "Notification settings loaded (demo).",
-    };
+    try {
+      const res = await apiClient.get<unknown>(API_ENDPOINTS.notificationSettings.list);
+      const data = asNotificationSettingsRecord(res);
+      if (!data) {
+        throw new Error("Invalid response format");
+      }
+      return {
+        ok: true,
+        data,
+        message: "Notification settings retrieved successfully.",
+      };
+    } catch (error) {
+      return {
+        ok: false,
+        message:
+          error instanceof Error ? error.message : "Failed to load notification settings",
+      };
+    }
   },
 
   update: async (
-    data: NotificationSettingsWritePayload,
+    data: Partial<NotificationSettingsWritePayload> & Partial<NotificationSettingsRecord>,
   ): Promise<NotificationSettingsActionResult<NotificationSettingsRecord>> => {
-    await delay();
-    settingsStore = cloneSettings({
-      inapp_notification: toFlag(data.inapp_notification),
-      email_notification: toFlag(data.email_notification),
-      sms_notification: toFlag(data.sms_notification),
-      push_notification: toFlag(data.push_notification),
-      whatsapp_notification: toFlag(data.whatsapp_notification),
-    });
-    return {
-      ok: true,
-      data: cloneSettings(settingsStore),
-      message: "Notification settings saved (demo).",
-    };
+    try {
+      const payload: NotificationSettingsWritePayload = {
+        in_app: data.in_app ?? (data.inapp_notification ? 1 : 0),
+        email: data.email ?? (data.email_notification ? 1 : 0),
+        sms: data.sms ?? (data.sms_notification ? 1 : 0),
+        push: data.push ?? (data.push_notification ? 1 : 0),
+        whatsapp: data.whatsapp ?? (data.whatsapp_notification ? 1 : 0),
+      };
+
+      const res = await apiClient.put<unknown>(
+        API_ENDPOINTS.notificationSettings.save,
+        payload,
+      );
+
+      const updated = asNotificationSettingsRecord(res);
+      return {
+        ok: true,
+        data: updated ?? {
+          inapp_notification: payload.in_app,
+          email_notification: payload.email,
+          sms_notification: payload.sms,
+          push_notification: payload.push,
+          whatsapp_notification: payload.whatsapp,
+          ...payload,
+        },
+        message: "Notification settings saved successfully.",
+      };
+    } catch (error) {
+      return {
+        ok: false,
+        message:
+          error instanceof Error ? error.message : "Failed to save notification settings",
+      };
+    }
   },
 };

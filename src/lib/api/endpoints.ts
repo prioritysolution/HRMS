@@ -352,8 +352,8 @@ export const API_ENDPOINTS = {
     delete: (id: string | number) => `/api/v1/sms-template/delete/${id}`,
   },
   notificationSettings: {
-    get: "/api/v1/notification-settings",
-    update: "/api/v1/notification-settings",
+    list: "/api/v1/notification-settings/list",
+    save: "/api/v1/notification-settings/save",
   },
   role: {
     list: "/api/v1/role/list",
