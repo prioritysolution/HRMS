@@ -159,6 +159,7 @@ export function Sidebar() {
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
   const [flyoutLabel, setFlyoutLabel] = useState<string | null>(null);
   const flyoutMenuRef = useRef<HTMLDivElement | null>(null);
+  const sidebarMenuRef = useRef<HTMLDivElement | null>(null);
   const iconOnly = sidebarCollapsed && !isMobile;
 
   const positionOpenFlyout = useCallback(() => {
@@ -172,6 +173,54 @@ export function Sidebar() {
   useEffect(() => {
     setFlyoutLabel(null);
   }, [pathname]);
+
+  // Restore scroll position on initial load / menuReady
+  useEffect(() => {
+    if (!menuReady || !sidebarMenuRef.current) return;
+    const savedPos = sessionStorage.getItem("sidebar_scroll_pos");
+    if (savedPos !== null) {
+      const top = Number(savedPos);
+      if (Number.isFinite(top) && top > 0) {
+        sidebarMenuRef.current.scrollTop = top;
+      }
+    }
+  }, [menuReady]);
+
+  // Save scroll position when user scrolls sidebar
+  const handleMenuScroll = useCallback(() => {
+    if (sidebarMenuRef.current) {
+      sessionStorage.setItem("sidebar_scroll_pos", String(sidebarMenuRef.current.scrollTop));
+    }
+  }, []);
+
+  // Ensure active menu item is scrolled into view on refresh / route change
+  useEffect(() => {
+    if (!menuReady || iconOnly) return;
+
+    const timer = setTimeout(() => {
+      const container = sidebarMenuRef.current;
+      if (!container) return;
+
+      const activeEl = container.querySelector(".nav-link.active") as HTMLElement | null;
+      if (!activeEl) return;
+
+      const containerRect = container.getBoundingClientRect();
+      const activeRect = activeEl.getBoundingClientRect();
+
+      const isAbove = activeRect.top < containerRect.top;
+      const isBelow = activeRect.bottom > containerRect.bottom;
+
+      if (isAbove || isBelow) {
+        activeEl.scrollIntoView({
+          block: "nearest",
+          inline: "nearest",
+          behavior: "smooth",
+        });
+      }
+    }, 120);
+
+    return () => clearTimeout(timer);
+  }, [pathname, menuReady, sections, openGroups, iconOnly]);
 
   useLayoutEffect(() => {
     if (!iconOnly || !flyoutLabel) return;
@@ -207,10 +256,10 @@ export function Sidebar() {
     if (isMobile) {
       closeMobile();
     }
-    setOpenGroups(prev => {
+    setOpenGroups((prev) => {
       const next: Record<string, boolean> = {};
-      sections.forEach(section => {
-        section.items.forEach(item => {
+      sections.forEach((section) => {
+        section.items.forEach((item) => {
           if (item.children) {
             next[item.label] = item.label === parentLabel;
           }
@@ -225,7 +274,11 @@ export function Sidebar() {
       id="app-sidebar"
       className={cn("left-sidebar", mobileOpen && "is-open")}
     >
-      <div className="leftbar-menu">
+      <div
+        className="leftbar-menu"
+        ref={sidebarMenuRef}
+        onScroll={handleMenuScroll}
+      >
         {!menuReady ? (
           showLoading ? (
             <div className="menu-title">
