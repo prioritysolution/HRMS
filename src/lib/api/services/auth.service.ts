@@ -7,6 +7,7 @@ import type {
   AuthMeRole,
   AuthResponse,
   AuthUser,
+  ChangePasswordRequest,
   ForgotPasswordRequest,
   LoginRequest,
   RegisterRequest,
@@ -140,6 +141,16 @@ function enrichAuthUser(
       user.userName ||
       fallbackUserName ||
       undefined,
+    name:
+      readString(userRecord, ["display_name", "Display_Name", "displayName", "name"]) ||
+      user.name,
+    role:
+      readString(userRecord, ["role_name", "Role_Name", "role"]) ||
+      user.role,
+    photoPath:
+      readString(userRecord, ["photo_path", "Photo_Path", "photoPath", "photo"]) ??
+      user.photoPath ??
+      null,
   };
 }
 
@@ -238,6 +249,24 @@ export const authService = {
     } catch {
       return null;
     }
+  },
+
+  changePassword: async (payload: ChangePasswordRequest): Promise<ApiMessageResponse> => {
+    const raw = await apiClient.post<unknown>(
+      API_ENDPOINTS.auth.changePassword,
+      {
+        current_password: payload.current_password,
+        new_password: payload.new_password,
+        confirm_password: payload.confirm_password,
+      },
+      { unwrap: false },
+    );
+    const record =
+      raw && typeof raw === "object" ? (raw as Record<string, unknown>) : null;
+    const message =
+      (typeof record?.message === "string" && record.message) ||
+      "Password changed successfully.";
+    return { message };
   },
 
   forgotPassword: async (_payload: ForgotPasswordRequest): Promise<ApiMessageResponse> => ({

@@ -97,7 +97,7 @@ export function LeaveApprovalDialog({
             : `Approve ${applicationLabel}? You can add an optional note.`}
         </p>
 
-        <div className={cn("form-field w-100 text-start mt-3", error && "is-invalid")}>
+        <div className={cn("form-field u-width-full text-start mt-3", error && "is-invalid")}>
           <FormFieldLabel
             htmlFor="leave-approval-remarks"
             label={isReject ? "Rejection Reason" : "Remarks"}

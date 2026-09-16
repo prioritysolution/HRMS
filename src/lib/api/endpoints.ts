@@ -176,6 +176,7 @@ export const API_ENDPOINTS = {
     register: "/api/v1/auth/register",
     logout: "/api/v1/auth/logout",
     me: "/api/v1/auth/me",
+    changePassword: "/api/v1/auth/change-password",
     forgotPassword: "/api/v1/auth/forgot-password",
     verifyOtp: "/api/v1/auth/verify-otp",
     resetPassword: "/api/v1/auth/reset-password",

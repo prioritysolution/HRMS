@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Bell,
   Maximize,
@@ -19,12 +19,14 @@ import {
 import { notifications } from "@/data/mock";
 import { navigation, type NavSection } from "@/config/navigation";
 import { LogoutButton } from "@/components/layout/LogoutButton";
+import { TopbarLanguageMenu } from "@/components/layout/TopbarLanguageMenu";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { menuService } from "@/lib/api/services/menu.service";
 import { menuTreeToNavigation } from "@/lib/menu/map-menu-tree";
 import { readMenuCache, writeMenuCache } from "@/lib/menu/menu-cache";
 import { useUIStore } from "@/components/layout/UIProvider";
 import { BrandLogo } from "@/components/ui/BrandLogo";
+import { resolvePublicFileUrl } from "@/lib/env";
 
 type SearchResult = {
   label: string;
@@ -43,6 +45,66 @@ function flattenNavigation(sections: NavSection[]): SearchResult[] {
       }));
       return [...itemResult, ...childResults];
     }),
+  );
+}
+
+function initialsFromName(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "U";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return `${parts[0][0] ?? ""}${parts[1][0] ?? ""}`.toUpperCase();
+}
+
+function TopbarAvatar({
+  name,
+  photoPath,
+}: {
+  name: string;
+  photoPath?: string | null;
+}) {
+  const [failed, setFailed] = useState(false);
+  const photoUrl = useMemo(() => {
+    if (!photoPath) return "";
+    return resolvePublicFileUrl(photoPath, "storage/employees/photos");
+  }, [photoPath]);
+
+  useEffect(() => {
+    setFailed(false);
+  }, [photoUrl]);
+
+  if (!photoUrl || failed) {
+    return (
+      <span className="topbar-avatar topbar-avatar-fallback" aria-hidden="true">
+        {initialsFromName(name)}
+      </span>
+    );
+  }
+
+  const isRemote = /^https?:\/\//i.test(photoUrl);
+
+  if (isRemote) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={photoUrl}
+        alt={name}
+        width={36}
+        height={36}
+        className="topbar-avatar"
+        onError={() => setFailed(true)}
+      />
+    );
+  }
+
+  return (
+    <Image
+      src={photoUrl}
+      alt={name}
+      width={36}
+      height={36}
+      className="topbar-avatar"
+      onError={() => setFailed(true)}
+    />
   );
 }
 
@@ -211,6 +273,8 @@ export function Topbar() {
             {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
           </button>
 
+          <TopbarLanguageMenu />
+
           <button
             type="button"
             className="topbar-icon topbar-icon-desktop"
@@ -266,19 +330,13 @@ export function Topbar() {
           <div className="relative" ref={userRef}>
             <button
               type="button"
-              className="flex items-center gap-2 rounded-full border-0 bg-transparent p-0"
+              className="topbar-user-trigger"
               onClick={() => {
                 setOpenUser((v) => !v);
                 setOpenNoti(false);
               }}
             >
-              <Image
-                src="/images/avatars/avatar1.jpg"
-                alt={displayName}
-                width={36}
-                height={36}
-                className="rounded-full object-cover"
-              />
+              <TopbarAvatar name={displayName} photoPath={user?.photoPath} />
               <div className="topbar-user-meta">
                 <div className="text-sm font-bold leading-none">{displayName}</div>
                 <div className="mt-1 text-xs text-muted">{displayRole}</div>
@@ -287,8 +345,13 @@ export function Topbar() {
             {openUser && (
               <div className="dropdown-panel w-56">
                 <div className="border-b border-[var(--border)] px-4 py-3">
-                  <div className="font-semibold">{displayName}</div>
-                  <div className="text-xs text-muted">{displayEmail}</div>
+                  <div className="flex items-center gap-2.5">
+                    <TopbarAvatar name={displayName} photoPath={user?.photoPath} />
+                    <div className="min-w-0">
+                      <div className="font-semibold truncate">{displayName}</div>
+                      <div className="text-xs text-muted truncate">{displayEmail || displayRole}</div>
+                    </div>
+                  </div>
                 </div>
                 <Link
                   href="/employees/profile"

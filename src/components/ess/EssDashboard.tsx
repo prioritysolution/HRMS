@@ -390,7 +390,7 @@ export function EssDashboard() {
                 <p className="text-muted mb-3">No leave balance available.</p>
               )}
 
-              <Link href="/leave/leave-requisition" className="btn btn-primary ess-card-action w-100">
+              <Link href="/leave/leave-requisition" className="btn btn-primary ess-card-action u-width-full">
                 <CalendarDays size={16} />
                 Apply Leave
               </Link>

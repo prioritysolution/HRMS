@@ -52,7 +52,7 @@ export default function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem("priohrm-theme");if(t==="dark"||t==="light")document.documentElement.setAttribute("data-theme",t);}catch(e){}})();`,
+            __html: `(function(){try{var t=localStorage.getItem("priohrm-theme");if(t==="dark"||t==="light")document.documentElement.setAttribute("data-theme",t);var l=localStorage.getItem("priohrm-language");if(l==="en"||l==="bn"||l==="hi"||l==="or"){document.documentElement.lang=l;document.documentElement.setAttribute("data-language",l);}}catch(e){}})();`,
           }}
         />
       </head>

@@ -131,6 +131,7 @@ export function extractAuthUser(payload: unknown, fallbackEmail = ""): AuthUser 
       userName: userName ?? undefined,
       roleId,
       orgId,
+      photoPath: readString(userRecord, ["photo_path", "Photo_Path", "photoPath", "photo"]),
       isAdmin:
         typeof isAdminRaw === "boolean"
           ? isAdminRaw

@@ -11,6 +11,7 @@ export type AuthUser = {
   orgId?: number;
   userName?: string;
   isAdmin?: boolean;
+  photoPath?: string | null;
 };
 
 export type AuthMeRole = {
@@ -107,6 +108,12 @@ export type ForgotPasswordRequest = {
 export type VerifyOtpRequest = {
   email: string;
   otp: string;
+};
+
+export type ChangePasswordRequest = {
+  current_password: string;
+  new_password: string;
+  confirm_password: string;
 };
 
 export type ResetPasswordRequest = {
