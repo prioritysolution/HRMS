@@ -17,93 +17,70 @@ import { StatusToggle } from "@/components/ui/StatusToggle";
 import { TableSectionHeader } from "@/components/ui/TableSectionHeader";
 import { useToast } from "@/components/ui/ToastProvider";
 import type { ProfessionalTaxSlab, TaxSettings } from "@/data/settings-mock";
+import { applOptionService, OPT_GRP_IDS } from "@/lib/api/services/appl-options.service";
+import { finYearService } from "@/lib/api/services/fin-year.service";
 import { taxSettingsService } from "@/lib/api/services/tax-settings.service";
+import type { ApplOptionRecord } from "@/lib/api/types";
 import { validateFormField, validateFormFields, type FormValue } from "@/lib/form-validation";
 import type { FormField, HrmsRow } from "@/types/hrms";
 
-const ptConfigFields: FormField[] = [
-  {
-    label: "State",
-    name: "pt_state",
-    type: "select",
-    required: true,
-    defaultValue: "gujarat",
-    options: [
-      { value: "gujarat", label: "Gujarat" },
-      { value: "maharashtra", label: "Maharashtra" },
-      { value: "karnataka", label: "Karnataka" },
-      { value: "tamil_nadu", label: "Tamil Nadu" },
-      { value: "west_bengal", label: "West Bengal" },
-      { value: "telangana", label: "Telangana" },
-      { value: "madhya_pradesh", label: "Madhya Pradesh" },
-    ],
-  },
-  {
-    label: "Deduction Frequency",
-    name: "pt_deduction_frequency",
-    type: "select",
-    required: true,
-    defaultValue: "monthly",
-    options: [
-      { value: "monthly", label: "Monthly" },
-      { value: "half_yearly", label: "Half-Yearly" },
-      { value: "yearly", label: "Yearly" },
-    ],
-  },
-  {
-    label: "PT Based On",
-    name: "pt_based_on",
-    type: "select",
-    required: true,
-    defaultValue: "gross",
-    options: [
-      { value: "gross", label: "Gross Salary" },
-      { value: "basic", label: "Basic Salary" },
-    ],
-  },
+type DynamicOption = {
+  value: string;
+  label: string;
+  code?: string;
+  optionId?: string;
+  yearId?: string;
+};
+
+const DEFAULT_STATE_OPTIONS: DynamicOption[] = [
+  { value: "Gujarat", label: "Gujarat" },
+  { value: "Maharashtra", label: "Maharashtra" },
+  { value: "Karnataka", label: "Karnataka" },
+  { value: "Tamil Nadu", label: "Tamil Nadu" },
+  { value: "West Bengal", label: "West Bengal" },
+  { value: "Telangana", label: "Telangana" },
+  { value: "Madhya Pradesh", label: "Madhya Pradesh" },
 ];
 
-const tdsConfigFields: FormField[] = [
-  {
-    label: "Tax Regime",
-    name: "tax_regime",
-    type: "select",
-    required: true,
-    defaultValue: "new",
-    options: [
-      { value: "new", label: "New Regime" },
-      { value: "old", label: "Old Regime" },
-    ],
-  },
-  {
-    label: "Financial Year",
-    name: "financial_year",
-    type: "text",
-    required: true,
-    defaultValue: "2026-2027",
-    placeholder: "2026-2027",
-  },
-  {
-    label: "TDS Calculation Method",
-    name: "tds_calculation_method",
-    type: "select",
-    required: true,
-    defaultValue: "monthly_projection",
-    options: [
-      { value: "monthly_projection", label: "Monthly Projection" },
-      { value: "actual", label: "Actual" },
-    ],
-  },
-  {
-    label: "Standard Deduction (₹)",
-    name: "standard_deduction",
-    type: "number",
-    required: true,
-    min: 0,
-    max: 200000,
-    defaultValue: "75000",
-  },
+const DEFAULT_FREQUENCY_OPTIONS: DynamicOption[] = [
+  { value: "Monthly", label: "Monthly" },
+  { value: "Half-Yearly", label: "Half-Yearly" },
+  { value: "Yearly", label: "Yearly" },
 ];
+
+const DEFAULT_PT_BASED_ON_OPTIONS: DynamicOption[] = [
+  { value: "Gross Salary", label: "Gross Salary" },
+  { value: "Basic Salary", label: "Basic Salary" },
+];
+
+const DEFAULT_REGIME_OPTIONS: DynamicOption[] = [
+  { value: "New Regime", label: "New Regime" },
+  { value: "Old Regime", label: "Old Regime" },
+];
+
+const DEFAULT_TDS_METHOD_OPTIONS: DynamicOption[] = [
+  { value: "Monthly Projection", label: "Monthly Projection" },
+  { value: "Actual", label: "Actual" },
+];
+
+function toDynamicOptions(
+  records: ApplOptionRecord[],
+  valueMode: "code" | "description" = "description",
+): DynamicOption[] {
+  return [...records]
+    .sort((a, b) => Number(a.Srl_No ?? 0) - Number(b.Srl_No ?? 0))
+    .map((rec) => ({
+      value: String(
+        valueMode === "description"
+          ? rec.Opt_Description || rec.Opt_Code
+          : rec.Opt_Code ?? rec.Option_Id,
+      ).trim(),
+      label: String(rec.Opt_Description || rec.Opt_Code || "").trim(),
+      code: String(rec.Opt_Code ?? "").trim(),
+      optionId: String(rec.Option_Id ?? "").trim(),
+    }))
+    .filter((opt) => opt.value && opt.label);
+}
 
 const slabFields: FormField[] = [
   {
@@ -131,8 +108,6 @@ const slabFields: FormField[] = [
     defaultValue: "0",
   },
 ];
-
-const allConfigFields: FormField[] = [...ptConfigFields, ...tdsConfigFields];
 
 const TDS_TOGGLES = [
   {
@@ -179,23 +154,34 @@ function formatCurrency(value: number | null): string {
   }).format(value);
 }
 
-function toFormValues(data: TaxSettings): HrmsRow {
-  return {
-    id: "tax-settings",
-    pt_applicable: String(data.pt_applicable),
-    pt_state: data.pt_state,
-    pt_deduction_frequency: data.pt_deduction_frequency,
-    pt_based_on: data.pt_based_on,
-    tds_applicable: String(data.tds_applicable),
-    tax_regime: data.tax_regime,
-    financial_year: data.financial_year,
-    tds_calculation_method: data.tds_calculation_method,
-    standard_deduction: String(data.standard_deduction),
-    round_off_tds: String(data.round_off_tds),
-    consider_previous_employment: String(data.consider_previous_employment),
-    auto_generate_form16: String(data.auto_generate_form16),
-    show_tds_on_payslip: String(data.show_tds_on_payslip),
-  };
+function resolveOptionValue(
+  rawValue: unknown,
+  options: DynamicOption[],
+  fallbackDefault = "",
+): string {
+  const valStr = String(rawValue ?? "").trim().toLowerCase();
+  if (!valStr) return options[0]?.value ?? fallbackDefault;
+
+  const exact = options.find(
+    (o) =>
+      o.value.toLowerCase() === valStr ||
+      o.label.toLowerCase() === valStr ||
+      (o.code && o.code.toLowerCase() === valStr) ||
+      (o.optionId && o.optionId.toLowerCase() === valStr) ||
+      (o.yearId && o.yearId.toLowerCase() === valStr),
+  );
+  if (exact) return exact.value;
+
+  const partial = options.find(
+    (o) =>
+      valStr.includes(o.value.toLowerCase()) ||
+      valStr.includes(o.label.toLowerCase()) ||
+      o.value.toLowerCase().includes(valStr) ||
+      o.label.toLowerCase().includes(valStr),
+  );
+  if (partial) return partial.value;
+
+  return options[0]?.value ?? fallbackDefault;
 }
 
 export default function TaxSettingsPage() {
@@ -204,17 +190,105 @@ export default function TaxSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [savingSlab, setSavingSlab] = useState(false);
   const [slabs, setSlabs] = useState<ProfessionalTaxSlab[]>([]);
-  const [values, setValues] = useState<Record<string, FormValue>>(() =>
-    buildInitialFormValues(allConfigFields, {
-      id: "tax-settings",
-      pt_applicable: "1",
-      tds_applicable: "1",
-      round_off_tds: "1",
-      consider_previous_employment: "1",
-      auto_generate_form16: "1",
-      show_tds_on_payslip: "1",
-    }),
+
+  const [frequencyOptions, setFrequencyOptions] = useState<DynamicOption[]>(DEFAULT_FREQUENCY_OPTIONS);
+  const [ptBasedOnOptions, setPtBasedOnOptions] = useState<DynamicOption[]>(DEFAULT_PT_BASED_ON_OPTIONS);
+  const [regimeOptions, setRegimeOptions] = useState<DynamicOption[]>(DEFAULT_REGIME_OPTIONS);
+  const [tdsMethodOptions, setTdsMethodOptions] = useState<DynamicOption[]>(DEFAULT_TDS_METHOD_OPTIONS);
+  const [finYearOptions, setFinYearOptions] = useState<DynamicOption[]>([
+    { value: "1", label: "2026-2027", yearId: "1" },
+  ]);
+
+  const ptConfigFields = useMemo<FormField[]>(
+    () => [
+      {
+        label: "State",
+        name: "pt_state",
+        type: "select",
+        required: true,
+        defaultValue: "Gujarat",
+        options: DEFAULT_STATE_OPTIONS,
+      },
+      {
+        label: "Deduction Frequency",
+        name: "pt_deduction_frequency",
+        type: "select",
+        required: true,
+        defaultValue: frequencyOptions[0]?.value ?? "Monthly",
+        options: frequencyOptions,
+      },
+      {
+        label: "PT Based On",
+        name: "pt_based_on",
+        type: "select",
+        required: true,
+        defaultValue: ptBasedOnOptions[0]?.value ?? "Gross Salary",
+        options: ptBasedOnOptions,
+      },
+    ],
+    [frequencyOptions, ptBasedOnOptions],
   );
+
+  const tdsConfigFields = useMemo<FormField[]>(
+    () => [
+      {
+        label: "Tax Regime",
+        name: "tax_regime",
+        type: "select",
+        required: true,
+        defaultValue: regimeOptions[0]?.value ?? "New Regime",
+        options: regimeOptions,
+      },
+      {
+        label: "Financial Year",
+        name: "fin_year_id",
+        type: "select",
+        required: true,
+        defaultValue: finYearOptions[0]?.value ?? "1",
+        options: finYearOptions,
+      },
+      {
+        label: "TDS Calculation Method",
+        name: "tds_calculation_method",
+        type: "select",
+        required: true,
+        defaultValue: tdsMethodOptions[0]?.value ?? "Monthly Projection",
+        options: tdsMethodOptions,
+      },
+      {
+        label: "Standard Deduction (₹)",
+        name: "standard_deduction",
+        type: "number",
+        required: true,
+        min: 0,
+        max: 200000,
+        defaultValue: "75000",
+      },
+    ],
+    [regimeOptions, finYearOptions, tdsMethodOptions],
+  );
+
+  const allConfigFields = useMemo(
+    () => [...ptConfigFields, ...tdsConfigFields],
+    [ptConfigFields, tdsConfigFields],
+  );
+
+  const [values, setValues] = useState<Record<string, FormValue>>(() => ({
+    pt_applicable: "1",
+    pt_state: "Gujarat",
+    pt_deduction_frequency: "Monthly",
+    pt_based_on: "Gross Salary",
+    tds_applicable: "1",
+    tax_regime: "New Regime",
+    fin_year_id: "1",
+    tds_calculation_method: "Monthly Projection",
+    standard_deduction: "75000",
+    round_off_tds: "1",
+    consider_previous_employment: "1",
+    auto_generate_form16: "1",
+    show_tds_on_payslip: "1",
+  }));
+
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [slabModalOpen, setSlabModalOpen] = useState(false);
   const [editSlab, setEditSlab] = useState<ProfessionalTaxSlab | null>(null);
@@ -226,12 +300,87 @@ export default function TaxSettingsPage() {
   const loadSettings = useCallback(async () => {
     setLoading(true);
     try {
-      const result = await taxSettingsService.get();
+      const [
+        optFrequency,
+        optPtBasedOn,
+        optTaxRegime,
+        optTdsMethod,
+        fyOpts,
+        result,
+      ] = await Promise.all([
+        applOptionService.list({ opt_grp_id: OPT_GRP_IDS.DEDUCTION_FREQUENCY, is_active: 1 }).catch(() => []),
+        applOptionService.list({ opt_grp_id: OPT_GRP_IDS.PT_BASED_ON, is_active: 1 }).catch(() => []),
+        applOptionService.list({ opt_grp_id: OPT_GRP_IDS.TAX_REGIME, is_active: 1 }).catch(() => []),
+        applOptionService.list({ opt_grp_id: OPT_GRP_IDS.TDS_CALCULATION_METHOD, is_active: 1 }).catch(() => []),
+        finYearService.options().catch(() => []),
+        taxSettingsService.get(),
+      ]);
+
+      const mappedFrequency = optFrequency.length
+        ? toDynamicOptions(optFrequency, "description")
+        : DEFAULT_FREQUENCY_OPTIONS;
+      const mappedPtBasedOn = optPtBasedOn.length
+        ? toDynamicOptions(optPtBasedOn, "description")
+        : DEFAULT_PT_BASED_ON_OPTIONS;
+      const mappedTaxRegime = optTaxRegime.length
+        ? toDynamicOptions(optTaxRegime, "description")
+        : DEFAULT_REGIME_OPTIONS;
+      const mappedTdsMethod = optTdsMethod.length
+        ? toDynamicOptions(optTdsMethod, "description")
+        : DEFAULT_TDS_METHOD_OPTIONS;
+      const mappedFyOptions: DynamicOption[] = fyOpts.length
+        ? fyOpts.map((opt) => ({
+            value: String(opt.yearId || opt.value),
+            label: opt.label,
+            yearId: String(opt.yearId || opt.value),
+          }))
+        : [{ value: "1", label: "2026-2027", yearId: "1" }];
+
+      setFrequencyOptions(mappedFrequency);
+      setPtBasedOnOptions(mappedPtBasedOn);
+      setRegimeOptions(mappedTaxRegime);
+      setTdsMethodOptions(mappedTdsMethod);
+      setFinYearOptions(mappedFyOptions);
+
       if (result.data) {
-        setValues(buildInitialFormValues(allConfigFields, toFormValues(result.data)));
-        setSlabs(result.data.pt_slabs);
+        const data = result.data;
+        const fyValue = resolveOptionValue(
+          data.financial_year,
+          mappedFyOptions,
+          mappedFyOptions[0]?.value ?? "1",
+        );
+
+        setValues({
+          pt_applicable: String(data.pt_applicable ?? "1"),
+          pt_state: resolveOptionValue(data.pt_state, DEFAULT_STATE_OPTIONS, "Gujarat"),
+          pt_deduction_frequency: resolveOptionValue(
+            data.pt_deduction_frequency,
+            mappedFrequency,
+            "Monthly",
+          ),
+          pt_based_on: resolveOptionValue(
+            data.pt_based_on,
+            mappedPtBasedOn,
+            "Gross Salary",
+          ),
+          tds_applicable: String(data.tds_applicable ?? "1"),
+          tax_regime: resolveOptionValue(data.tax_regime, mappedTaxRegime, "New Regime"),
+          fin_year_id: fyValue,
+          tds_calculation_method: resolveOptionValue(
+            data.tds_calculation_method,
+            mappedTdsMethod,
+            "Monthly Projection",
+          ),
+          standard_deduction: String(data.standard_deduction ?? "75000"),
+          round_off_tds: String(data.round_off_tds ?? "1"),
+          consider_previous_employment: String(data.consider_previous_employment ?? "1"),
+          auto_generate_form16: String(data.auto_generate_form16 ?? "1"),
+          show_tds_on_payslip: String(data.show_tds_on_payslip ?? "1"),
+        });
+        setSlabs(data.pt_slabs ?? []);
         setErrors({});
       }
+
       if (!result.ok) {
         toast.error({
           title: "Unable to load settings",
@@ -301,29 +450,6 @@ export default function TaxSettingsPage() {
     });
   };
 
-  const buildPayload = (nextSlabs: ProfessionalTaxSlab[]): TaxSettings => ({
-    pt_applicable: toFlag(values.pt_applicable),
-    pt_state: String(values.pt_state ?? "gujarat"),
-    pt_deduction_frequency:
-      String(values.pt_deduction_frequency) === "half_yearly"
-        ? "half_yearly"
-        : String(values.pt_deduction_frequency) === "yearly"
-          ? "yearly"
-          : "monthly",
-    pt_based_on: String(values.pt_based_on) === "basic" ? "basic" : "gross",
-    pt_slabs: nextSlabs,
-    tds_applicable: toFlag(values.tds_applicable),
-    tax_regime: String(values.tax_regime) === "old" ? "old" : "new",
-    financial_year: String(values.financial_year ?? "").trim(),
-    tds_calculation_method:
-      String(values.tds_calculation_method) === "actual" ? "actual" : "monthly_projection",
-    standard_deduction: toNumber(values.standard_deduction, 75000),
-    round_off_tds: toFlag(values.round_off_tds),
-    consider_previous_employment: toFlag(values.consider_previous_employment),
-    auto_generate_form16: toFlag(values.auto_generate_form16),
-    show_tds_on_payslip: toFlag(values.show_tds_on_payslip),
-  });
-
   const handleSave = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const nextErrors = validateFormFields(allConfigFields, values);
@@ -338,13 +464,75 @@ export default function TaxSettingsPage() {
 
     setSaving(true);
     try {
-      const result = await taxSettingsService.update(buildPayload(slabs));
+      const selectedFyOption = finYearOptions.find((o) => o.value === String(values.fin_year_id));
+      const finYearIdNum = selectedFyOption
+        ? Number(selectedFyOption.yearId || selectedFyOption.value) || 1
+        : Number(values.fin_year_id) || 1;
+
+      const payload: TaxSettings & { fin_year_id?: number } = {
+        pt_applicable: toFlag(values.pt_applicable),
+        pt_state: String(values.pt_state ?? "Gujarat"),
+        pt_deduction_frequency:
+          String(values.pt_deduction_frequency) === "Half-Yearly"
+            ? "half_yearly"
+            : String(values.pt_deduction_frequency) === "Yearly"
+              ? "yearly"
+              : "monthly",
+        pt_based_on: String(values.pt_based_on) === "Basic Salary" ? "basic" : "gross",
+        pt_slabs: slabs,
+        tds_applicable: toFlag(values.tds_applicable),
+        tax_regime: String(values.tax_regime) === "Old Regime" ? "old" : "new",
+        financial_year: selectedFyOption?.label || String(values.fin_year_id ?? "1"),
+        fin_year_id: finYearIdNum,
+        tds_calculation_method:
+          String(values.tds_calculation_method) === "Actual" ? "actual" : "monthly_projection",
+        standard_deduction: toNumber(values.standard_deduction, 75000),
+        round_off_tds: toFlag(values.round_off_tds),
+        consider_previous_employment: toFlag(values.consider_previous_employment),
+        auto_generate_form16: toFlag(values.auto_generate_form16),
+        show_tds_on_payslip: toFlag(values.show_tds_on_payslip),
+      };
+
+      const result = await taxSettingsService.update(payload);
       if (!result.ok || !result.data) {
         toast.error({ title: "Save failed", message: result.message });
         return;
       }
-      setValues(buildInitialFormValues(allConfigFields, toFormValues(result.data)));
-      setSlabs(result.data.pt_slabs);
+
+      const data = result.data;
+      const fyValue = resolveOptionValue(
+        data.financial_year,
+        finYearOptions,
+        finYearOptions[0]?.value ?? "1",
+      );
+
+      setValues({
+        pt_applicable: String(data.pt_applicable ?? "1"),
+        pt_state: resolveOptionValue(data.pt_state, DEFAULT_STATE_OPTIONS, "Gujarat"),
+        pt_deduction_frequency: resolveOptionValue(
+          data.pt_deduction_frequency,
+          frequencyOptions,
+          "Monthly",
+        ),
+        pt_based_on: resolveOptionValue(
+          data.pt_based_on,
+          ptBasedOnOptions,
+          "Gross Salary",
+        ),
+        tds_applicable: String(data.tds_applicable ?? "1"),
+        tax_regime: resolveOptionValue(data.tax_regime, regimeOptions, "New Regime"),
+        fin_year_id: fyValue,
+        tds_calculation_method: resolveOptionValue(
+          data.tds_calculation_method,
+          tdsMethodOptions,
+          "Monthly Projection",
+        ),
+        standard_deduction: String(data.standard_deduction ?? "75000"),
+        round_off_tds: String(data.round_off_tds ?? "1"),
+        consider_previous_employment: String(data.consider_previous_employment ?? "1"),
+        auto_generate_form16: String(data.auto_generate_form16 ?? "1"),
+        show_tds_on_payslip: String(data.show_tds_on_payslip ?? "1"),
+      });
       toast.success({ title: "Saved", message: result.message });
     } catch {
       toast.error({
@@ -404,8 +592,13 @@ export default function TaxSettingsPage() {
         return;
       }
 
-      const refreshed = await taxSettingsService.get();
-      if (refreshed.data) setSlabs(refreshed.data.pt_slabs);
+      const refreshed = await taxSettingsService.getSlabs();
+      if (refreshed.ok && refreshed.data) {
+        setSlabs(refreshed.data);
+      } else {
+        const fullRefreshed = await taxSettingsService.get();
+        if (fullRefreshed.data) setSlabs(fullRefreshed.data.pt_slabs);
+      }
       setSlabModalOpen(false);
       toast.success({ title: "Saved", message: result.message });
     } catch {

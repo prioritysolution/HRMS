@@ -2563,3 +2563,73 @@ export type SalarySlipSettingsWritePayload = {
 export type CombinedPayrollSettings = Omit<PayrollSettingsRecord, "setting_id"> &
   Omit<SalarySlipSettingsRecord, "setting_id">;
 
+/** Professional Tax Settings */
+export type PtSettingsRecord = {
+  pt_applicable: 0 | 1;
+  state: string;
+  deduction_frequency: string;
+  pt_based_on: string;
+};
+
+export type PtSettingsWritePayload = {
+  pt_applicable: 0 | 1;
+  state: string;
+  deduction_frequency: string;
+  pt_based_on: string;
+};
+
+/** Professional Tax Slabs */
+export type PtSlabRecord = {
+  Slab_Id?: number;
+  slab_id?: number;
+  From_Amount?: string | number;
+  from_amount?: string | number;
+  To_Amount?: string | number | null;
+  to_amount?: string | number | null;
+  Tax_Amount?: string | number;
+  tax_amount?: string | number;
+  Srl_No?: number;
+  srl_no?: number;
+};
+
+export type PtSlabCreatePayload = {
+  from_amount: number;
+  to_amount: number | null;
+  tax_amount: number;
+};
+
+export type PtSlabUpdatePayload = {
+  from_amount: number;
+  to_amount: number | null;
+  tax_amount: number;
+  srl_no?: number;
+};
+
+/** TDS Settings */
+export type TdsSettingsRecord = {
+  setting_id?: number | null;
+  tds_applicable: 0 | 1;
+  tax_regime: string;
+  fin_year_id?: number | null;
+  financial_year?: string;
+  tds_calculation_method: string;
+  standard_deduction: number;
+  round_off_tds: 0 | 1;
+  consider_previous_employment: 0 | 1;
+  auto_generate_form_16: 0 | 1;
+  show_tds_on_payslip: 0 | 1;
+};
+
+export type TdsSettingsWritePayload = {
+  tds_applicable: 0 | 1;
+  tax_regime: string;
+  fin_year_id: number;
+  tds_calculation_method: string;
+  standard_deduction: number;
+  round_off_tds: 0 | 1;
+  consider_previous_employment: 0 | 1;
+  auto_generate_form_16: 0 | 1;
+  show_tds_on_payslip: 0 | 1;
+};
+
+

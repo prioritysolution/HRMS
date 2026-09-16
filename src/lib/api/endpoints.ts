@@ -308,6 +308,21 @@ export const API_ENDPOINTS = {
     list: "/api/v1/salary-slip-settings/list",
     save: "/api/v1/salary-slip-settings/save",
   },
+  ptSettings: {
+    list: "/api/v1/pt-settings/list",
+    save: "/api/v1/pt-settings/save",
+  },
+  ptSlabs: {
+    list: (search?: string) =>
+      search ? `/api/v1/pt-slabs/list?search=${encodeURIComponent(search)}` : "/api/v1/pt-slabs/list",
+    create: "/api/v1/pt-slabs/create",
+    update: (id: string | number) => `/api/v1/pt-slabs/update/${id}`,
+    delete: (id: string | number) => `/api/v1/pt-slabs/delete/${id}`,
+  },
+  tdsSettings: {
+    list: "/api/v1/tds-settings/list",
+    save: "/api/v1/tds-settings/save",
+  },
   leaveSettings: {
     list: "/api/v1/leave-settings/list",
     save: "/api/v1/leave-settings/save",
