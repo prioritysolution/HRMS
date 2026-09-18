@@ -1,13 +1,15 @@
 "use client";
 
 import { MasterDataPage } from "@/components/ui/MasterDataPage";
+import { useI18n } from "@/i18n";
 
 export default function SalaryComponentsPage() {
+  const { t } = useI18n();
   return (
     <MasterDataPage
       moduleId="payroll-salary-components"
-      modalSubtitle="Configure earnings and deductions. Statutory flags (PF, ESI, PT, TDS) drive payroll calculations."
-      emptyStateMessage="Add salary components such as Basic, HRA, PF, ESI, and other configurable pay elements."
+      modalSubtitle={t("payroll.pages.salaryComponents.subtitle")}
+      emptyStateMessage={t("payroll.pages.salaryComponents.empty")}
     />
   );
 }

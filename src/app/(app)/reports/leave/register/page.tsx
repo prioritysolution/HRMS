@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { DatePicker } from "@/components/ui/DatePicker";
 import { MasterDataPage } from "@/components/ui/MasterDataPage";
+import { useI18n, translateHrmsLookup } from "@/i18n";
 import { pad2 } from "@/lib/date-utils";
 
 function currentMonthRange(): { from: string; to: string } {
@@ -17,6 +18,7 @@ function currentMonthRange(): { from: string; to: string } {
 }
 
 export default function LeaveRegisterReportPage() {
+  const { language, t } = useI18n();
   const defaults = useMemo(() => currentMonthRange(), []);
   const [fromDate, setFromDate] = useState(defaults.from);
   const [toDate, setToDate] = useState(defaults.to);
@@ -32,7 +34,7 @@ export default function LeaveRegisterReportPage() {
         <>
           <div className="table-filter-item">
             <label className="table-filter-label" htmlFor="leave-register-from">
-              From
+              {translateHrmsLookup(language, "labels", "From")}
             </label>
             <DatePicker
               id="leave-register-from"
@@ -43,7 +45,7 @@ export default function LeaveRegisterReportPage() {
           </div>
           <div className="table-filter-item">
             <label className="table-filter-label" htmlFor="leave-register-to">
-              To
+              {translateHrmsLookup(language, "labels", "To")}
             </label>
             <DatePicker
               id="leave-register-to"
@@ -54,7 +56,7 @@ export default function LeaveRegisterReportPage() {
           </div>
         </>
       }
-      emptyStateMessage="Try adjusting the date range, leave type, or status filter."
+      emptyStateMessage={t("reports.leaveRegister.empty")}
     />
   );
 }

@@ -1,13 +1,15 @@
 "use client";
 
 import { MasterDataPage } from "@/components/ui/MasterDataPage";
+import { useI18n } from "@/i18n";
 
 export default function LeavePolicyPage() {
+  const { t } = useI18n();
   return (
     <MasterDataPage
       moduleId="leave-policy"
-      modalSubtitle="Define rules for each leave type — notice period, limits, and eligibility."
-      emptyStateMessage="Create policies to control how employees can apply for each leave type."
+      modalSubtitle={t("leave.pages.policy.subtitle")}
+      emptyStateMessage={t("leave.pages.policy.empty")}
     />
   );
 }

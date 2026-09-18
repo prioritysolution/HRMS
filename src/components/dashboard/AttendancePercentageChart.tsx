@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { useI18n } from "@/i18n";
 
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
@@ -13,10 +14,12 @@ export function AttendancePercentageChart({
   categories = [],
   data = [],
 }: Props) {
+  const { t } = useI18n();
+
   return (
     <div className="card h-full dash-attendance-card">
       <div className="card-body dash-attendance-body">
-        <h5 className="card-title mb-3">Attendance Percentage</h5>
+        <h5 className="card-title mb-3">{t("dashboard.attendancePercentage")}</h5>
         <div className="dash-attendance-chart">
           <Chart
             type="area"
@@ -69,7 +72,7 @@ export function AttendancePercentageChart({
               },
               colors: ["#20c997"],
             }}
-            series={[{ name: "Attendance", data }]}
+            series={[{ name: t("dashboard.attendanceSeries"), data }]}
           />
         </div>
       </div>

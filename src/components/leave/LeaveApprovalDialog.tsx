@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { CircleAlert } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import { FormFieldLabel } from "@/components/ui/FormFieldLabel";
+import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 
 type LeaveApprovalDialogProps = {
@@ -21,6 +22,7 @@ export function LeaveApprovalDialog({
   onClose,
   onConfirm,
 }: LeaveApprovalDialogProps) {
+  const { t } = useI18n();
   const isReject = status === "Rejected";
   const [remarks, setRemarks] = useState("");
   const [error, setError] = useState("");
@@ -36,7 +38,7 @@ export function LeaveApprovalDialog({
   const handleConfirm = async () => {
     const note = remarks.trim();
     if (isReject && !note) {
-      setError("Rejection reason is required.");
+      setError(t("leave.approvalDialog.rejectRequired"));
       return;
     }
 
@@ -45,7 +47,9 @@ export function LeaveApprovalDialog({
     try {
       await onConfirm(note);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to update leave application.");
+      setError(
+        err instanceof Error ? err.message : t("leave.approvalDialog.updateFailed"),
+      );
       setLoading(false);
       return;
     }
@@ -56,7 +60,11 @@ export function LeaveApprovalDialog({
     <Modal
       open={open}
       onClose={loading ? () => undefined : onClose}
-      title={isReject ? "Reject leave request" : "Approve leave request"}
+      title={
+        isReject
+          ? t("leave.approvalDialog.rejectTitle")
+          : t("leave.approvalDialog.approveTitle")
+      }
       size="sm"
       hideHeader
       footerClassName="confirm-dialog-footer"
@@ -68,7 +76,7 @@ export function LeaveApprovalDialog({
             onClick={onClose}
             disabled={loading}
           >
-            Cancel
+            {t("common.cancel")}
           </button>
           <button
             type="button"
@@ -79,7 +87,11 @@ export function LeaveApprovalDialog({
             onClick={() => void handleConfirm()}
             disabled={loading}
           >
-            {loading ? "Please wait..." : isReject ? "Reject" : "Approve"}
+            {loading
+              ? t("common.pleaseWait")
+              : isReject
+                ? t("hrms.ui.reject")
+                : t("hrms.ui.approve")}
           </button>
         </>
       }
@@ -89,18 +101,24 @@ export function LeaveApprovalDialog({
           <CircleAlert size={22} strokeWidth={2.25} />
         </div>
         <h2 id="modal-title" className="confirm-dialog-title">
-          {isReject ? "Reject this leave request?" : "Approve this leave request?"}
+          {isReject
+            ? t("leave.approvalDialog.rejectHeading")
+            : t("leave.approvalDialog.approveHeading")}
         </h2>
         <p className="confirm-dialog-message">
           {isReject
-            ? `Reject ${applicationLabel}? A rejection reason is mandatory.`
-            : `Approve ${applicationLabel}? You can add an optional note.`}
+            ? t("leave.approvalDialog.rejectMessage", { name: applicationLabel })
+            : t("leave.approvalDialog.approveMessage", { name: applicationLabel })}
         </p>
 
         <div className={cn("form-field u-width-full text-start mt-3", error && "is-invalid")}>
           <FormFieldLabel
             htmlFor="leave-approval-remarks"
-            label={isReject ? "Rejection Reason" : "Remarks"}
+            label={
+              isReject
+                ? t("leave.approvalDialog.rejectionReason")
+                : t("leave.approvalDialog.remarks")
+            }
             required={isReject}
           />
           <textarea
@@ -111,8 +129,8 @@ export function LeaveApprovalDialog({
             value={remarks}
             placeholder={
               isReject
-                ? "Enter rejection reason (required)"
-                : "Optional approver note"
+                ? t("leave.approvalDialog.rejectPlaceholder")
+                : t("leave.approvalDialog.approvePlaceholder")
             }
             onChange={(event) => {
               setRemarks(event.target.value);
@@ -125,7 +143,7 @@ export function LeaveApprovalDialog({
               {error}
             </p>
           ) : (
-            <p className="form-text text-muted mb-0">Max 500 characters</p>
+            <p className="form-text text-muted mb-0">{t("leave.approvalDialog.maxChars")}</p>
           )}
         </div>
       </div>

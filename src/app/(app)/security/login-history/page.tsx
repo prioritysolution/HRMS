@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { MasterDataPage } from "@/components/ui/MasterDataPage";
 import { pad2 } from "@/lib/date-utils";
+import { useI18n } from "@/i18n";
 
 function currentMonthRange(): { from: string; to: string } {
   const now = new Date();
@@ -22,6 +23,7 @@ function toApiDateTime(date: string, endOfDay = false): string | undefined {
 }
 
 export default function LoginHistoryPage() {
+  const { t } = useI18n();
   const defaults = useMemo(() => currentMonthRange(), []);
   const [fromDate, setFromDate] = useState(defaults.from);
   const [toDate, setToDate] = useState(defaults.to);
@@ -31,8 +33,11 @@ export default function LoginHistoryPage() {
       <div className="card-body">
         <div className="flex flex-wrap items-end gap-3">
           <div className="max-w-xs">
-            <label className="mb-1 block text-sm font-medium text-[var(--text-secondary)]" htmlFor="login-history-from">
-              From
+            <label
+              className="mb-1 block text-sm font-medium text-[var(--text-secondary)]"
+              htmlFor="login-history-from"
+            >
+              {t("security.pages.loginHistory.from")}
             </label>
             <input
               id="login-history-from"
@@ -43,8 +48,11 @@ export default function LoginHistoryPage() {
             />
           </div>
           <div className="max-w-xs">
-            <label className="mb-1 block text-sm font-medium text-[var(--text-secondary)]" htmlFor="login-history-to">
-              To
+            <label
+              className="mb-1 block text-sm font-medium text-[var(--text-secondary)]"
+              htmlFor="login-history-to"
+            >
+              {t("security.pages.loginHistory.to")}
             </label>
             <input
               id="login-history-to"
@@ -67,7 +75,7 @@ export default function LoginHistoryPage() {
         from_date: toApiDateTime(fromDate),
         to_date: toApiDateTime(toDate, true),
       }}
-      emptyStateMessage="Try adjusting the date range or filters."
+      emptyStateMessage={t("security.pages.loginHistory.empty")}
     />
   );
 }

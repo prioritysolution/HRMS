@@ -5,8 +5,10 @@ import { MasterDataPage } from "@/components/ui/MasterDataPage";
 import { DatePicker } from "@/components/ui/DatePicker";
 import { DAILY_STATS } from "@/lib/attendance-stats";
 import { dateToIso, formatDateDisplay, parseDateToIso } from "@/lib/date-utils";
+import { useI18n } from "@/i18n";
 
 export default function DailyAttendancePage() {
+  const { t } = useI18n();
   const [selectedDate, setSelectedDate] = useState(() => dateToIso(new Date()));
 
   const topContent = (
@@ -15,7 +17,7 @@ export default function DailyAttendancePage() {
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div className="max-w-xs">
             <label className="mb-1 block text-sm font-medium text-[var(--text-secondary)]">
-              Attendance date
+              {t("attendance.pages.daily.dateLabel")}
             </label>
             <DatePicker
               value={formatDateDisplay(selectedDate)}
@@ -37,6 +39,8 @@ export default function DailyAttendancePage() {
       stats={DAILY_STATS as any}
       topContent={topContent}
       fetchParams={{ attendance_date: selectedDate, with_punches: 1 }}
+      modalSubtitle={t("attendance.pages.daily.subtitle")}
+      emptyStateMessage={t("attendance.pages.daily.empty")}
     />
   );
 }

@@ -3,9 +3,11 @@
 import { useEffect, useState } from "react";
 import { MasterDataPage } from "@/components/ui/MasterDataPage";
 import { SearchableSelect } from "@/components/ui/SearchableSelect";
+import { useI18n, translateHrmsLookup } from "@/i18n";
 import { branchService } from "@/lib/api";
 
 export default function LeavePendingReportPage() {
+  const { language, t } = useI18n();
   const [branchId, setBranchId] = useState("");
   const [minPendingDays, setMinPendingDays] = useState("");
   const [branchOptions, setBranchOptions] = useState<
@@ -49,23 +51,23 @@ export default function LeavePendingReportPage() {
         <>
           <div className="table-filter-item">
             <label className="table-filter-label" htmlFor="leave-pending-branch">
-              Branch
+              {translateHrmsLookup(language, "labels", "Branch")}
             </label>
             <SearchableSelect
               id="leave-pending-branch"
               value={branchId}
               onChange={setBranchId}
               options={branchOptions}
-              placeholder="All Branches"
-              searchPlaceholder="Search branch..."
+              placeholder={t("reports.common.allBranches")}
+              searchPlaceholder={t("reports.common.searchBranch")}
               allowEmpty
-              emptyLabel="All Branches"
+              emptyLabel={t("reports.common.allBranches")}
               size="sm"
             />
           </div>
           <div className="table-filter-item">
             <label className="table-filter-label" htmlFor="leave-pending-min-days">
-              Min Pending Days
+              {t("reports.leavePending.minPendingDays")}
             </label>
             <input
               id="leave-pending-min-days"
@@ -73,14 +75,14 @@ export default function LeavePendingReportPage() {
               min={0}
               step={1}
               className="form-control"
-              placeholder="e.g. 2"
+              placeholder={t("reports.common.exampleDays", { n: 2 })}
               value={minPendingDays}
               onChange={(event) => setMinPendingDays(event.target.value)}
             />
           </div>
         </>
       }
-      emptyStateMessage="Try adjusting the branch, min pending days, or leave type filter."
+      emptyStateMessage={t("reports.leavePending.empty")}
     />
   );
 }

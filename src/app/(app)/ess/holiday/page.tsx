@@ -14,6 +14,7 @@ import {
 import { PageHeader } from "@/components/ui/PageHeader";
 import { RoundLoader } from "@/components/ui/RoundLoader";
 import { useToast } from "@/components/ui/ToastProvider";
+import { useI18n } from "@/i18n";
 import { ApiError, holidayService } from "@/lib/api";
 import type { HolidayCalendarEntry, HolidayCalendarResponse } from "@/lib/api/types";
 import { formatDateDisplay, isSameDay, parseDateToIso } from "@/lib/date-utils";
@@ -26,6 +27,7 @@ function parseIsoDate(dateStr: string): Date | null {
 }
 
 export default function EssHolidaysPage() {
+  const { t } = useI18n();
   const toast = useToast();
   const today = useMemo(() => new Date(), []);
   const [year, setYear] = useState(today.getFullYear());
@@ -44,16 +46,16 @@ export default function EssHolidaysPage() {
     } catch (error) {
       setData(null);
       toast.error({
-        title: "Unable to load holiday calendar",
+        title: t("ess.holidayPage.loadErrorTitle"),
         message:
           error instanceof ApiError
             ? error.message
-            : "Please check your connection and try again.",
+            : t("ess.holidayPage.loadErrorMessage"),
       });
     } finally {
       setLoading(false);
     }
-  }, [month, toast, year]);
+  }, [month, t, toast, year]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- initial/async data load
@@ -112,8 +114,7 @@ export default function EssHolidaysPage() {
     return upcoming.map((holiday) => {
       const hDate = parseIsoDate(holiday.Holiday_date);
       const isUpcoming =
-        Number(holiday.Is_upcoming) === 1 ||
-        (hDate ? hDate >= normalizedToday : false);
+        Number(holiday.Is_upcoming) === 1 || (hDate ? hDate >= normalizedToday : false);
       const typeName = String(holiday.Holiday_type_name ?? "").trim();
       return {
         id: holiday.Holiday_id,
@@ -157,26 +158,26 @@ export default function EssHolidaysPage() {
         label: primary?.Holiday_name,
         subtitle: typeName
           ? extraCount > 0
-            ? `${typeName} · +${extraCount}`
+            ? `${typeName} · ${t("ess.holidayPage.moreCount", { count: extraCount })}`
             : typeName
           : extraCount > 0
-            ? `+${extraCount} more`
+            ? t("ess.holidayPage.moreCount", { count: extraCount })
             : undefined,
         detailTitle: primary?.Holiday_name,
-        detailBadge: typeName || (primary ? "Holiday" : undefined),
+        detailBadge: typeName || (primary ? t("ess.holiday") : undefined),
         detailDescription: remarks || undefined,
         details: primary
           ? [
-              typeName ? { label: "Type", value: typeName } : null,
+              typeName ? { label: t("ess.holidayPage.type"), value: typeName } : null,
               {
-                label: "Date",
+                label: t("ess.holidayPage.date"),
                 value: formatDateDisplay(date),
               },
-              remarks ? { label: "Remarks", value: remarks } : null,
+              remarks ? { label: t("ess.holidayPage.remarks"), value: remarks } : null,
               extraCount > 0
                 ? {
-                    label: "Also on this day",
-                    value: `${extraCount} more holiday(s)`,
+                    label: t("ess.holidayPage.alsoOnDay"),
+                    value: t("ess.holidayPage.moreHolidays", { count: extraCount }),
                   }
                 : null,
             ].filter((row): row is { label: string; value: string } => row !== null)
@@ -185,13 +186,13 @@ export default function EssHolidaysPage() {
     }
 
     return items;
-  }, [data?.calendar, month, today, year]);
+  }, [data?.calendar, month, t, today, year]);
 
   const scheduleYear = data?.year ?? year;
 
   return (
     <>
-      <PageHeader title="Holiday Calendar" section="Employee Self Service" />
+      <PageHeader title={t("ess.holidayPage.title")} section={t("ess.section")} />
       <div className="container-fluid py-6 animate-in fade-in duration-300">
         <CalendarSplitLayout
           syncKey={`${year}-${month}-${loading ? 1 : 0}`}
@@ -200,7 +201,7 @@ export default function EssHolidaysPage() {
               <div className="card">
                 <div className="card-body employee-profile-loading">
                   <RoundLoader />
-                  <p>Loading holiday calendar…</p>
+                  <p>{t("ess.holidayPage.loading")}</p>
                 </div>
               </div>
             ) : (
@@ -208,23 +209,23 @@ export default function EssHolidaysPage() {
                 year={year}
                 month={month}
                 days={calendarDays}
-                title="Calendar View"
+                title={t("ess.holidayPage.calendarView")}
                 loading={loading}
                 onPrevMonth={goPrev}
                 onNextMonth={goNext}
                 onYearChange={setYear}
                 onMonthChange={setMonth}
-                legend={[{ tone: "holiday", label: "Holiday" }]}
+                legend={[{ tone: "holiday", label: t("ess.holiday") }]}
               />
             )
           }
           sidebar={
             <CalendarDetailsSidebar
-              title="Upcoming Holidays"
-              subtitle={`Corporate schedule for ${scheduleYear}`}
+              title={t("ess.holidayPage.upcoming")}
+              subtitle={t("ess.holidayPage.scheduleSubtitle", { year: scheduleYear })}
               items={sidebarItems}
               loading={loading}
-              emptyMessage="No holidays found for this period."
+              emptyMessage={t("ess.holidayPage.empty")}
               className="w-full"
             />
           }

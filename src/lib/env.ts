@@ -22,12 +22,26 @@ export function getApiUrl(path: string): string {
   return `${env.apiBaseUrl}${normalizedPath}`;
 }
 
-export function resolvePublicFileUrl(path: string, folder = "storage/organizations/logos"): string {
+export function resolvePublicFileUrl(path: string, folder = "storage/employees/photos"): string {
   const value = path.trim();
   if (!value) return "";
   if (/^(https?:|blob:|data:)/i.test(value)) return value;
 
+  // Local static frontend assets in Next.js public directory
+  if (
+    value.startsWith("/images/") ||
+    value.startsWith("/icons/") ||
+    value.startsWith("/favicon") ||
+    value.startsWith("/assets/") ||
+    value.startsWith("images/") ||
+    value.startsWith("icons/")
+  ) {
+    return value.startsWith("/") ? value : `/${value}`;
+  }
+
   const origin = getApiOrigin();
+  if (value.startsWith("/storage/")) return `${origin}${value}`;
+  if (value.startsWith("storage/")) return `${origin}/${value}`;
   if (value.startsWith("/")) return `${origin}${value}`;
   if (value.includes("/")) return `${origin}/${value.replace(/^\/+/, "")}`;
   return `${origin}/${folder.replace(/^\/+|\/+$/g, "")}/${value}`;

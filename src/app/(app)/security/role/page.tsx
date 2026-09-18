@@ -1,11 +1,15 @@
+"use client";
+
 import { MasterDataPage } from "@/components/ui/MasterDataPage";
+import { useI18n } from "@/i18n";
 
 export default function RoleManagementPage() {
+  const { t } = useI18n();
   return (
     <MasterDataPage
       moduleId="roles"
-      modalSubtitle="Create and manage security roles for system access."
-      emptyStateMessage="No roles yet. Add a role to assign permissions and access levels."
+      modalSubtitle={t("security.pages.roles.subtitle")}
+      emptyStateMessage={t("security.pages.roles.empty")}
     />
   );
 }

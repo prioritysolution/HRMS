@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { MasterDataPage } from "@/components/ui/MasterDataPage";
+import { useI18n, translateHrmsLookup } from "@/i18n";
 
 export default function AssetsPage() {
+  const { language } = useI18n();
   const [activeTab, setActiveTab] = useState<"assets" | "asset-types">("assets");
 
   const topContent = (
@@ -13,14 +15,14 @@ export default function AssetsPage() {
         className={`ess-tab${activeTab === "assets" ? " ess-tab--active" : ""}`}
         onClick={() => setActiveTab("assets")}
       >
-        Asset Master
+        {translateHrmsLookup(language, "titles", "Asset Master")}
       </button>
       <button
         type="button"
         className={`ess-tab${activeTab === "asset-types" ? " ess-tab--active" : ""}`}
         onClick={() => setActiveTab("asset-types")}
       >
-        Asset Types
+        {translateHrmsLookup(language, "titles", "Asset Type Master")}
       </button>
     </div>
   );

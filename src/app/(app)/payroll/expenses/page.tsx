@@ -1,41 +1,60 @@
+"use client";
+
 import { ModulePage } from "@/components/ui/ModulePage";
+import { useI18n, translateModuleStat } from "@/i18n";
 
 export default function Page() {
+  const { language, t } = useI18n();
+
+  const stats = [
+    {
+      title: "This Month",
+      value: "$18.4k",
+      change: "+6%",
+      hint: "month",
+      description: "Total expenses claimed",
+      tone: "primary" as const,
+      icon: "briefcase" as const,
+    },
+    {
+      title: "Approved",
+      value: "$14.2k",
+      change: "+4%",
+      hint: "month",
+      description: "Expenses cleared for payout",
+      tone: "success" as const,
+      icon: "users" as const,
+    },
+    {
+      title: "Awaiting",
+      value: "11",
+      change: "3 urgent",
+      hint: "review",
+      description: "Claims pending approval",
+      tone: "warning" as const,
+      icon: "clock" as const,
+    },
+  ].map((stat) => {
+    const key = stat.title;
+    return {
+      ...stat,
+      title: translateModuleStat(language, key, "title", key),
+      hint: translateModuleStat(language, key, "hint", stat.hint),
+      description: translateModuleStat(language, key, "description", stat.description),
+    };
+  });
+
   return (
     <ModulePage
-      title="Expenses"
-      section="Payroll"
-      actionLabel="Add Expense"
-      columns={["Category", "Submitted By", "Amount"]}
-      stats={[
-        {
-          title: "This Month",
-          value: "$18.4k",
-          change: "+6%",
-          hint: "month",
-          description: "Total expenses claimed",
-          tone: "primary",
-          icon: "briefcase",
-        },
-        {
-          title: "Approved",
-          value: "$14.2k",
-          change: "+4%",
-          hint: "month",
-          description: "Expenses cleared for payout",
-          tone: "success",
-          icon: "users",
-        },
-        {
-          title: "Awaiting",
-          value: "11",
-          change: "3 urgent",
-          hint: "review",
-          description: "Claims pending approval",
-          tone: "warning",
-          icon: "clock",
-        },
+      title={t("payroll.pages.expenses.title")}
+      section={t("payroll.pages.expenses.section")}
+      actionLabel={t("payroll.pages.expenses.action")}
+      columns={[
+        t("payroll.pages.expenses.columns.category"),
+        t("payroll.pages.expenses.columns.submittedBy"),
+        t("payroll.pages.expenses.columns.amount"),
       ]}
+      stats={stats}
       rows={[
         {
           primary: "Client travel — NYC",

@@ -1,6 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { Nunito } from "next/font/google";
 import { AuthProvider } from "@/lib/auth/AuthProvider";
+import { I18nProvider } from "@/i18n";
+import { cookies } from "next/headers";
+import { isAppLanguage, DEFAULT_LANGUAGE, type AppLanguage } from "@/i18n/config";
 import "./globals.css";
 
 const nunito = Nunito({
@@ -42,13 +45,24 @@ export const viewport: Viewport = {
   themeColor: "#4666e1",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = await cookies();
+  const savedLang = cookieStore.get("priohrm-language")?.value;
+  const initialLanguage: AppLanguage = isAppLanguage(savedLang)
+    ? savedLang
+    : DEFAULT_LANGUAGE;
+
   return (
-    <html lang="en" className={`${nunito.variable} h-full`} suppressHydrationWarning>
+    <html
+      lang={initialLanguage}
+      data-language={initialLanguage}
+      className={`${nunito.variable} h-full`}
+      suppressHydrationWarning
+    >
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -57,7 +71,9 @@ export default function RootLayout({
         />
       </head>
       <body className={`${nunito.className} min-h-full antialiased`}>
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <I18nProvider initialLanguage={initialLanguage}>{children}</I18nProvider>
+        </AuthProvider>
       </body>
     </html>
   );

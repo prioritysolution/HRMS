@@ -19,6 +19,7 @@ import { RoundLoader } from "@/components/ui/RoundLoader";
 import { StatusToggle } from "@/components/ui/StatusToggle";
 import { TableSectionHeader } from "@/components/ui/TableSectionHeader";
 import { useToast } from "@/components/ui/ToastProvider";
+import { useI18n, translateHrmsLookup } from "@/i18n";
 import { applOptionService, OPT_GRP_IDS } from "@/lib/api/services/appl-options.service";
 import type { ApplOptionRecord, CombinedPayrollSettings } from "@/lib/api/types";
 import { payrollSettingsService } from "@/lib/api/services/payroll-settings.service";
@@ -85,10 +86,11 @@ function buildSalaryCalculationFields(
   salaryBasisOptions: DynamicOption[],
   workingDaysOptions: DynamicOption[],
   salaryCalcOptions: DynamicOption[],
+  t: (key: string) => string,
 ): FormField[] {
   return [
     {
-      label: "Salary Basis",
+      label: t("settings.payroll.fields.salary_basis"),
       name: "salary_basis",
       type: "select",
       required: true,
@@ -96,7 +98,7 @@ function buildSalaryCalculationFields(
       options: salaryBasisOptions,
     },
     {
-      label: "Working Days Basis",
+      label: t("settings.payroll.fields.working_days_basis"),
       name: "working_days_basis",
       type: "select",
       required: true,
@@ -104,7 +106,7 @@ function buildSalaryCalculationFields(
       options: workingDaysOptions,
     },
     {
-      label: "Salary Calculation Based On",
+      label: t("settings.payroll.fields.salary_calculation_based_on"),
       name: "salary_calculation_based_on",
       type: "select",
       required: true,
@@ -114,10 +116,13 @@ function buildSalaryCalculationFields(
   ];
 }
 
-function buildOvertimeValueFields(otCalculationOptions: DynamicOption[]): FormField[] {
+function buildOvertimeValueFields(
+  otCalculationOptions: DynamicOption[],
+  t: (key: string) => string,
+): FormField[] {
   return [
     {
-      label: "OT Calculation Based On",
+      label: t("settings.payroll.fields.ot_calculation_based_on"),
       name: "ot_calculation_based_on",
       type: "select",
       required: true,
@@ -125,7 +130,7 @@ function buildOvertimeValueFields(otCalculationOptions: DynamicOption[]): FormFi
       options: otCalculationOptions,
     },
     {
-      label: "Normal Day OT Rate (×)",
+      label: t("settings.payroll.fields.normal_day_ot_rate"),
       name: "normal_day_ot_rate",
       type: "number",
       required: true,
@@ -134,7 +139,7 @@ function buildOvertimeValueFields(otCalculationOptions: DynamicOption[]): FormFi
       defaultValue: "1.5",
     },
     {
-      label: "Weekly Off OT Rate (×)",
+      label: t("settings.payroll.fields.weekly_off_ot_rate"),
       name: "weekly_off_ot_rate",
       type: "number",
       required: true,
@@ -143,7 +148,7 @@ function buildOvertimeValueFields(otCalculationOptions: DynamicOption[]): FormFi
       defaultValue: "2",
     },
     {
-      label: "Holiday OT Rate (×)",
+      label: t("settings.payroll.fields.holiday_ot_rate"),
       name: "holiday_ot_rate",
       type: "number",
       required: true,
@@ -152,7 +157,7 @@ function buildOvertimeValueFields(otCalculationOptions: DynamicOption[]): FormFi
       defaultValue: "2",
     },
     {
-      label: "Minimum OT (Minutes)",
+      label: t("settings.payroll.fields.minimum_ot_minutes"),
       name: "min_ot_minutes",
       type: "number",
       required: true,
@@ -163,10 +168,13 @@ function buildOvertimeValueFields(otCalculationOptions: DynamicOption[]): FormFi
   ];
 }
 
-function buildSlipFormatField(slipFormatOptions: DynamicOption[]): FormField[] {
+function buildSlipFormatField(
+  slipFormatOptions: DynamicOption[],
+  t: (key: string) => string,
+): FormField[] {
   return [
     {
-      label: "Salary Slip Format",
+      label: t("settings.payroll.fields.salary_slip_format"),
       name: "salary_slip_format",
       type: "select",
       required: true,
@@ -301,6 +309,7 @@ function toFormValues(
 }
 
 export default function PayrollSettingsPage() {
+  const { t, language } = useI18n();
   const toast = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -311,19 +320,70 @@ export default function PayrollSettingsPage() {
   const [otCalcOptions, setOtCalcOptions] = useState<DynamicOption[]>(DEFAULT_OT_CALC_OPTIONS);
   const [slipFormatOptions, setSlipFormatOptions] = useState<DynamicOption[]>(DEFAULT_SLIP_FORMAT_OPTIONS);
 
+  const localizedSalaryBasisOptions = useMemo(
+    () =>
+      salaryBasisOptions.map((opt) => ({
+        ...opt,
+        label: translateHrmsLookup(language, "labels", opt.label),
+      })),
+    [language, salaryBasisOptions],
+  );
+
+  const localizedWorkingDaysOptions = useMemo(
+    () =>
+      workingDaysOptions.map((opt) => ({
+        ...opt,
+        label: translateHrmsLookup(language, "labels", opt.label),
+      })),
+    [language, workingDaysOptions],
+  );
+
+  const localizedSalaryCalcOptions = useMemo(
+    () =>
+      salaryCalcOptions.map((opt) => ({
+        ...opt,
+        label: translateHrmsLookup(language, "labels", opt.label),
+      })),
+    [language, salaryCalcOptions],
+  );
+
+  const localizedOtCalcOptions = useMemo(
+    () =>
+      otCalcOptions.map((opt) => ({
+        ...opt,
+        label: translateHrmsLookup(language, "labels", opt.label),
+      })),
+    [language, otCalcOptions],
+  );
+
+  const localizedSlipFormatOptions = useMemo(
+    () =>
+      slipFormatOptions.map((opt) => ({
+        ...opt,
+        label: translateHrmsLookup(language, "labels", opt.label),
+      })),
+    [language, slipFormatOptions],
+  );
+
   const salaryCalculationFields = useMemo(
-    () => buildSalaryCalculationFields(salaryBasisOptions, workingDaysOptions, salaryCalcOptions),
-    [salaryBasisOptions, workingDaysOptions, salaryCalcOptions],
+    () =>
+      buildSalaryCalculationFields(
+        localizedSalaryBasisOptions,
+        localizedWorkingDaysOptions,
+        localizedSalaryCalcOptions,
+        t,
+      ),
+    [localizedSalaryBasisOptions, localizedWorkingDaysOptions, localizedSalaryCalcOptions, t],
   );
 
   const overtimeValueFields = useMemo(
-    () => buildOvertimeValueFields(otCalcOptions),
-    [otCalcOptions],
+    () => buildOvertimeValueFields(localizedOtCalcOptions, t),
+    [localizedOtCalcOptions, t],
   );
 
   const slipFormatField = useMemo(
-    () => buildSlipFormatField(slipFormatOptions),
-    [slipFormatOptions],
+    () => buildSlipFormatField(localizedSlipFormatOptions, t),
+    [localizedSlipFormatOptions, t],
   );
 
   const allFields = useMemo(
@@ -408,9 +468,9 @@ export default function PayrollSettingsPage() {
 
         if (settingsResult.data) {
           const dynamicFields = [
-            ...buildSalaryCalculationFields(mappedBasis, mappedWorkingDays, mappedSalaryCalc),
-            ...buildOvertimeValueFields(mappedOtCalc),
-            ...buildSlipFormatField(mappedSlipFormat),
+            ...buildSalaryCalculationFields(mappedBasis, mappedWorkingDays, mappedSalaryCalc, t),
+            ...buildOvertimeValueFields(mappedOtCalc, t),
+            ...buildSlipFormatField(mappedSlipFormat, t),
           ];
           setValues({
             ...buildInitialFormValues(dynamicFields),
@@ -421,7 +481,7 @@ export default function PayrollSettingsPage() {
 
         if (!settingsResult.ok) {
           toast.error({
-            title: "Unable to load settings",
+            title: t("settings.common.loadFailed"),
             message: settingsResult.message,
           });
         }
@@ -429,7 +489,7 @@ export default function PayrollSettingsPage() {
         if (cancelled) return;
         toast.error({
           title: "Unable to load settings",
-          message: "Failed to load payroll settings. Please try again.",
+          message: t("settings.payroll.loadError"),
         });
       } finally {
         if (!cancelled) setLoading(false);
@@ -461,8 +521,8 @@ export default function PayrollSettingsPage() {
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors);
       toast.error({
-        title: "Validation error",
-        message: "Please fill all mandatory payroll settings.",
+        title: t("settings.common.validationError"),
+        message: t("settings.payroll.validationMessage"),
       });
       return;
     }
@@ -491,7 +551,7 @@ export default function PayrollSettingsPage() {
       });
 
       if (!result.ok || !result.data) {
-        toast.error({ title: "Save failed", message: result.message });
+        toast.error({ title: t("settings.common.saveFailed"), message: result.message });
         return;
       }
 
@@ -505,11 +565,11 @@ export default function PayrollSettingsPage() {
           slipFormat: slipFormatOptions,
         }),
       }));
-      toast.success({ title: "Saved", message: result.message });
+      toast.success({ title: t("settings.common.saved"), message: result.message });
     } catch {
       toast.error({
-        title: "Save failed",
-        message: "Failed to save payroll settings. Please try again.",
+        title: t("settings.common.saveFailed"),
+        message: t("settings.payroll.saveError"),
       });
     } finally {
       setSaving(false);
@@ -518,15 +578,19 @@ export default function PayrollSettingsPage() {
 
   return (
     <>
-      <PageHeader title="Payroll Settings" section="Settings" hideTitle />
+      <PageHeader
+        title={t("settings.payroll.title")}
+        section={t("settings.common.section")}
+        hideTitle
+      />
       {loading ? (
         <div className="container-fluid">
           <div className="card">
             <div className="card-body">
-              <TableSectionHeader title="Payroll Settings" />
+              <TableSectionHeader title={t("settings.payroll.title")} />
               <div className="employee-profile-loading">
                 <RoundLoader />
-                <p>Loading payroll settings…</p>
+                <p>{t("settings.payroll.loading")}</p>
               </div>
             </div>
           </div>
@@ -536,7 +600,7 @@ export default function PayrollSettingsPage() {
           <div className="card">
             <div className="card-body">
               <form id="payroll-settings-form" onSubmit={(event) => void handleSave(event)} noValidate>
-                <TableSectionHeader title="Salary Calculation Settings" />
+                <TableSectionHeader title={t("settings.payroll.salaryCalcTitle")} />
                 <div className="form-grid form-grid-2">
                   <FormFieldsRenderer
                     fields={salaryCalculationFields}
@@ -547,7 +611,7 @@ export default function PayrollSettingsPage() {
                 </div>
 
                 <div className="email-config-test-block">
-                  <TableSectionHeader title="Overtime Settings" />
+                  <TableSectionHeader title={t("settings.payroll.overtimeTitle")} />
 
                   <div className="notification-option-list">
                     <div className="notification-option">
@@ -556,15 +620,15 @@ export default function PayrollSettingsPage() {
                           <Timer size={18} />
                         </div>
                         <div className="notification-option-copy">
-                          <h6>OT Applicable</h6>
-                          <p>Enable overtime calculation in payroll processing.</p>
+                          <h6>{t("settings.payroll.otApplicable.label")}</h6>
+                          <p>{t("settings.payroll.otApplicable.description")}</p>
                         </div>
                       </div>
                       <StatusToggle
                         name="ot_applicable"
                         value={String(values.ot_applicable ?? "0")}
-                        activeLabel="Yes"
-                        inactiveLabel="No"
+                        activeLabel={t("common.yes")}
+                        inactiveLabel={t("common.no")}
                         onChange={(nextValue) => handleChange("ot_applicable", nextValue)}
                         disabled={saving}
                       />
@@ -582,7 +646,7 @@ export default function PayrollSettingsPage() {
                 </div>
 
                 <div className="email-config-test-block">
-                  <TableSectionHeader title="Salary Slip Settings" />
+                  <TableSectionHeader title={t("settings.payroll.slipTitle")} />
 
                   <div className="form-grid form-grid-2">
                     <FormFieldsRenderer
@@ -603,15 +667,15 @@ export default function PayrollSettingsPage() {
                               <Icon size={18} />
                             </div>
                             <div className="notification-option-copy">
-                              <h6>{option.label}</h6>
-                              <p>{option.description}</p>
+                              <h6>{t(`settings.payroll.toggles.${option.name}.label`)}</h6>
+                              <p>{t(`settings.payroll.toggles.${option.name}.description`)}</p>
                             </div>
                           </div>
                           <StatusToggle
                             name={option.name}
                             value={String(values[option.name] ?? "0")}
-                            activeLabel="Yes"
-                            inactiveLabel="No"
+                            activeLabel={t("common.yes")}
+                            inactiveLabel={t("common.no")}
                             onChange={(nextValue) => handleChange(option.name, nextValue)}
                             disabled={saving}
                           />
@@ -624,7 +688,7 @@ export default function PayrollSettingsPage() {
                 <div className="flex justify-end pt-4">
                   <button type="submit" className="btn btn-primary inline-flex items-center gap-2" disabled={saving}>
                     <Banknote size={16} />
-                    {saving ? "Saving..." : "Save Settings"}
+                    {saving ? t("settings.common.saving") : t("settings.common.saveSettings")}
                   </button>
                 </div>
               </form>

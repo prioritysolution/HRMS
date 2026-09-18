@@ -23,6 +23,7 @@ import { useUIStore } from "@/components/layout/UIProvider";
 import { menuService } from "@/lib/api/services/menu.service";
 import { menuTreeToNavigation } from "@/lib/menu/map-menu-tree";
 import { readMenuCache, writeMenuCache } from "@/lib/menu/menu-cache";
+import { useI18n, translateHrmsLookup } from "@/i18n";
 import { cn } from "@/lib/utils";
 
 const sectionIcons: Record<string, LucideIcon> = {
@@ -88,9 +89,9 @@ function placeCollapsedFlyout(el: HTMLElement | null) {
 export function Sidebar() {
   const pathname = usePathname();
   const { closeMobile, mobileOpen, isMobile, sidebarCollapsed } = useUIStore();
-  const [sections, setSections] = useState<NavSection[]>(navigation);
-  const [menuReady, setMenuReady] = useState(true);
-  const [showLoading, setShowLoading] = useState(false);
+  const { language, t } = useI18n();
+  const [sections, setSections] = useState<NavSection[]>([]);
+  const [menuReady, setMenuReady] = useState(false);
 
   useLayoutEffect(() => {
     let active = true;
@@ -98,6 +99,7 @@ export function Sidebar() {
     const cached = readMenuCache();
     if (cached?.length) {
       setSections(cached);
+      setMenuReady(true);
     }
 
     async function loadMenu() {
@@ -119,14 +121,12 @@ export function Sidebar() {
         if (!active) return;
         setSections((prev) => (sameSections(prev, next) ? prev : next));
         setMenuReady(true);
-        setShowLoading(false);
       } catch {
         const existing = readMenuCache();
         if (existing?.length) {
           if (active) {
             setSections(existing);
             setMenuReady(true);
-            setShowLoading(false);
           }
           return;
         }
@@ -134,7 +134,6 @@ export function Sidebar() {
         if (!active) return;
         setSections(navigation);
         setMenuReady(true);
-        setShowLoading(false);
       }
     }
 
@@ -193,11 +192,14 @@ export function Sidebar() {
     }
   }, []);
 
-  // Ensure active menu item is scrolled into view on refresh / route change
+  // Ensure active menu item is scrolled into view only on initial page load / refresh (not on menu clicks)
+  const hasScrolledInitialActive = useRef(false);
+
   useEffect(() => {
-    if (!menuReady || iconOnly) return;
+    if (!menuReady || iconOnly || hasScrolledInitialActive.current) return;
 
     const timer = setTimeout(() => {
+      if (hasScrolledInitialActive.current) return;
       const container = sidebarMenuRef.current;
       if (!container) return;
 
@@ -217,10 +219,11 @@ export function Sidebar() {
           behavior: "smooth",
         });
       }
-    }, 120);
+      hasScrolledInitialActive.current = true;
+    }, 150);
 
     return () => clearTimeout(timer);
-  }, [pathname, menuReady, sections, openGroups, iconOnly]);
+  }, [menuReady, iconOnly]);
 
   useLayoutEffect(() => {
     if (!iconOnly || !flyoutLabel) return;
@@ -280,11 +283,38 @@ export function Sidebar() {
         onScroll={handleMenuScroll}
       >
         {!menuReady ? (
-          showLoading ? (
-            <div className="menu-title">
-              <p className="fw-semibold mb-0 d-inline-block opacity-60">Loading menu...</p>
+          <div className="p-3 space-y-2.5 animate-pulse select-none" aria-busy="true">
+            <div className="h-2.5 w-16 bg-[var(--border)] rounded opacity-40 mb-3 ml-2" />
+            <div className="flex items-center gap-3 px-2 py-2">
+              <div className="w-5 h-5 rounded bg-[var(--border)] opacity-60 flex-shrink-0" />
+              <div className="h-3.5 w-24 rounded bg-[var(--border)] opacity-50" />
             </div>
-          ) : null
+            <div className="flex items-center gap-3 px-2 py-2">
+              <div className="w-5 h-5 rounded bg-[var(--border)] opacity-60 flex-shrink-0" />
+              <div className="h-3.5 w-32 rounded bg-[var(--border)] opacity-50" />
+            </div>
+            <div className="flex items-center gap-3 px-2 py-2">
+              <div className="w-5 h-5 rounded bg-[var(--border)] opacity-60 flex-shrink-0" />
+              <div className="h-3.5 w-28 rounded bg-[var(--border)] opacity-50" />
+            </div>
+            <div className="h-2.5 w-20 bg-[var(--border)] rounded opacity-40 mt-5 mb-3 ml-2" />
+            <div className="flex items-center gap-3 px-2 py-2">
+              <div className="w-5 h-5 rounded bg-[var(--border)] opacity-60 flex-shrink-0" />
+              <div className="h-3.5 w-36 rounded bg-[var(--border)] opacity-50" />
+            </div>
+            <div className="flex items-center gap-3 px-2 py-2">
+              <div className="w-5 h-5 rounded bg-[var(--border)] opacity-60 flex-shrink-0" />
+              <div className="h-3.5 w-28 rounded bg-[var(--border)] opacity-50" />
+            </div>
+            <div className="flex items-center gap-3 px-2 py-2">
+              <div className="w-5 h-5 rounded bg-[var(--border)] opacity-60 flex-shrink-0" />
+              <div className="h-3.5 w-32 rounded bg-[var(--border)] opacity-50" />
+            </div>
+            <div className="flex items-center gap-3 px-2 py-2">
+              <div className="w-5 h-5 rounded bg-[var(--border)] opacity-60 flex-shrink-0" />
+              <div className="h-3.5 w-20 rounded bg-[var(--border)] opacity-50" />
+            </div>
+          </div>
         ) : (
           sections.map((section) => {
           const SectionIcon = sectionIcons[section.icon];

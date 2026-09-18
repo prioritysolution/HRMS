@@ -12,6 +12,7 @@ import { StatusBadge, statusTone } from "@/components/ui/StatusBadge";
 import { StatusToggle } from "@/components/ui/StatusToggle";
 import { TableSectionHeader } from "@/components/ui/TableSectionHeader";
 import { useToast } from "@/components/ui/ToastProvider";
+import { useI18n, translateHrmsLookup } from "@/i18n";
 import {
   applOptionService,
   applOptionsToSelectOptions,
@@ -26,70 +27,13 @@ import { validateFormField, validateFormFields, type FormValue } from "@/lib/for
 import { cn } from "@/lib/utils";
 import type { FormField, HrmsRow } from "@/types/hrms";
 
-const gatewayFieldsTop: FormField[] = [
-  {
-    label: "API URL",
-    name: "api_url",
-    type: "text",
-    required: true,
-    placeholder: "https://sms.prioritysolutions.in/api/v1/send",
-  },
-];
-
-const apiKeyField: FormField = {
-  label: "API Key",
-  name: "api_key",
-  type: "password",
-  required: false,
-  minLength: 4,
-  placeholder: "Enter SMS API key (leave blank to keep current)",
-};
-
-const gatewayStatusField: FormField = {
-  label: "Status",
-  name: "status",
-  type: "select",
-  required: true,
-  defaultValue: "1",
-  options: [
-    { value: "1", label: "Active" },
-    { value: "0", label: "Inactive" },
-  ],
-};
-
-function buildGatewayFieldsBottom(
-  messageTypeOptions: Array<{ value: string; label: string }>,
-): FormField[] {
-  return [
-    {
-      label: "Sender ID",
-      name: "sender_id",
-      type: "text",
-      required: true,
-      minLength: 3,
-      maxLength: 12,
-      placeholder: "PRISOL",
-    },
-    {
-      label: "Message Type",
-      name: "message_type",
-      type: "select",
-      required: true,
-      defaultValue: messageTypeOptions[0]?.value ?? "",
-      options: messageTypeOptions,
-    },
-    gatewayStatusField,
-  ];
+function isMaskedSecret(value: string): boolean {
+  if (!value) return false;
+  return /^\*+$|^•+$|^x+$/i.test(value) || /[•*]{4,}/.test(value);
 }
 
-function buildGatewayFields(
-  messageTypeOptions: Array<{ value: string; label: string }>,
-): FormField[] {
-  return [
-    ...gatewayFieldsTop,
-    apiKeyField,
-    ...buildGatewayFieldsBottom(messageTypeOptions),
-  ];
+function toStatus(value: FormValue): 0 | 1 {
+  return String(value ?? "").trim() === "0" ? 0 : 1;
 }
 
 function resolveMessageTypeValue(
@@ -111,60 +55,8 @@ function resolveMessageTypeValue(
   return text;
 }
 
-function buildTemplateFields(
-  eventOptions: Array<{ value: string; label: string }>,
-): FormField[] {
-  return [
-    {
-      label: "Template Name",
-      name: "template_name",
-      type: "text",
-      required: true,
-      minLength: 2,
-      maxLength: 100,
-      placeholder: "Salary Processed",
-    },
-    {
-      label: "Event",
-      name: "event_id",
-      type: "select",
-      required: true,
-      options: eventOptions,
-    },
-    {
-      label: "Message Template",
-      name: "message_template",
-      type: "textarea",
-      required: true,
-      span: "full",
-      minLength: 10,
-      maxLength: 500,
-      placeholder: "Dear {EmployeeName}, ...",
-    },
-    {
-      label: "Status",
-      name: "status",
-      type: "select",
-      required: true,
-      defaultValue: "1",
-      options: [
-        { value: "1", label: "Active" },
-        { value: "0", label: "Inactive" },
-      ],
-    },
-  ];
-}
-
-function isMaskedSecret(value: string): boolean {
-  if (!value) return false;
-  return /^\*+$|^•+$|^x+$/i.test(value) || /[•*]{4,}/.test(value);
-}
-
-function toStatus(value: FormValue): 0 | 1 {
-  return String(value ?? "").trim() === "0" ? 0 : 1;
-}
-
 export default function SmsConfigPage() {
+  const { t, language } = useI18n();
   const toast = useToast();
   const [loading, setLoading] = useState(true);
   const [savingGateway, setSavingGateway] = useState(false);
@@ -176,17 +68,86 @@ export default function SmsConfigPage() {
     Array<{ value: string; label: string }>
   >([]);
 
-  const gatewayFields = useMemo(
-    () => buildGatewayFields(messageTypeOptions),
-    [messageTypeOptions],
+  const gatewayFieldsTop: FormField[] = useMemo(
+    () => [
+      {
+        label: t("settings.sms.fields.api_url"),
+        name: "api_url",
+        type: "text",
+        required: true,
+        placeholder: "https://sms.prioritysolutions.in/api/v1/send",
+      },
+    ],
+    [t],
   );
-  const gatewayFieldsBottom = useMemo(
-    () => buildGatewayFieldsBottom(messageTypeOptions),
-    [messageTypeOptions],
+
+  const apiKeyField: FormField = useMemo(
+    () => ({
+      label: t("settings.sms.fields.api_key"),
+      name: "api_key",
+      type: "password",
+      required: false,
+      minLength: 4,
+      placeholder: t("settings.sms.placeholders.api_key"),
+    }),
+    [t],
+  );
+
+  const gatewayStatusField: FormField = useMemo(
+    () => ({
+      label: t("settings.sms.fields.status"),
+      name: "status",
+      type: "select",
+      required: true,
+      defaultValue: "1",
+      options: [
+        { value: "1", label: translateHrmsLookup(language, "labels", "Active") },
+        { value: "0", label: translateHrmsLookup(language, "labels", "Inactive") },
+      ],
+    }),
+    [language, t],
+  );
+
+  const localizedMessageTypeOptions = useMemo(
+    () =>
+      messageTypeOptions.map((opt) => ({
+        ...opt,
+        label: translateHrmsLookup(language, "labels", opt.label),
+      })),
+    [language, messageTypeOptions],
+  );
+
+  const gatewayFieldsBottom: FormField[] = useMemo(
+    () => [
+      {
+        label: t("settings.sms.fields.sender_id"),
+        name: "sender_id",
+        type: "text",
+        required: true,
+        minLength: 3,
+        maxLength: 12,
+        placeholder: "PRISOL",
+      },
+      {
+        label: t("settings.sms.fields.message_type"),
+        name: "message_type",
+        type: "select",
+        required: true,
+        defaultValue: localizedMessageTypeOptions[0]?.value ?? "",
+        options: localizedMessageTypeOptions,
+      },
+      gatewayStatusField,
+    ],
+    [gatewayStatusField, localizedMessageTypeOptions, t],
+  );
+
+  const gatewayFields: FormField[] = useMemo(
+    () => [...gatewayFieldsTop, apiKeyField, ...gatewayFieldsBottom],
+    [gatewayFieldsTop, apiKeyField, gatewayFieldsBottom],
   );
 
   const [gatewayValues, setGatewayValues] = useState<Record<string, FormValue>>(() =>
-    buildInitialFormValues(buildGatewayFields([])),
+    buildInitialFormValues([]),
   );
   const [gatewayErrors, setGatewayErrors] = useState<Record<string, string>>({});
   const [events, setEvents] = useState<SmsEventSetting[]>([]);
@@ -202,14 +163,52 @@ export default function SmsConfigPage() {
         .filter((item) => item.event_id > 0)
         .map((item) => ({
           value: String(item.event_id),
-          label: item.label,
+          label: translateHrmsLookup(language, "labels", item.label),
         })),
-    [events],
+    [events, language],
   );
 
-  const templateFields = useMemo(
-    () => buildTemplateFields(eventOptions),
-    [eventOptions],
+  const templateFields: FormField[] = useMemo(
+    () => [
+      {
+        label: t("settings.sms.fields.template_name"),
+        name: "template_name",
+        type: "text",
+        required: true,
+        minLength: 2,
+        maxLength: 100,
+        placeholder: "Salary Processed",
+      },
+      {
+        label: t("settings.sms.fields.event"),
+        name: "event_id",
+        type: "select",
+        required: true,
+        options: eventOptions,
+      },
+      {
+        label: t("settings.sms.fields.message_template"),
+        name: "message_template",
+        type: "textarea",
+        required: true,
+        span: "full",
+        minLength: 10,
+        maxLength: 500,
+        placeholder: "Dear {EmployeeName}, ...",
+      },
+      {
+        label: t("settings.sms.fields.status"),
+        name: "status",
+        type: "select",
+        required: true,
+        defaultValue: "1",
+        options: [
+          { value: "1", label: translateHrmsLookup(language, "labels", "Active") },
+          { value: "0", label: translateHrmsLookup(language, "labels", "Inactive") },
+        ],
+      },
+    ],
+    [eventOptions, language, t],
   );
 
   const loadAll = useCallback(async () => {
@@ -228,7 +227,6 @@ export default function SmsConfigPage() {
 
       const mappedMessageTypes = applOptionsToSelectOptions(messageTypeOpts);
       setMessageTypeOptions(mappedMessageTypes);
-      const fields = buildGatewayFields(mappedMessageTypes);
 
       if (!gatewayResult.ok && !gatewayResult.data) {
         toast.error({
@@ -237,22 +235,26 @@ export default function SmsConfigPage() {
         });
       } else if (gatewayResult.data) {
         setGatewayExists(Boolean(gatewayResult.data.exists));
-        setGatewayValues(
-          buildInitialFormValues(fields, {
-            id: "sms-gateway",
-            ...gatewayResult.data,
-            message_type: resolveMessageTypeValue(
-              gatewayResult.data.message_type,
-              mappedMessageTypes,
-            ),
-            status: String(gatewayResult.data.status),
-            api_key: isMaskedSecret(gatewayResult.data.api_key)
-              ? ""
-              : gatewayResult.data.api_key,
-          }),
-        );
+        setGatewayValues({
+          api_url: String(gatewayResult.data.api_url ?? ""),
+          api_key: isMaskedSecret(gatewayResult.data.api_key)
+            ? ""
+            : String(gatewayResult.data.api_key ?? ""),
+          sender_id: String(gatewayResult.data.sender_id ?? ""),
+          message_type: resolveMessageTypeValue(
+            gatewayResult.data.message_type,
+            mappedMessageTypes,
+          ),
+          status: String(gatewayResult.data.status ?? "1"),
+        });
       } else {
-        setGatewayValues(buildInitialFormValues(fields));
+        setGatewayValues({
+          api_url: "",
+          api_key: "",
+          sender_id: "",
+          message_type: mappedMessageTypes[0]?.value ?? "",
+          status: "1",
+        });
       }
 
       if (!eventsResult.ok) {
@@ -291,9 +293,7 @@ export default function SmsConfigPage() {
 
   useEffect(() => {
     if (!templateModalOpen) {
-      setEditTemplate(null);
-      setTemplateValues(buildInitialFormValues(templateFields));
-      setTemplateErrors({});
+      if (editTemplate) setEditTemplate(null);
       return;
     }
     if (editTemplate) {
@@ -497,47 +497,51 @@ export default function SmsConfigPage() {
     () => [
       {
         key: "template_name",
-        header: "TEMPLATE NAME",
+        header: translateHrmsLookup(language, "headers", "Template Name"),
         render: (row) => row.template_name,
       },
       {
         key: "event",
-        header: "EVENT",
-        render: (row) => row.event,
+        header: translateHrmsLookup(language, "headers", "Event"),
+        render: (row) => translateHrmsLookup(language, "labels", row.event),
       },
       {
         key: "message_template",
-        header: "MESSAGE TEMPLATE",
+        header: translateHrmsLookup(language, "headers", "Message Template"),
         render: (row) => <ClampedText text={String(row.message_template ?? "")} />,
       },
       {
         key: "status",
-        header: "STATUS",
+        header: translateHrmsLookup(language, "headers", "Status"),
         render: (row) => (
           <StatusBadge
-            label={row.status === 1 ? "Active" : "Inactive"}
+            label={translateHrmsLookup(language, "labels", row.status === 1 ? "Active" : "Inactive")}
             tone={statusTone(row.status === 1 ? "Active" : "Inactive")}
           />
         ),
       },
     ],
-    [],
+    [language],
   );
 
   const apiKeyError = gatewayErrors.api_key;
 
   return (
     <>
-      <PageHeader title="SMS Configuration" section="Settings" hideTitle />
+      <PageHeader
+        title={t("settings.sms.title")}
+        section={t("settings.common.section")}
+        hideTitle
+      />
 
       {loading ? (
         <div className="container-fluid">
           <div className="card">
             <div className="card-body">
-              <TableSectionHeader title="SMS Configuration" />
+              <TableSectionHeader title={t("settings.sms.title")} />
               <div className="employee-profile-loading">
                 <RoundLoader />
-                <p>Loading SMS configuration…</p>
+                <p>{t("settings.sms.loading")}</p>
               </div>
             </div>
           </div>
@@ -546,7 +550,7 @@ export default function SmsConfigPage() {
         <div className="container-fluid space-y-4">
           <div className="card">
             <div className="card-body">
-              <TableSectionHeader title="Gateway Configuration" />
+              <TableSectionHeader title={t("settings.sms.gatewayTitle")} />
 
               <form
                 id="sms-gateway-form"
@@ -577,7 +581,7 @@ export default function SmsConfigPage() {
                       placeholder={
                         gatewayExists
                           ? apiKeyField.placeholder
-                          : "Enter SMS API key"
+                          : t("settings.sms.placeholders.api_key")
                       }
                       autoComplete="new-password"
                       onChange={(event) => handleGatewayChange("api_key", event.target.value)}
@@ -586,7 +590,7 @@ export default function SmsConfigPage() {
                       type="button"
                       className="ess-password-toggle"
                       onClick={() => setShowApiKey((visible) => !visible)}
-                      aria-label={showApiKey ? "Hide API key" : "Show API key"}
+                      aria-label={showApiKey ? t("settings.sms.hideApiKey") : t("settings.sms.showApiKey")}
                     >
                       {showApiKey ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
@@ -608,10 +612,8 @@ export default function SmsConfigPage() {
                 <div className="form-span-full flex justify-end pt-2">
                   <button type="submit" className="btn btn-primary" disabled={savingGateway}>
                     {savingGateway
-                      ? "Saving..."
-                      : gatewayExists
-                        ? "Save Gateway"
-                        : "Create Gateway"}
+                      ? t("settings.common.saving")
+                      : t("settings.sms.saveGateway")}
                   </button>
                 </div>
               </form>
@@ -620,7 +622,7 @@ export default function SmsConfigPage() {
 
           <div className="card">
             <div className="card-body">
-              <TableSectionHeader title="SMS Event Settings" />
+              <TableSectionHeader title={t("settings.sms.eventsTitle")} />
 
               <form id="sms-events-form" onSubmit={(event) => void handleSaveEvents(event)}>
                 <div className="notification-option-list">
@@ -639,8 +641,8 @@ export default function SmsConfigPage() {
                             <MessageSquare size={18} />
                           </div>
                           <div className="notification-option-copy">
-                            <h6>{item.label}</h6>
-                            <p>{item.description}</p>
+                            <h6>{translateHrmsLookup(language, "labels", item.label)}</h6>
+                            <p>{translateHrmsLookup(language, "labels", item.description)}</p>
                           </div>
                         </div>
                         <StatusToggle
@@ -672,7 +674,7 @@ export default function SmsConfigPage() {
                     className="btn btn-primary"
                     disabled={savingEvents || events.length === 0}
                   >
-                    {savingEvents ? "Saving..." : "Save Event Settings"}
+                    {savingEvents ? t("settings.common.saving") : t("settings.sms.saveEvents")}
                   </button>
                 </div>
               </form>
@@ -682,7 +684,7 @@ export default function SmsConfigPage() {
           <div className="card">
             <div className="card-body">
               <TableSectionHeader
-                title="SMS Template Setup"
+                title={t("settings.sms.templatesTitle")}
                 action={
                   <button
                     type="button"
@@ -691,7 +693,7 @@ export default function SmsConfigPage() {
                     disabled={eventOptions.length === 0}
                   >
                     <Plus size={16} />
-                    Add Template
+                    {t("settings.sms.addTemplate")}
                   </button>
                 }
               />
@@ -712,8 +714,8 @@ export default function SmsConfigPage() {
       <Modal
         open={templateModalOpen}
         onClose={() => setTemplateModalOpen(false)}
-        title={editTemplate ? "Edit SMS Template" : "Add SMS Template"}
-        subtitle="Configure the SMS message body and linked event."
+        title={editTemplate ? t("settings.sms.editTemplate") : t("settings.sms.addTemplate")}
+        subtitle={translateHrmsLookup(language, "labels", "Configure the SMS message body and linked event.")}
         size="md"
         footer={
           <>
@@ -723,7 +725,11 @@ export default function SmsConfigPage() {
               className="btn btn-primary"
               disabled={savingTemplate}
             >
-              {savingTemplate ? "Saving..." : "Save Template"}
+              {savingTemplate
+                ? t("settings.common.saving")
+                : editTemplate
+                  ? t("common.saveChanges")
+                  : t("settings.sms.addTemplate")}
             </button>
             <button
               type="button"
@@ -731,7 +737,7 @@ export default function SmsConfigPage() {
               onClick={() => setTemplateModalOpen(false)}
               disabled={savingTemplate}
             >
-              Cancel
+              {t("common.cancel")}
             </button>
           </>
         }

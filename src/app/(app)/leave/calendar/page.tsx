@@ -1,13 +1,15 @@
 "use client";
 
 import { MasterDataPage } from "@/components/ui/MasterDataPage";
+import { useI18n } from "@/i18n";
 
 export default function LeaveCalendarPage() {
+  const { t } = useI18n();
   return (
     <MasterDataPage
       moduleId="leave-calendar"
-      modalSubtitle="View approved and planned leave across the organization by month."
-      emptyStateMessage="Leave calendar entries will show who is on leave and when."
+      modalSubtitle={t("leave.pages.calendar.subtitle")}
+      emptyStateMessage={t("leave.pages.calendar.empty")}
     />
   );
 }

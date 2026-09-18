@@ -2,14 +2,16 @@
 
 import { MasterDataPage } from "@/components/ui/MasterDataPage";
 import { APPROVAL_STATS } from "@/lib/leave-stats";
+import { useI18n } from "@/i18n";
 
 export default function LeaveApprovalPage() {
+  const { t } = useI18n();
   return (
     <MasterDataPage
       moduleId="leave-approval"
       stats={APPROVAL_STATS}
-      modalSubtitle="Review pending leave requests. Approve or reject from the Action column."
-      emptyStateMessage="No pending leave applications in the approval queue."
+      modalSubtitle={t("leave.pages.approval.subtitle")}
+      emptyStateMessage={t("leave.pages.approval.empty")}
     />
   );
 }

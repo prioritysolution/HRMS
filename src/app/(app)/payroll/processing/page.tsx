@@ -2,15 +2,17 @@
 
 import { MasterDataPage } from "@/components/ui/MasterDataPage";
 import { PROCESSING_STATS } from "@/lib/payroll-stats";
+import { useI18n } from "@/i18n";
 
 export default function PayrollProcessingPage() {
+  const { t } = useI18n();
   return (
     <MasterDataPage
       moduleId="payroll-processing"
       stats={PROCESSING_STATS}
-      submitLabel="Run Payroll"
-      modalSubtitle="Run monthly payroll with configurable PF, ESI, PT, and TDS calculations."
-      emptyStateMessage="Process monthly payroll for all employees based on attendance, leave, and salary structure."
+      submitLabel={t("payroll.pages.processing.submit")}
+      modalSubtitle={t("payroll.pages.processing.subtitle")}
+      emptyStateMessage={t("payroll.pages.processing.empty")}
     />
   );
 }

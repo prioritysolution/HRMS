@@ -1,0 +1,149 @@
+{
+  "section": "রিপোর্ট",
+  "common": {
+    "allBranches": "সব শাখা",
+    "searchBranch": "শাখা খুঁজুন...",
+    "activeYear": "সক্রিয় বছর",
+    "searchFinYear": "অর্থবছর খুঁজুন...",
+    "connectionError": "সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।",
+    "filterSummaryRecords": "{count}টি রেকর্ড (বর্তমান ফিল্টার অনুযায়ী)",
+    "filterSummaryRecord": "{count}টি রেকর্ড (বর্তমান ফিল্টার অনুযায়ী)",
+    "filterSummaryEmployees": "{count} জন কর্মচারী (বর্তমান ফিল্টার অনুযায়ী)",
+    "filterSummaryEmployee": "{count} জন কর্মচারী (বর্তমান ফিল্টার অনুযায়ী)",
+    "dateRange": " · {from} থেকে {to}",
+    "minLate": " · ন্যূনতম দেরি ≥ {mins} মিনিট",
+    "minEarly": " · ন্যূনতম তাড়াতাড়ি ≥ {mins} মিনিট",
+    "exampleMins": "যেমন {n}",
+    "exampleDays": "যেমন {n}"
+  },
+  "leavePending": {
+    "minPendingDays": "ন্যূনতম মুলতুবি দিন",
+    "empty": "শাখা, ন্যূনতম মুলতুবি দিন বা ছুটির ধরন ফিল্টার পরিবর্তন করে দেখুন।"
+  },
+  "leaveEmployee": {
+    "empty": "অর্থবছর, শাখা বা ছুটির ধরন ফিল্টার পরিবর্তন করে দেখুন।"
+  },
+  "leaveRegister": {
+    "empty": "তারিখ সীমা, ছুটির ধরন বা স্ট্যাটাস ফিল্টার পরিবর্তন করে দেখুন।"
+  },
+  "employeeRegister": {
+    "searchPlaceholder": "কর্মচারী রেজিস্টার খুঁজুন...",
+    "emptyTitle": "কোনো কর্মচারী পাওয়া যায়নি",
+    "empty": "কর্মচারী খুঁজতে ফিল্টার বা সার্চ পরিবর্তন করে দেখুন।",
+    "loadError": "কর্মচারী রেজিস্টার লোড করা যায়নি",
+    "exportTitle": "কর্মচারী রেজিস্টার রিপোর্ট",
+    "sheetName": "কর্মচারী রেজিস্টার",
+    "emptyExport": "বর্তমান ফিল্টারে কোনো কর্মচারী রেকর্ড নেই।",
+    "successExport": "ফিল্টার করা কর্মচারী রেজিস্টারের ডাউনলোড শুরু হয়েছে।"
+  },
+  "employeeHistory": {
+    "searchPlaceholder": "সার্ভিস ইতিহাস খুঁজুন...",
+    "emptyTitle": "কোনো সার্ভিস ইতিহাস পাওয়া যায়নি",
+    "empty": "রেকর্ড খুঁজতে ফিল্টার বা তারিখ সীমা পরিবর্তন করে দেখুন।",
+    "loadError": "সার্ভিস ইতিহাস লোড করা যায়নি",
+    "exportTitle": "কর্মচারী সার্ভিস ইতিহাস রিপোর্ট",
+    "sheetName": "সার্ভিস ইতিহাস",
+    "emptyExport": "বর্তমান ফিল্টারে কোনো সার্ভিস ইতিহাস রেকর্ড নেই।",
+    "successExport": "ফিল্টার করা সার্ভিস ইতিহাস রিপোর্টের ডাউনলোড শুরু হয়েছে।"
+  },
+  "attendanceLate": {
+    "searchPlaceholder": "দেরিতে আসার রিপোর্ট খুঁজুন...",
+    "loadError": "দেরিতে আসার রিপোর্ট লোড করা যায়নি",
+    "minLate": "ন্যূনতম দেরি (মিনিট)",
+    "exportTitle": "দেরিতে আসার রিপোর্ট",
+    "sheetName": "দেরিতে আসা",
+    "emptyExport": "বর্তমান ফিল্টারে কোনো দেরিতে আসার রেকর্ড নেই।",
+    "successExport": "ফিল্টার করা দেরিতে আসার রিপোর্টের ডাউনলোড শুরু হয়েছে।"
+  },
+  "attendanceEarly": {
+    "searchPlaceholder": "তাড়াতাড়ি যাওয়ার রিপোর্ট খুঁজুন...",
+    "loadError": "তাড়াতাড়ি যাওয়ার রিপোর্ট লোড করা যায়নি",
+    "minEarly": "ন্যূনতম তাড়াতাড়ি (মিনিট)",
+    "exportTitle": "তাড়াতাড়ি যাওয়ার রিপোর্ট",
+    "sheetName": "তাড়াতাড়ি যাওয়া",
+    "emptyExport": "বর্তমান ফিল্টারে কোনো তাড়াতাড়ি যাওয়ার রেকর্ড নেই।",
+    "successExport": "ফিল্টার করা তাড়াতাড়ি যাওয়ার রিপোর্টের ডাউনলোড শুরু হয়েছে।"
+  },
+  "attendanceSummary": {
+    "searchPlaceholder": "উপস্থিতি সারাংশ খুঁজুন...",
+    "loadError": "উপস্থিতি সারাংশ লোড করা যায়নি",
+    "exportTitle": "উপস্থিতি সারাংশ রিপোর্ট",
+    "sheetName": "উপস্থিতি সারাংশ",
+    "emptyExport": "বর্তমান ফিল্টারে কোনো উপস্থিতি সারাংশ রেকর্ড নেই।",
+    "successExport": "ফিল্টার করা উপস্থিতি সারাংশের ডাউনলোড শুরু হয়েছে।"
+  },
+  "attendanceEmployee": {
+    "searchPlaceholder": "কর্মচারী উপস্থিতি খুঁজুন...",
+    "loadError": "কর্মচারী উপস্থিতি লোড করা যায়নি",
+    "exportTitle": "কর্মচারী উপস্থিতি রিপোর্ট",
+    "sheetName": "কর্মচারী উপস্থিতি",
+    "emptyExport": "বর্তমান ফিল্টারে কোনো উপস্থিতি রেকর্ড নেই।",
+    "successExport": "ফিল্টার করা কর্মচারী উপস্থিতি রিপোর্টের ডাউনলোড শুরু হয়েছে।"
+  },
+  "kpi": {
+    "title": "কেপিআই ড্যাশবোর্ড",
+    "action": "কেপিআই কনফিগার করুন",
+    "colTarget": "লক্ষ্য",
+    "colActual": "প্রকৃত",
+    "colOwner": "মালিক",
+    "revenueTitle": "রাজস্ব কেপিআই",
+    "revenueHint": "লক্ষ্য",
+    "revenueDesc": "মাসিক পুনরাবৃত্ত রাজস্ব বনাম লক্ষ্য",
+    "hiringTitle": "নিয়োগ কেপিআই",
+    "hiringHint": "লক্ষ্য",
+    "hiringDesc": "এই ত্রৈমাসিকে পূরণ হওয়া খোলা পদ",
+    "retentionTitle": "ধারণ কেপিআই",
+    "retentionHint": "লক্ষ্য",
+    "retentionDesc": "কর্মচারী ধারণ হার",
+    "rowMrr": "মাসিক পুনরাবৃত্ত রাজস্ব",
+    "rowMrrSecondary": "ফাইন্যান্স",
+    "rowMrrOwner": "ফাইন্যান্স অপস",
+    "rowHire": "নিয়োগের সময়",
+    "rowHireSecondary": "পিপল",
+    "rowHireOwner": "এইচআর অপস",
+    "rowRetention": "গ্রাহক ধারণ",
+    "rowRetentionSecondary": "সাকসেস",
+    "rowRetentionOwner": "সিএস টিম",
+    "statusMet": "অর্জিত",
+    "statusBehind": "পিছিয়ে"
+  },
+  "employeePerformance": {
+    "title": "কর্মচারী কর্মক্ষমতা",
+    "action": "রিপোর্ট এক্সপোর্ট",
+    "colDepartment": "বিভাগ",
+    "colScore": "স্কোর",
+    "colPeriod": "সময়কাল",
+    "avgTitle": "গড় রেটিং",
+    "avgHint": "চক্র",
+    "avgDesc": "গড় কর্মচারী স্কোর",
+    "reviewedTitle": "রিভিউকৃত",
+    "reviewedHint": "চক্র",
+    "reviewedDesc": "সম্পূর্ণ রিভিউযুক্ত কর্মচারী",
+    "focusTitle": "মনোযোগ প্রয়োজন",
+    "focusHint": "চক্র",
+    "focusDesc": "লক্ষ্যের নিচে কর্মক্ষমতা",
+    "statusExcellent": "চমৎকার",
+    "statusGood": "ভালো",
+    "statusReview": "রিভিউ"
+  },
+  "customerEngagement": {
+    "title": "গ্রাহক সম্পৃক্ততা",
+    "action": "রিপোর্ট এক্সপোর্ট",
+    "colTouches": "যোগাযোগ",
+    "colOwner": "মালিক",
+    "colLastActive": "শেষ সক্রিয়",
+    "engagedTitle": "সম্পৃক্ত অ্যাকাউন্ট",
+    "engagedHint": "মাস",
+    "engagedDesc": "সাম্প্রতিক কার্যকলাপযুক্ত গ্রাহক",
+    "npsTitle": "এনপিএস স্কোর",
+    "npsHint": "ত্রৈমাসিক",
+    "npsDesc": "নেট প্রমোটার স্কোর",
+    "silentTitle": "নিষ্ক্রিয় অ্যাকাউন্ট",
+    "silentHint": "মাস",
+    "silentDesc": "৩০ দিনে কোনো কার্যকলাপ নেই",
+    "touches": "{count} যোগাযোগ",
+    "statusHigh": "উচ্চ",
+    "statusHealthy": "সুস্থ",
+    "statusAtRisk": "ঝুঁকিতে"
+  }
+}

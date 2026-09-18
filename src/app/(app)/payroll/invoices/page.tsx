@@ -1,42 +1,61 @@
+"use client";
+
 import { ModulePage } from "@/components/ui/ModulePage";
+import { useI18n, translateModuleStat } from "@/i18n";
 
 export default function Page() {
+  const { language, t } = useI18n();
+
+  const stats = [
+    {
+      title: "Outstanding",
+      value: "$86k",
+      change: "+7%",
+      hint: "month",
+      description: "Unpaid invoice balance",
+      tone: "warning" as const,
+      icon: "briefcase" as const,
+    },
+    {
+      title: "Collected",
+      value: "$214k",
+      change: "+12%",
+      hint: "month",
+      description: "Payments received",
+      tone: "success" as const,
+      icon: "trendingDown" as const,
+    },
+    {
+      title: "Overdue",
+      value: "5",
+      change: "-1",
+      hint: "week",
+      description: "Invoices past due date",
+      tone: "danger" as const,
+      icon: "calendar" as const,
+      positive: false,
+    },
+  ].map((stat) => {
+    const key = stat.title;
+    return {
+      ...stat,
+      title: translateModuleStat(language, key, "title", key),
+      hint: translateModuleStat(language, key, "hint", stat.hint),
+      description: translateModuleStat(language, key, "description", stat.description),
+    };
+  });
+
   return (
     <ModulePage
-      title="Invoices"
-      section="Payroll"
-      actionLabel="Create Invoice"
-      columns={["Client", "Amount", "Due"]}
-      stats={[
-        {
-          title: "Outstanding",
-          value: "$86k",
-          change: "+7%",
-          hint: "month",
-          description: "Unpaid invoice balance",
-          tone: "warning",
-          icon: "briefcase",
-        },
-        {
-          title: "Collected",
-          value: "$214k",
-          change: "+12%",
-          hint: "month",
-          description: "Payments received",
-          tone: "success",
-          icon: "trendingDown",
-        },
-        {
-          title: "Overdue",
-          value: "5",
-          change: "-1",
-          hint: "week",
-          description: "Invoices past due date",
-          tone: "danger",
-          icon: "calendar",
-          positive: false,
-        },
+      title={t("payroll.pages.invoices.title")}
+      section={t("payroll.pages.invoices.section")}
+      actionLabel={t("payroll.pages.invoices.action")}
+      columns={[
+        t("payroll.pages.invoices.columns.client"),
+        t("payroll.pages.invoices.columns.amount"),
+        t("payroll.pages.invoices.columns.due"),
       ]}
+      stats={stats}
       rows={[
         {
           primary: "INV-2048",

@@ -1,4 +1,7 @@
+"use client";
+
 import { APP_NAME } from "@/config/navigation";
+import { useI18n, translateHrmsLookup } from "@/i18n";
 
 type PageHeaderProps = {
   title: string;
@@ -15,11 +18,15 @@ export function PageHeader({
   hideTitle = false,
   hideBreadcrumbs = false,
 }: PageHeaderProps) {
+  const { language } = useI18n();
+  const displayTitle = translateHrmsLookup(language, "titles", title);
+  const displaySection = translateHrmsLookup(language, "sections", section);
+
   const breadcrumbItems = (
     <>
       <li>{APP_NAME}</li>
-      <li>{section}</li>
-      <li className="active">{title}</li>
+      <li>{displaySection}</li>
+      <li className="active">{displayTitle}</li>
     </>
   );
 
@@ -28,7 +35,7 @@ export function PageHeader({
       <div className="container-fluid">
         <div className="page-title-inner">
           <div className="page-title-main">
-            {!hideTitle ? <h1>{title}</h1> : null}
+            {!hideTitle ? <h1>{displayTitle}</h1> : null}
             {!hideBreadcrumbs ? (
               <nav aria-label="breadcrumb" className="breadcrumb-mobile">
                 <ol className="breadcrumb">{breadcrumbItems}</ol>

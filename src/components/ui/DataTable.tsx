@@ -19,8 +19,6 @@ import {
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ResetButton } from "@/components/ui/ResetButton";
 import {
-  ACTIVATE_CONFIRM_MESSAGE,
-  DEACTIVATE_CONFIRM_MESSAGE,
   formatConfirmMessage,
 } from "@/lib/confirm-messages";
 import { SearchableSelect } from "@/components/ui/SearchableSelect";
@@ -29,8 +27,8 @@ import { TableLoadingOverlay } from "@/components/ui/TableLoadingOverlay";
 import { TableSectionHeader } from "@/components/ui/TableSectionHeader";
 import { StatusBadge, statusTone } from "@/components/ui/StatusBadge";
 import { useToast } from "@/components/ui/ToastProvider";
+import { useI18n, translateHrmsLookup } from "@/i18n";
 import { resolvePublicFileUrl } from "@/lib/env";
-import { TABLE_LOADING_LABEL } from "@/lib/table-loading";
 import { getRowLabel } from "@/lib/row-label";
 import { isRowInactive } from "@/lib/row-status";
 import {
@@ -115,6 +113,7 @@ export function RowActions<T extends object>({
   activateConfirmMessage?: string;
   getDeleteLabel?: (row: T) => string;
 }) {
+  const { t } = useI18n();
   const toast = useToast();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [activateOpen, setActivateOpen] = useState(false);
@@ -122,7 +121,9 @@ export function RowActions<T extends object>({
   const [activating, setActivating] = useState(false);
   const rowLabel = getDeleteLabel?.(row) ?? getRowLabel(row);
   const inactive = statusToggle && isRowInactive(row);
-  const isDeactivateAction = deleteConfirmTitle?.toLowerCase().includes("deactivate");
+  const isDeactivateAction =
+    deleteConfirmTitle?.toLowerCase().includes("deactivate") ||
+    deleteConfirmTitle?.toLowerCase().includes(t("common.deactivate").toLowerCase());
 
   const handleConfirmDelete = async () => {
     setDeleting(true);
@@ -134,19 +135,23 @@ export function RowActions<T extends object>({
       }
 
       toast.success({
-        title: isDeactivateAction ? "Deactivated successfully" : "Deleted successfully",
+        title: isDeactivateAction
+          ? t("common.dialog.deactivatedTitle")
+          : t("common.dialog.deletedTitle"),
         message: isDeactivateAction
-          ? `"${rowLabel}" has been set to Inactive.`
-          : `"${rowLabel}" has been removed.`,
+          ? t("common.dialog.deactivatedMessage", { name: rowLabel })
+          : t("common.dialog.deletedMessage", { name: rowLabel }),
       });
       setConfirmOpen(false);
     } catch (error) {
       toast.error({
-        title: isDeactivateAction ? "Deactivate failed" : "Delete failed",
+        title: isDeactivateAction
+          ? t("common.dialog.deactivateFailed")
+          : t("common.dialog.deleteFailed"),
         message:
           error instanceof Error
             ? error.message
-            : "Something went wrong while deleting. Please try again.",
+            : t("common.dialog.deleteError"),
       });
     } finally {
       setDeleting(false);
@@ -163,17 +168,17 @@ export function RowActions<T extends object>({
       }
 
       toast.success({
-        title: "Activated successfully",
-        message: `"${rowLabel}" has been set to Active.`,
+        title: t("common.dialog.activatedTitle"),
+        message: t("common.dialog.activatedMessage", { name: rowLabel }),
       });
       setActivateOpen(false);
     } catch (error) {
       toast.error({
-        title: "Activate failed",
+        title: t("common.dialog.activateFailed"),
         message:
           error instanceof Error
             ? error.message
-            : "Something went wrong while activating. Please try again.",
+            : t("common.dialog.activateError"),
       });
     } finally {
       setActivating(false);
@@ -187,7 +192,7 @@ export function RowActions<T extends object>({
           <button
             type="button"
             className="btn-action btn-action-edit"
-            aria-label="Edit"
+            aria-label={t("common.edit")}
             onClick={() => onEdit(row)}
           >
             <SquarePen size={16} strokeWidth={2.25} />
@@ -197,7 +202,7 @@ export function RowActions<T extends object>({
           <button
             type="button"
             className="btn-action btn-action-activate"
-            aria-label="Activate"
+            aria-label={t("common.activate")}
             onClick={() => setActivateOpen(true)}
           >
             <CircleCheck size={16} strokeWidth={2.25} />
@@ -206,7 +211,7 @@ export function RowActions<T extends object>({
           <button
             type="button"
             className="btn-action btn-action-delete"
-            aria-label={isDeactivateAction ? "Deactivate" : "Delete"}
+            aria-label={isDeactivateAction ? t("common.deactivate") : t("common.delete")}
             onClick={() => setConfirmOpen(true)}
           >
             <Trash2 size={15} strokeWidth={2} />
@@ -218,15 +223,15 @@ export function RowActions<T extends object>({
         open={confirmOpen}
         onClose={() => setConfirmOpen(false)}
         onConfirm={handleConfirmDelete}
-        title={deleteConfirmTitle ?? "Delete record?"}
+        title={deleteConfirmTitle ?? t("common.dialog.deleteRecord")}
         message={
           deleteConfirmMessage
             ? formatConfirmMessage(deleteConfirmMessage, rowLabel)
             : isDeactivateAction
-              ? formatConfirmMessage(DEACTIVATE_CONFIRM_MESSAGE, rowLabel)
-              : `Are you sure you want to delete "${rowLabel}"?`
+              ? t("common.dialog.deactivateMessage", { name: rowLabel })
+              : t("common.dialog.deleteConfirm", { name: rowLabel })
         }
-        confirmLabel={isDeactivateAction ? "Deactivate" : "Delete"}
+        confirmLabel={isDeactivateAction ? t("common.deactivate") : t("common.delete")}
         variant="danger"
         loading={deleting}
       />
@@ -235,9 +240,13 @@ export function RowActions<T extends object>({
         open={activateOpen}
         onClose={() => setActivateOpen(false)}
         onConfirm={handleConfirmActivate}
-        title={activateConfirmTitle ?? "Activate record?"}
-        message={formatConfirmMessage(activateConfirmMessage ?? ACTIVATE_CONFIRM_MESSAGE, rowLabel)}
-        confirmLabel="Activate"
+        title={activateConfirmTitle ?? t("common.dialog.activateRecord")}
+        message={
+          activateConfirmMessage
+            ? formatConfirmMessage(activateConfirmMessage, rowLabel)
+            : t("common.dialog.activateMessage", { name: rowLabel })
+        }
+        confirmLabel={t("common.activate")}
         variant="success"
         loading={activating}
       />
@@ -249,7 +258,7 @@ export function DataTable<T extends object>({
   columns,
   rows,
   title,
-  searchPlaceholder = "Search...",
+  searchPlaceholder,
   actionLabel,
   onAction,
   showRowActions = false,
@@ -275,6 +284,7 @@ export function DataTable<T extends object>({
   onFilteredRowsChange,
   serverPagination,
 }: DataTableProps<T>) {
+  const { t } = useI18n();
   const searchParams = useSearchParams();
   const [search, setSearch] = useState(() => searchParams?.get("search") ?? "");
   const [filters, setFilters] = useState<Record<string, string>>(() => {
@@ -427,19 +437,19 @@ export function DataTable<T extends object>({
 
         <div className="table-filters-bar">
           <div className="table-filters-head">
-            <span className="table-filters-title">Filters</span>
+            <span className="table-filters-title">{t("common.table.filters")}</span>
             {hasActiveFilters ? <ResetButton onClick={resetFilters} /> : null}
           </div>
           <div className="table-filters">
             <div className="table-filter-item table-filter-search">
               <label className="table-filter-label" htmlFor="table-search">
-                Search
+                {t("common.search")}
               </label>
               <div className="search-input">
                 <Search size={15} className="search-input-icon" />
                 <input
                   id="table-search"
-                  placeholder={searchPlaceholder}
+                  placeholder={searchPlaceholder ?? t("common.table.searchPlaceholder")}
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
                   className={search ? "has-clear" : undefined}
@@ -448,7 +458,7 @@ export function DataTable<T extends object>({
                   <button
                     type="button"
                     className="search-clear-btn"
-                    aria-label="Clear search"
+                    aria-label={t("common.table.clearSearch")}
                     onClick={() => setSearch("")}
                   >
                     <X size={14} />
@@ -472,10 +482,12 @@ export function DataTable<T extends object>({
                     value={filters[field.key] ?? ""}
                     onChange={(nextValue) => handleFilterChange(field.key, nextValue)}
                     options={options}
-                    placeholder={`All ${field.label}`}
-                    searchPlaceholder={`Search ${field.label.toLowerCase()}...`}
+                    placeholder={t("common.table.allLabel", { label: field.label })}
+                    searchPlaceholder={t("common.table.searchLabel", {
+                      label: field.label.toLowerCase(),
+                    })}
                     allowEmpty
-                    emptyLabel={`All ${field.label}`}
+                    emptyLabel={t("common.table.allLabel", { label: field.label })}
                     size="sm"
                   />
                 </div>
@@ -488,22 +500,42 @@ export function DataTable<T extends object>({
           <table className="data-table">
             <thead>
               <tr>
-                <th className="si-col">SI NO</th>
+                <th className="si-col">{t("common.table.siNo")}</th>
                 {columns.map((column) => (
                   <th key={column.key}>{column.header}</th>
                 ))}
-                {showRowActions && <th className="action-col">Action</th>}
+                {showRowActions && <th className="action-col">{t("common.table.action")}</th>}
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr className="table-loading-row">
-                  <td colSpan={colSpan}>
-                    <div className="table-loading-panel">
-                      <TableLoadingOverlay />
-                    </div>
-                  </td>
-                </tr>
+                Array.from({ length: 6 }).map((_, rowIndex) => (
+                  <tr key={`table-skel-row-${rowIndex}`} aria-busy="true">
+                    <td className="si-col">
+                      <div className="ui-skeleton h-3.5 w-6 mx-auto rounded" />
+                    </td>
+                    {columns.map((column, colIndex) => (
+                      <td key={`skel-cell-${column.key}-${colIndex}`}>
+                        <div
+                          className="ui-skeleton h-3.5 rounded"
+                          style={{
+                            width: `${45 + ((rowIndex * 17 + colIndex * 29) % 45)}%`,
+                            minWidth: "35px",
+                            maxWidth: "180px",
+                          }}
+                        />
+                      </td>
+                    ))}
+                    {showRowActions && (
+                      <td className="action-col">
+                        <div className="flex items-center justify-center gap-2">
+                          <div className="ui-skeleton w-6 h-6 rounded-md" />
+                          <div className="ui-skeleton w-6 h-6 rounded-md" />
+                        </div>
+                      </td>
+                    )}
+                  </tr>
+                ))
               ) : paginatedRows.length > 0 ? (
                 paginatedRows.map((row, index) => (
                   <tr key={"id" in row ? String((row as { id?: string }).id) : JSON.stringify(row)}>
@@ -542,8 +574,8 @@ export function DataTable<T extends object>({
                       message={
                         emptyStateMessage ??
                         (search || hasActiveFilters
-                          ? "Try adjusting your search or filters."
-                          : "No data available in this list yet.")
+                          ? t("common.table.emptyFiltered")
+                          : t("common.table.emptyDefault"))
                       }
                     />
                   </td>
@@ -556,10 +588,12 @@ export function DataTable<T extends object>({
         <div className="table-footer">
           <div className="table-footer-left">
             <span className="table-result-text">
-              {loading ? TABLE_LOADING_LABEL : `Showing ${start}-${end} of ${totalCount}`}
+              {loading
+                ? t("common.table.loadingRows")
+                : t("common.table.showing", { start, end, total: totalCount })}
             </span>
             <div className="table-page-size">
-              <label htmlFor="table-page-size">Rows per page</label>
+              <label htmlFor="table-page-size">{t("common.table.rowsPerPage")}</label>
               <select
                 id="table-page-size"
                 className="form-control table-page-size-select"
@@ -582,19 +616,21 @@ export function DataTable<T extends object>({
               className="table-page-btn"
               disabled={loading || activePage <= 1}
               onClick={() => handlePageChange(Math.max(1, activePage - 1))}
-              aria-label="Previous page"
+              aria-label={t("common.table.previousPage")}
             >
               <ChevronLeft size={16} />
             </button>
             <span className="table-page-indicator">
-              {loading ? "—" : `Page ${activePage} of ${totalPages}`}
+              {loading
+                ? "—"
+                : t("common.table.pageOf", { page: activePage, total: totalPages })}
             </span>
             <button
               type="button"
               className="table-page-btn"
               disabled={loading || activePage >= totalPages}
               onClick={() => handlePageChange(Math.min(totalPages, activePage + 1))}
-              aria-label="Next page"
+              aria-label={t("common.table.nextPage")}
             >
               <ChevronRight size={16} />
             </button>
@@ -614,37 +650,56 @@ export function PersonCell({
   subtitle?: string;
   avatar?: string;
 }) {
-  const src = avatar ? resolvePublicFileUrl(avatar) : "";
-  const isRemote = /^https?:\/\//i.test(src);
   const [failed, setFailed] = useState(false);
+
+  const src = useMemo(() => {
+    if (!avatar) return "";
+    const raw = String(avatar).trim();
+    if (!raw || raw === "undefined" || raw === "null" || raw === "—") return "";
+    return resolvePublicFileUrl(raw, "storage/employees/photos");
+  }, [avatar]);
 
   useEffect(() => {
     setFailed(false);
   }, [src]);
 
+  const initials = useMemo(() => {
+    const parts = (name || "").trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return "U";
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return `${parts[0][0] || ""}${parts[1][0] || ""}`.toUpperCase();
+  }, [name]);
+
   return (
     <div className="user-cell">
       {src && !failed ? (
-        isRemote ? (
-          <img src={src} alt={name} width={36} height={36} onError={() => setFailed(true)} />
-        ) : (
-          <Image src={src} alt={name} width={36} height={36} onError={() => setFailed(true)} />
-        )
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={src}
+          alt={name}
+          width={36}
+          height={36}
+          className="w-9 h-9 rounded-full object-cover flex-shrink-0 ring-1 ring-[var(--border)]"
+          onError={() => setFailed(true)}
+          loading="lazy"
+        />
       ) : (
-        <div className="avatar avatar-md avatar-soft-primary">
-          {name.slice(0, 1)}
+        <div className="avatar avatar-md avatar-soft-primary flex-shrink-0">
+          {initials}
         </div>
       )}
-      <div>
-        <div className="font-semibold">{name}</div>
-        {subtitle && <div className="text-xs text-muted">{subtitle}</div>}
+      <div className="min-w-0">
+        <div className="font-semibold truncate">{name}</div>
+        {subtitle && <div className="text-xs text-muted truncate">{subtitle}</div>}
       </div>
     </div>
   );
 }
 
 export function SoftStatus({ value }: { value: string }) {
-  return <StatusBadge label={value} tone={statusTone(value)} />;
+  const { language } = useI18n();
+  const displayLabel = translateHrmsLookup(language, "labels", value);
+  return <StatusBadge label={displayLabel} tone={statusTone(value)} />;
 }
 
 function humanizeFieldLabel(key: string): string {

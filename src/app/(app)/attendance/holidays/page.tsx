@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/MonthCalendar";
 import { YearCalendar } from "@/components/ui/YearCalendar";
 import { useToast } from "@/components/ui/ToastProvider";
+import { useI18n, translateHrmsLookup } from "@/i18n";
 import { getHrmsModule, getModuleFormFields } from "@/config/hrms-modules";
 import {
   ApiError,
@@ -194,6 +195,7 @@ function buildHolidayDayItem(
 }
 
 export default function HolidaysPage() {
+  const { t, language } = useI18n();
   const config = getHrmsModule(MODULE_ID);
   const toast = useToast();
   const today = useMemo(() => new Date(), []);
@@ -512,7 +514,7 @@ export default function HolidaysPage() {
         onClick={() => setViewMode("month")}
       >
         <CalendarDays size={14} />
-        Month
+        {t("common.calendar.month")}
       </button>
       <button
         type="button"
@@ -525,7 +527,7 @@ export default function HolidaysPage() {
         onClick={() => setViewMode("year")}
       >
         <CalendarRange size={14} />
-        Year
+        {t("common.calendar.year")}
       </button>
       <button
         type="button"
@@ -538,7 +540,7 @@ export default function HolidaysPage() {
         onClick={() => setViewMode("list")}
       >
         <List size={14} />
-        List
+        {t("common.calendar.list")}
       </button>
     </div>
   );
@@ -557,7 +559,7 @@ export default function HolidaysPage() {
               className="btn btn-primary"
               onClick={() => openAddForm()}
             >
-              + {config.actionLabel ?? "Add New"}
+              + {config.actionLabel ? (translateHrmsLookup(language, "actions", config.actionLabel) || config.actionLabel) : t("common.addNew")}
             </button>
           </div>
         }
@@ -566,13 +568,13 @@ export default function HolidaysPage() {
         {viewMode === "list" ? (
           <DataTable
             title={config.title}
-            searchPlaceholder="Search holiday calendar..."
+            searchPlaceholder={translateHrmsLookup(language, "labels", "Search holiday calendar...")}
             rows={rows}
             loading={loading}
             searchKeys={config.searchKeys}
             filterFields={[
-              { key: "Purpose", label: "Purpose" },
-              { key: "Financial_year", label: "Financial Year" },
+              { key: "Purpose", label: translateHrmsLookup(language, "labels", "Purpose") },
+              { key: "Financial_year", label: translateHrmsLookup(language, "labels", "Financial Year") },
             ]}
             onRowEdit={(row) => setEditRow(toFormRow(row, purposeOptions, finYearOptions))}
             showRowActions
@@ -588,22 +590,22 @@ export default function HolidaysPage() {
             columns={[
               {
                 key: "Purpose",
-                header: "Purpose",
+                header: translateHrmsLookup(language, "headers", "Purpose"),
                 render: (row) => formatCell(row.Purpose),
               },
               {
                 key: "Holiday_date",
-                header: "Date",
+                header: translateHrmsLookup(language, "headers", "Date"),
                 render: (row) => formatDateDisplay(String(row.Holiday_date ?? "")) || "—",
               },
               {
                 key: "Holiday_name",
-                header: "Holiday",
+                header: translateHrmsLookup(language, "headers", "Holiday"),
                 render: (row) => formatCell(row.Holiday_name),
               },
               {
                 key: "Financial_year",
-                header: "Financial Year",
+                header: translateHrmsLookup(language, "headers", "Financial Year"),
                 render: (row) => formatCell(row.Financial_year),
               },
             ]}
@@ -618,17 +620,17 @@ export default function HolidaysPage() {
                   year={year}
                   month={month}
                   days={calendarDays}
-                  title="Holiday Calendar"
+                  title={translateHrmsLookup(language, "titles", "Holiday Calendar")}
                   loading={loading}
                   onPrevMonth={goPrev}
                   onNextMonth={goNext}
                   onYearChange={setYear}
                   onMonthChange={setMonth}
                   onDayClick={handleDayClick}
-                  legend={[{ tone: "holiday", label: "Holiday" }]}
+                  legend={[{ tone: "holiday", label: translateHrmsLookup(language, "labels", "Holiday") }]}
                   headerExtra={
                     <p className="text-xs text-muted mb-0">
-                      Click an empty day to add a holiday, or an existing holiday to edit it.
+                      {t("common.calendar.monthInstruction")}
                     </p>
                   }
                 />
@@ -636,17 +638,17 @@ export default function HolidaysPage() {
                 <YearCalendar
                   year={year}
                   days={yearCalendarDays}
-                  title="Holiday Calendar"
+                  title={translateHrmsLookup(language, "titles", "Holiday Calendar")}
                   loading={loading}
                   onPrevYear={() => setYear((y) => y - 1)}
                   onNextYear={() => setYear((y) => y + 1)}
                   onYearChange={setYear}
                   onMonthSelect={openMonthView}
                   onDayClick={handleDayClick}
-                  legend={[{ tone: "holiday", label: "Holiday" }]}
+                  legend={[{ tone: "holiday", label: translateHrmsLookup(language, "labels", "Holiday") }]}
                   headerExtra={
                     <p className="text-xs text-muted mb-0">
-                      All months for {year}. Click a month name for details, or a day to add/edit.
+                      {t("common.calendar.yearInstruction", { year })}
                     </p>
                   }
                 />
@@ -654,11 +656,11 @@ export default function HolidaysPage() {
             }
             sidebar={
               <CalendarDetailsSidebar
-                title="Upcoming Holidays"
-                subtitle={`Corporate schedule for ${year}`}
+                title={translateHrmsLookup(language, "titles", "Upcoming Holidays")}
+                subtitle={t("common.calendar.corporateSchedule", { year })}
                 items={sidebarItems}
                 loading={loading}
-                emptyMessage={`No holidays found for ${year}.`}
+                emptyMessage={t("common.calendar.noHolidaysFound", { year })}
                 onItemClick={handleSidebarItemClick}
                 className="w-full"
               />
@@ -670,9 +672,17 @@ export default function HolidaysPage() {
       <MasterDataModal
         open={addOpen}
         onClose={closeAddForm}
-        title="Add Holiday"
-        subtitle="Create a new holiday for the organization calendar."
-        submitLabel="Add Holiday"
+        title={translateHrmsLookup(language, "titles", "Add Holiday")}
+        subtitle={
+          language === "bn"
+            ? "সংস্থা ক্যালেন্ডারের জন্য একটি নতুন ছুটি তৈরি করুন।"
+            : language === "hi"
+              ? "संस्था कैलेंडर के लिए एक नई छुट्टी बनाएं।"
+              : language === "or"
+                ? "ସଂସ୍ଥା କ୍ୟାଲେଣ୍ଡର ପାଇଁ ଏକ ନୂତନ ଛୁଟି ତିଆରି କରନ୍ତୁ |"
+                : "Create a new holiday for the organization calendar."
+        }
+        submitLabel={translateHrmsLookup(language, "actions", "Add Holiday")}
         fields={formFields}
         size={config.modalSize}
         defaultValues={addDefaults}

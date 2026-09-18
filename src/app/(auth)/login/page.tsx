@@ -1,20 +1,14 @@
-import type { Metadata } from "next";
+"use client";
 
 import { AuthShell } from "@/components/auth/AuthShell";
 import { SignInForm } from "@/components/auth/SignInForm";
-
-export const metadata: Metadata = {
-  title: "Login | PrioHRM",
-  description:
-    "Sign in to PrioHRM to manage your workforce, attendance, leave, payroll, and performance.",
-};
+import { useI18n } from "@/i18n";
 
 export default function LoginPage() {
+  const { t } = useI18n();
+
   return (
-    <AuthShell
-      title="Welcome Back!"
-      subtitle="Sign in to your account to continue"
-    >
+    <AuthShell title={t("auth.welcomeTitle")} subtitle={t("auth.welcomeSubtitle")}>
       <SignInForm />
     </AuthShell>
   );

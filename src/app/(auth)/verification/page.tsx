@@ -4,8 +4,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useI18n } from "@/i18n";
 
 export default function VerificationPage() {
+  const { t } = useI18n();
   const router = useRouter();
   const [codes, setCodes] = useState(["", "", "", ""]);
   const inputs = useRef<Array<HTMLInputElement | null>>([]);
@@ -33,16 +35,14 @@ export default function VerificationPage() {
           <div className="auth-center-body">
             <Image
               src="/images/pswforgot.png"
-              alt="Verify email"
+              alt={t("auth.verifyAlt")}
               width={220}
               height={160}
               className="auth-illus"
               priority
             />
-            <h2 className="auth-heading">Verify E-mail Address</h2>
-            <p className="auth-subheading">
-              Enter the 6-digit code sent to your email to verify your account
-            </p>
+            <h2 className="auth-heading">{t("auth.verifyTitle")}</h2>
+            <p className="auth-subheading">{t("auth.verifySubtitle")}</p>
 
             <form
               className="auth-form"
@@ -71,25 +71,26 @@ export default function VerificationPage() {
 
               <button
                 type="submit"
-                className="btn btn-primary w-full"
+                className="btn btn-primary u-width-full"
                 disabled={!filled}
               >
-                Confirm Code
+                {t("auth.confirmCode")}
               </button>
 
-              <p className="resend-text">Didn&apos;t receive the code?</p>
+              <p className="resend-text">{t("auth.didntReceiveCode")}</p>
               <button type="button" className="btn btn-outline-primary btn-sm">
-                Resend code
+                {t("auth.resendCode")}
               </button>
             </form>
 
             <p className="auth-bottom-note">
-              Wrong email address? <Link href="/forgot-password">Change email</Link>
+              {t("auth.wrongEmail")}{" "}
+              <Link href="/forgot-password">{t("auth.changeEmail")}</Link>
             </p>
           </div>
         </div>
         <p className="auth-legal">
-          Having trouble? <a href="#">Contact Support</a>
+          {t("auth.havingTrouble")} <a href="#">{t("auth.contactSupport")}</a>
         </p>
       </div>
     </section>

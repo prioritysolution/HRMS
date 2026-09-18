@@ -4,12 +4,14 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { RoundLoader } from "@/components/ui/RoundLoader";
 import {
+  getLocalizedMonthName,
   MONTH_CALENDAR_MONTHS,
   MONTH_CALENDAR_WEEKDAYS_SHORT,
   type MonthCalendarDayItem,
   type MonthCalendarLegendItem,
 } from "@/components/ui/MonthCalendar";
 import { cn } from "@/lib/utils";
+import { useI18n, translateHrmsLookup } from "@/i18n";
 
 type YearCalendarProps = {
   year: number;
@@ -94,6 +96,7 @@ export function YearCalendar({
   headerExtra,
   yearRange,
 }: YearCalendarProps) {
+  const { language, t } = useI18n();
   const [pickerOpen, setPickerOpen] = useState(false);
   const pickerRef = useRef<HTMLDivElement>(null);
   const canPickYear = Boolean(onYearChange);
@@ -128,11 +131,11 @@ export function YearCalendar({
         const month = index + 1;
         return {
           month,
-          name,
+          name: getLocalizedMonthName(month, language),
           cells: buildMonthCells(year, month, dayByDate),
         };
       }),
-    [dayByDate, year],
+    [dayByDate, language, year],
   );
 
   useEffect(() => {
@@ -164,7 +167,9 @@ export function YearCalendar({
     <div className={cn("card month-calendar year-calendar shadow-sm", className)}>
       <div className="card-header month-calendar-header bg-card border-b border-[var(--border)] p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex flex-col gap-1 min-w-0">
-          <h5 className="card-title mb-0 text-lg font-bold text-title truncate">{title}</h5>
+          <h5 className="card-title mb-0 text-lg font-bold text-title truncate">
+            {translateHrmsLookup(language, "titles", title)}
+          </h5>
           {headerExtra}
         </div>
 
@@ -176,7 +181,7 @@ export function YearCalendar({
             type="button"
             onClick={onPrevYear}
             className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-card hover:shadow-sm text-secondary transition-all"
-            aria-label="Previous year"
+            aria-label={t("attendance.holidays.prevYear")}
           >
             <ChevronLeft size={18} />
           </button>
@@ -206,7 +211,7 @@ export function YearCalendar({
             type="button"
             onClick={onNextYear}
             className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-card hover:shadow-sm text-secondary transition-all"
-            aria-label="Next year"
+            aria-label={t("attendance.holidays.nextYear")}
           >
             <ChevronRight size={18} />
           </button>
@@ -214,7 +219,7 @@ export function YearCalendar({
           {canPickYear && pickerOpen ? (
             <div className="month-calendar-period-popover" role="dialog" aria-label="Select year">
               <div className="month-calendar-period-section">
-                <p className="month-calendar-period-label">Year</p>
+                <p className="month-calendar-period-label">{translateHrmsLookup(language, "headers", "Year")}</p>
                 <div className="month-calendar-year-grid">
                   {yearOptions.map((optionYear) => (
                     <button
@@ -243,7 +248,7 @@ export function YearCalendar({
         {loading ? (
           <div className="month-calendar-loading">
             <RoundLoader />
-            <p>Loading calendar…</p>
+            <p>{t("attendance.holidays.loadingCalendar")}</p>
           </div>
         ) : null}
 
@@ -279,7 +284,8 @@ export function YearCalendar({
                   const tone = cell.item?.tone ?? "default";
                   const isToday = Boolean(cell.item?.isToday);
                   const hasHoliday = tone === "holiday";
-                  const label = cell.item?.label?.trim();
+                  const rawLabel = cell.item?.label?.trim();
+                  const label = rawLabel ? translateHrmsLookup(language, "headers", rawLabel) : undefined;
 
                   return (
                     <button
@@ -317,7 +323,7 @@ export function YearCalendar({
                     `month-calendar-legend-swatch--${item.tone}`,
                   )}
                 />
-                <em>{item.label}</em>
+                <em>{translateHrmsLookup(language, "headers", item.label)}</em>
               </div>
             ))}
           </div>

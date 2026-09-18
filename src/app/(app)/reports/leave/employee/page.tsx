@@ -3,9 +3,11 @@
 import { useEffect, useState } from "react";
 import { MasterDataPage } from "@/components/ui/MasterDataPage";
 import { SearchableSelect } from "@/components/ui/SearchableSelect";
+import { useI18n, translateHrmsLookup } from "@/i18n";
 import { branchService, finYearService } from "@/lib/api";
 
 export default function EmployeeLeaveReportPage() {
+  const { language, t } = useI18n();
   const [finYearId, setFinYearId] = useState("");
   const [branchId, setBranchId] = useState("");
   const [finYearOptions, setFinYearOptions] = useState<
@@ -86,39 +88,39 @@ export default function EmployeeLeaveReportPage() {
         <>
           <div className="table-filter-item">
             <label className="table-filter-label" htmlFor="employee-leave-fin-year">
-              Financial Year
+              {translateHrmsLookup(language, "labels", "Financial Year")}
             </label>
             <SearchableSelect
               id="employee-leave-fin-year"
               value={finYearId}
               onChange={setFinYearId}
               options={finYearOptions}
-              placeholder="Active Year"
-              searchPlaceholder="Search financial year..."
+              placeholder={t("reports.common.activeYear")}
+              searchPlaceholder={t("reports.common.searchFinYear")}
               allowEmpty
-              emptyLabel="Active Year"
+              emptyLabel={t("reports.common.activeYear")}
               size="sm"
             />
           </div>
           <div className="table-filter-item">
             <label className="table-filter-label" htmlFor="employee-leave-branch">
-              Branch
+              {translateHrmsLookup(language, "labels", "Branch")}
             </label>
             <SearchableSelect
               id="employee-leave-branch"
               value={branchId}
               onChange={setBranchId}
               options={branchOptions}
-              placeholder="All Branches"
-              searchPlaceholder="Search branch..."
+              placeholder={t("reports.common.allBranches")}
+              searchPlaceholder={t("reports.common.searchBranch")}
               allowEmpty
-              emptyLabel="All Branches"
+              emptyLabel={t("reports.common.allBranches")}
               size="sm"
             />
           </div>
         </>
       }
-      emptyStateMessage="Try adjusting the financial year, branch, or leave type filter."
+      emptyStateMessage={t("reports.leaveEmployee.empty")}
     />
   );
 }

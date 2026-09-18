@@ -14,6 +14,7 @@ import {
   type RoleMenuMatrixRow,
 } from "@/lib/api/services/role-menu.service";
 import { roleService } from "@/lib/api/services/role.service";
+import { useI18n } from "@/i18n";
 
 type RoleOption = {
   value: string;
@@ -22,6 +23,7 @@ type RoleOption = {
 };
 
 export default function RoleMenuPermissionPage() {
+  const { t } = useI18n();
   const toast = useToast();
   const [rolesLoading, setRolesLoading] = useState(true);
   const [matrixLoading, setMatrixLoading] = useState(false);
@@ -81,13 +83,14 @@ export default function RoleMenuPermissionPage() {
       setRoleOptions([]);
       setRoleId("");
       toast.error({
-        title: "Unable to load roles",
-        message: error instanceof ApiError ? error.message : "Check the API connection and try again.",
+        title: t("security.permission.loadRolesFailed"),
+        message:
+          error instanceof ApiError ? error.message : t("security.permission.loadRolesHint"),
       });
     } finally {
       setRolesLoading(false);
     }
-  }, [toast]);
+  }, [toast, t]);
 
   const loadMatrix = useCallback(
     async (nextRoleId: string) => {
@@ -106,15 +109,17 @@ export default function RoleMenuPermissionPage() {
         setMatrixRows([]);
         setSelected(new Set());
         toast.error({
-          title: "Unable to load permissions",
+          title: t("security.permission.loadPermissionsFailed"),
           message:
-            error instanceof ApiError ? error.message : "Failed to load role menu permission matrix.",
+            error instanceof ApiError
+              ? error.message
+              : t("security.permission.loadPermissionsHint"),
         });
       } finally {
         setMatrixLoading(false);
       }
     },
-    [toast],
+    [toast, t],
   );
 
   useEffect(() => {
@@ -160,15 +165,15 @@ export default function RoleMenuPermissionPage() {
   const requestSave = () => {
     if (!roleId) {
       toast.error({
-        title: "Select a role",
-        message: "Choose a role before saving menu permissions.",
+        title: t("security.permission.selectRoleTitle"),
+        message: t("security.permission.selectRoleMessage"),
       });
       return;
     }
     if (isAdminRole) {
       toast.error({
-        title: "Admin role",
-        message: "Administrator roles already have access to all menus.",
+        title: t("security.permission.adminRoleTitle"),
+        message: t("security.permission.adminRoleMessage"),
       });
       return;
     }
@@ -189,15 +194,19 @@ export default function RoleMenuPermissionPage() {
       });
       setConfirmSaveOpen(false);
       toast.success({
-        title: "Permissions saved",
-        message: `Updated menu access for ${selectedRole?.label ?? "selected role"}.`,
+        title: t("security.permission.savedTitle"),
+        message: t("security.permission.savedMessage", {
+          role: selectedRole?.label ?? t("security.permission.selectedRole"),
+        }),
       });
       await loadMatrix(roleId);
     } catch (error) {
       toast.error({
-        title: "Save failed",
+        title: t("security.permission.saveFailedTitle"),
         message:
-          error instanceof ApiError ? error.message : "Failed to sync role menu permissions.",
+          error instanceof ApiError
+            ? error.message
+            : t("security.permission.saveFailedMessage"),
       });
     } finally {
       setSaving(false);
@@ -206,12 +215,16 @@ export default function RoleMenuPermissionPage() {
 
   return (
     <>
-      <PageHeader title="Role Menu Permission" section="Security" hideTitle />
+      <PageHeader
+        title={t("security.permission.title")}
+        section={t("security.permission.section")}
+        hideTitle
+      />
       <div className="container-fluid">
         <div className="card">
           <div className="card-body">
             <TableSectionHeader
-              title="Role Menu Permission"
+              title={t("security.permission.title")}
               action={
                 !rolesLoading && roleId && !isAdminRole ? (
                   <button
@@ -220,7 +233,7 @@ export default function RoleMenuPermissionPage() {
                     disabled={saving || matrixLoading}
                     onClick={requestSave}
                   >
-                    {saving ? "Saving..." : "Save Permissions"}
+                    {saving ? t("security.permission.saving") : t("security.permission.save")}
                   </button>
                 ) : undefined
               }
@@ -229,22 +242,22 @@ export default function RoleMenuPermissionPage() {
             {rolesLoading ? (
               <div className="employee-profile-loading">
                 <RoundLoader />
-                <p>Loading roles…</p>
+                <p>{t("security.permission.loadingRoles")}</p>
               </div>
             ) : (
               <>
                 <div className="permission-toolbar">
                   <div className="form-field permission-role-field">
                     <label className="form-field-label" htmlFor="permission-role">
-                      Role
+                      {t("security.permission.role")}
                     </label>
                     <SearchableSelect
                       id="permission-role"
                       value={roleId}
                       onChange={setRoleId}
                       options={roleOptions}
-                      placeholder="Select role"
-                      emptyLabel="Select role"
+                      placeholder={t("security.permission.selectRole")}
+                      emptyLabel={t("security.permission.selectRole")}
                       allowEmpty={false}
                       clearable={false}
                       disabled={saving || roleOptions.length === 0}
@@ -253,7 +266,7 @@ export default function RoleMenuPermissionPage() {
 
                   <div className="form-field permission-search-field">
                     <label className="form-field-label" htmlFor="permission-menu-search">
-                      Search menus
+                      {t("security.permission.searchMenus")}
                     </label>
                     <input
                       id="permission-menu-search"
@@ -261,14 +274,17 @@ export default function RoleMenuPermissionPage() {
                       type="search"
                       value={menuSearch}
                       onChange={(event) => setMenuSearch(event.target.value)}
-                      placeholder="Filter by menu name or route"
+                      placeholder={t("security.permission.searchPlaceholder")}
                       disabled={!roleId || matrixLoading}
                     />
                   </div>
 
                   <div className="permission-meta">
                     <span className="permission-count">
-                      {selectedCount} of {totalCount} selected
+                      {t("security.permission.selectedCount", {
+                        selected: selectedCount,
+                        total: totalCount,
+                      })}
                     </span>
                     {!isAdminRole ? (
                       <div className="permission-bulk-actions">
@@ -278,7 +294,7 @@ export default function RoleMenuPermissionPage() {
                           onClick={selectAll}
                           disabled={!roleId || matrixLoading || saving || totalCount === 0}
                         >
-                          Select all
+                          {t("security.permission.selectAll")}
                         </button>
                         <button
                           type="button"
@@ -286,7 +302,7 @@ export default function RoleMenuPermissionPage() {
                           onClick={clearAll}
                           disabled={!roleId || matrixLoading || saving || selectedCount === 0}
                         >
-                          Clear
+                          {t("security.permission.clear")}
                         </button>
                       </div>
                     ) : null}
@@ -295,23 +311,22 @@ export default function RoleMenuPermissionPage() {
 
                 {isAdminRole ? (
                   <div className="permission-admin-note" role="status">
-                    This is an administrator role. All menus are granted automatically and cannot be
-                    edited here.
+                    {t("security.permission.adminNote")}
                   </div>
                 ) : null}
 
                 {!roleId ? (
                   <div className="permission-empty">
-                    <p>Select a role to manage menu permissions.</p>
+                    <p>{t("security.permission.selectRoleHint")}</p>
                   </div>
                 ) : matrixLoading ? (
                   <div className="employee-profile-loading">
                     <RoundLoader />
-                    <p>Loading permission matrix…</p>
+                    <p>{t("security.permission.loadingMatrix")}</p>
                   </div>
                 ) : groups.length === 0 ? (
                   <div className="permission-empty">
-                    <p>No menus found for this role.</p>
+                    <p>{t("security.permission.noMenus")}</p>
                   </div>
                 ) : (
                   <div className="permission-matrix">
@@ -377,7 +392,7 @@ export default function RoleMenuPermissionPage() {
                       disabled={saving}
                       onClick={requestSave}
                     >
-                      {saving ? "Saving..." : "Save Permissions"}
+                      {saving ? t("security.permission.saving") : t("security.permission.save")}
                     </button>
                   </div>
                 ) : null}
@@ -393,10 +408,13 @@ export default function RoleMenuPermissionPage() {
           if (!saving) setConfirmSaveOpen(false);
         }}
         onConfirm={handleConfirmSave}
-        title="Save menu permissions?"
-        message={`This will replace the current menu access for "${selectedRole?.label ?? "this role"}" with ${selectedCount} selected menu${selectedCount === 1 ? "" : "s"}.\nDo you want to continue?`}
-        confirmLabel="Save Permissions"
-        cancelLabel="Cancel"
+        title={t("security.permission.confirmTitle")}
+        message={t("security.permission.confirmMessage", {
+          role: selectedRole?.label ?? t("security.permission.thisRole"),
+          count: selectedCount,
+        })}
+        confirmLabel={t("security.permission.save")}
+        cancelLabel={t("common.cancel")}
         loading={saving}
       />
     </>

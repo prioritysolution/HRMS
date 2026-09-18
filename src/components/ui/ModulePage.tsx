@@ -5,9 +5,9 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { StatCard } from "@/components/ui/StatCard";
 import { DataTable, PersonCell, SoftStatus } from "@/components/ui/DataTable";
 import { GenericAddModal } from "@/components/modals/GenericAddModal";
+import { useI18n } from "@/i18n";
 import { getEmptyIconByTitle } from "@/lib/module-icons";
 import { getRowStatusKey } from "@/lib/row-status";
-import { ACTIVATE_CONFIRM_MESSAGE } from "@/lib/confirm-messages";
 
 type Stat = {
   title: string;
@@ -49,7 +49,7 @@ export function ModulePage({
   title,
   section,
   stats,
-  actionLabel = "Add New",
+  actionLabel,
   columns = ["Detail", "Owner", "Updated"],
   rows,
   children,
@@ -59,9 +59,11 @@ export function ModulePage({
   onRowDelete,
   deleteConfirmTitle,
 }: ModulePageProps) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [tableRows, setTableRows] = useState(rows);
+  const resolvedActionLabel = actionLabel ?? t("common.addNew");
 
   useEffect(() => {
     setTableRows(rows);
@@ -103,25 +105,31 @@ export function ModulePage({
         {children}
         <DataTable
           title={title}
-          searchPlaceholder={`Search ${title.toLowerCase()}...`}
-          actionLabel={actionLabel}
+          searchPlaceholder={t("common.table.searchModule", {
+            title: title.toLowerCase(),
+          })}
+          actionLabel={resolvedActionLabel}
           onAction={() => setOpen(true)}
           showRowActions={showRowActions}
           statusToggle
           onRowEdit={handleEdit}
           onRowDelete={handleDelete}
           onRowActivate={handleActivate}
-          deleteConfirmTitle={deleteConfirmTitle ?? `Delete ${title.toLowerCase()}?`}
-          activateConfirmTitle={`Activate ${title.toLowerCase()}?`}
-          activateConfirmMessage={ACTIVATE_CONFIRM_MESSAGE}
+          deleteConfirmTitle={
+            deleteConfirmTitle ??
+            t("common.dialog.deleteTitle", { title: title.toLowerCase() })
+          }
+          activateConfirmTitle={t("common.dialog.activateTitle", {
+            title: title.toLowerCase(),
+          })}
           rows={tableRows}
           searchKeys={["primary", "secondary", "c1", "c2", "c3", "status"]}
-          filterFields={[{ key: "status", label: "Status" }]}
+          filterFields={[{ key: "status", label: t("common.status") }]}
           emptyStateIcon={getEmptyIconByTitle(title)}
           columns={[
             {
               key: "primary",
-              header: title.includes("Companies") ? "Company" : "Name",
+              header: title.includes("Companies") ? t("common.company") : t("common.name"),
               render: (row) => (
                 <PersonCell
                   name={row.primary}
@@ -135,7 +143,7 @@ export function ModulePage({
             { key: "c3", header: columns[2], render: (row) => row.c3 },
             {
               key: "status",
-              header: "Status",
+              header: t("common.status"),
               render: (row) => <SoftStatus value={row.status} />,
             },
           ]}
@@ -144,13 +152,13 @@ export function ModulePage({
       <GenericAddModal
         open={open}
         onClose={() => setOpen(false)}
-        title={modalTitle || actionLabel}
+        title={modalTitle || resolvedActionLabel}
       />
       <GenericAddModal
         open={editOpen}
         onClose={() => setEditOpen(false)}
-        title={`Edit ${title}`}
-        submitLabel="Save & Continue"
+        title={t("common.dialog.editTitle", { title })}
+        submitLabel={t("common.saveContinue")}
       />
     </>
   );

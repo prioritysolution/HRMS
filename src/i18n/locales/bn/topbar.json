@@ -1,0 +1,14 @@
+{
+  "searchPlaceholder": "যেকোনো কিছু খুঁজুন...",
+  "noMenuFound": "কোনো মেনু পাওয়া যায়নি",
+  "toggleTheme": "থিম পরিবর্তন",
+  "toggleFullscreen": "পূর্ণ স্ক্রিন",
+  "settings": "সেটিংস",
+  "notifications": "বিজ্ঞপ্তি",
+  "notificationsTitle": "বিজ্ঞপ্তি",
+  "notificationsSubtitle": "আপনার ১২টি নতুন বিজ্ঞপ্তি আছে",
+  "language": "ভাষা",
+  "languageHint": "আপনার পছন্দের ভাষা বেছে নিন",
+  "openSidebar": "সাইডবার খুলুন",
+  "closeSidebar": "সাইডবার বন্ধ করুন"
+}

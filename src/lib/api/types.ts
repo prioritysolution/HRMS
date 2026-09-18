@@ -2126,6 +2126,7 @@ export type DashboardTodayAttendance = {
   Out_time: string | null;
   Attendance_status: number;
   Attendance_status_name: string;
+  Photo_path?: string | null;
 };
 
 export type DashboardAttendanceTrend = {

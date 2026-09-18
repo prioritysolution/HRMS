@@ -1,4 +1,7 @@
+"use client";
+
 import { RotateCcw } from "lucide-react";
+import { useI18n } from "@/i18n";
 
 type ResetButtonProps = {
   onClick: () => void;
@@ -6,7 +9,9 @@ type ResetButtonProps = {
   className?: string;
 };
 
-export function ResetButton({ onClick, label = "Reset", className }: ResetButtonProps) {
+export function ResetButton({ onClick, label, className }: ResetButtonProps) {
+  const { t } = useI18n();
+
   return (
     <button
       type="button"
@@ -14,7 +19,7 @@ export function ResetButton({ onClick, label = "Reset", className }: ResetButton
       onClick={onClick}
     >
       <RotateCcw size={14} strokeWidth={2.25} />
-      {label}
+      {label ?? t("common.reset")}
     </button>
   );
 }

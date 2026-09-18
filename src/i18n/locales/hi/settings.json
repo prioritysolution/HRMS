@@ -1,0 +1,385 @@
+{
+  "common": {
+    "section": "सेटिंग्स",
+    "saving": "सहेजा जा रहा है...",
+    "saveSettings": "सेटिंग्स सहेजें",
+    "saved": "सहेजा गया",
+    "saveFailed": "सहेजना विफल",
+    "loadFailed": "सेटिंग्स लोड नहीं हो सकीं",
+    "validationError": "सत्यापन त्रुटि",
+    "deleted": "हटाया गया",
+    "deleteFailed": "हटाना विफल",
+    "success": "सफल",
+    "error": "त्रुटि",
+    "optional": "वैकल्पिक",
+    "notConfigured": "कॉन्फ़िगर नहीं",
+    "configureSeries": "श्रृंखला कॉन्फ़िगर करें",
+    "saveConfiguration": "कॉन्फ़िगरेशन सहेजें",
+    "filterRecords": "रिकॉर्ड फ़िल्टर करें...",
+    "yes": "हाँ",
+    "no": "नहीं",
+    "cancel": "रद्द करें"
+  },
+  "leave": {
+    "title": "अवकाश सेटिंग्स",
+    "loading": "अवकाश सेटिंग्स लोड हो रही हैं…",
+    "loadError": "अवकाश सेटिंग्स लोड करने में विफल। कृपया पुनः प्रयास करें।",
+    "saveError": "अवकाश सेटिंग्स सहेजने में विफल। कृपया पुनः प्रयास करें।",
+    "options": {
+      "apply_future_leave": {
+        "label": "भविष्य की छुट्टी के लिए आवेदन",
+        "description": "कर्मचारियों को भविष्य की तिथियों के लिए अवकाश आवेदन की अनुमति दें।"
+      },
+      "apply_previous_leave": {
+        "label": "पिछली तिथि की छुट्टी के लिए आवेदन",
+        "description": "कर्मचारियों को पिछली तिथियों के लिए अवकाश आवेदन की अनुमति दें।"
+      },
+      "half_day_allowed": {
+        "label": "आधे दिन की छुट्टी अनुमत",
+        "description": "कर्मचारियों को आधे दिन की छुट्टी आवेदन की अनुमति दें।"
+      },
+      "apply_during_probation": {
+        "label": "परिवीक्षा के दौरान आवेदन",
+        "description": "परिवीक्षा पर होने पर अवकाश आवेदन की अनुमति दें।"
+      },
+      "reason_mandatory": {
+        "label": "कारण अनिवार्य",
+        "description": "अवकाश आवेदन जमा करते समय कारण आवश्यक करें।"
+      },
+      "prevent_overlapping_leave": {
+        "label": "ओवरलैपिंग छुट्टी रोकें",
+        "description": "मौजूदा छुट्टी से ओवरलैप होने वाले आवेदन ब्लॉक करें।"
+      }
+    }
+  },
+  "document": {
+    "title": "दस्तावेज़ सेटिंग्स",
+    "loading": "दस्तावेज़ सेटिंग्स लोड हो रही हैं…",
+    "loadError": "दस्तावेज़ सेटिंग्स लोड करने में विफल। कृपया पुनः प्रयास करें।",
+    "saveError": "दस्तावेज़ सेटिंग्स सहेजने में विफल। कृपया पुनः प्रयास करें।",
+    "options": {
+      "approval_required": {
+        "label": "अनुमोदन आवश्यक",
+        "description": "दस्तावेज़ को अंतिम रूप देने से पहले अनुमोदन आवश्यक करें।"
+      },
+      "allow_edit_after_approval": {
+        "label": "अनुमोदन के बाद संपादन अनुमति",
+        "description": "अनुमोदन के बाद दस्तावेज़ संपादित करने की अनुमति दें।"
+      },
+      "allow_cancel_after_approval": {
+        "label": "अनुमोदन के बाद रद्द करने की अनुमति",
+        "description": "अनुमोदन के बाद दस्तावेज़ रद्द करने की अनुमति दें।"
+      },
+      "allow_reprint": {
+        "label": "पुनर्मुद्रण अनुमति",
+        "description": "पहले से मुद्रित दस्तावेज़ों का पुनर्मुद्रण अनुमति दें।"
+      },
+      "show_duplicate_on_reprint": {
+        "label": "पुनर्मुद्रण पर \"Duplicate\" दिखाएँ",
+        "description": "पुनर्मुद्रित दस्तावेज़ों पर \"Duplicate\" वॉटरमार्क या लेबल लगाएँ।"
+      }
+    }
+  },
+  "notifications": {
+    "title": "सूचना सेटिंग्स",
+    "loading": "सूचना सेटिंग्स लोड हो रही हैं…",
+    "loadError": "सूचना सेटिंग्स लोड करने में विफल। कृपया पुनः प्रयास करें।",
+    "saveError": "सूचना सेटिंग्स सहेजने में विफल। कृपया पुनः प्रयास करें।",
+    "channels": {
+      "inapp_notification": {
+        "label": "इन-ऐप",
+        "description": "PrioHRM के अंदर अलर्ट दिखाएँ।"
+      },
+      "email_notification": {
+        "label": "ईमेल",
+        "description": "ईमेल द्वारा अलर्ट और अपडेट भेजें।"
+      },
+      "sms_notification": {
+        "label": "एसएमएस",
+        "description": "कर्मचारियों को टेक्स्ट संदेश सूचनाएँ भेजें।"
+      },
+      "push_notification": {
+        "label": "पुश",
+        "description": "मोबाइल पुश सूचनाएँ भेजें।"
+      },
+      "whatsapp_notification": {
+        "label": "व्हाट्सऐप",
+        "description": "कॉन्फ़िगर होने पर व्हाट्सऐप अलर्ट भेजें।"
+      }
+    }
+  },
+  "financialYear": {
+    "subtitle": "अवकाश, पेरोल और रिपोर्ट में उपयोग होने वाली वित्तीय वर्ष अवधि परिभाषित करें।",
+    "empty": "अभी कोई वित्तीय वर्ष नहीं। अवधि कॉन्फ़िगर शुरू करने के लिए एक वर्ष जोड़ें।"
+  },
+  "attendance": {
+    "title": "उपस्थिति सेटिंग्स",
+    "loading": "उपस्थिति सेटिंग्स लोड हो रही हैं…",
+    "loadError": "उपस्थिति सेटिंग्स लोड करने में विफल। कृपया पुनः प्रयास करें।",
+    "saveError": "उपस्थिति सेटिंग्स सहेजने में विफल। कृपया पुनः प्रयास करें।",
+    "validationMessage": "सभी अनिवार्य उपस्थिति सेटिंग्स भरें।",
+    "lateEarlyTitle": "देरी और जल्दी जाने के नियम",
+    "overtimeTitle": "ओवरटाइम सेटिंग्स",
+    "fields": {
+      "late_grace_period_minutes": "देरी ग्रेस अवधि (मिनट)",
+      "early_leaving_grace_minutes": "जल्दी जाने का ग्रेस (मिनट)",
+      "late_mark_after_minutes": "देरी मार्क करने के बाद (मिनट)",
+      "half_day_after_minutes": "आधे दिन के बाद (मिनट)",
+      "absent_after_minutes": "अनुपस्थिति के बाद (मिनट)",
+      "ot_calculation": "ओटी गणना",
+      "minimum_ot_minutes": "न्यूनतम ओटी (मिनट)",
+      "ot_round_off_minutes": "ओटी राउंड ऑफ (मिनट)",
+      "maximum_ot_per_day_hours": "प्रति दिन अधिकतम ओटी (घंटे)"
+    },
+    "toggles": {
+      "overtime_applicable": {
+        "label": "ओवरटाइम लागू",
+        "description": "कर्मचारियों के लिए ओवरटाइम ट्रैकिंग और गणना सक्षम करें।"
+      },
+      "ot_requires_approval": {
+        "label": "ओटी के लिए अनुमोदन आवश्यक",
+        "description": "ओवरटाइम जमा होने से पहले प्रबंधक अनुमोदन आवश्यक करें।"
+      },
+      "holiday_ot": {
+        "label": "छुट्टी का ओटी",
+        "description": "छुट्टियों पर ओवरटाइम अनुमति दें।"
+      },
+      "weekly_off_ot": {
+        "label": "साप्ताहिक अवकाश ओटी",
+        "description": "साप्ताहिक अवकाश पर ओवरटाइम अनुमति दें।"
+      }
+    }
+  },
+  "email": {
+    "title": "ईमेल कॉन्फ़िगरेशन",
+    "loading": "ईमेल कॉन्फ़िगरेशन लोड हो रहा है…",
+    "loadError": "ईमेल कॉन्फ़िगरेशन लोड करने में विफल। कृपया पुनः प्रयास करें।",
+    "saveError": "ईमेल कॉन्फ़िगरेशन सहेजने में विफल। कृपया पुनः प्रयास करें।",
+    "validationMessage": "सभी अनिवार्य ईमेल सेटिंग्स भरें।",
+    "smtpTitle": "SMTP सेटिंग्स",
+    "testTitle": "टेस्ट ईमेल भेजें",
+    "testSend": "टेस्ट ईमेल भेजें",
+    "sending": "भेजा जा रहा है...",
+    "testSuccess": "टेस्ट ईमेल भेजा गया",
+    "testFailed": "टेस्ट ईमेल विफल",
+    "testError": "टेस्ट ईमेल भेजने में विफल। कृपया पुनः प्रयास करें।",
+    "showPassword": "पासवर्ड दिखाएँ",
+    "hidePassword": "पासवर्ड छिपाएँ",
+    "fields": {
+      "mailer": "मेलर",
+      "host": "होस्ट",
+      "port": "पोर्ट",
+      "username": "उपयोगकर्ता नाम",
+      "password": "पासवर्ड",
+      "encryption": "एन्क्रिप्शन",
+      "from_address": "प्रेषक पता",
+      "from_name": "प्रेषक नाम",
+      "to_email": "प्राप्तकर्ता ईमेल",
+      "subject": "विषय",
+      "message": "संदेश"
+    },
+    "placeholders": {
+      "password": "SMTP पासवर्ड दर्ज करें",
+      "to_email": "प्राप्तकर्ता ईमेल दर्ज करें",
+      "hostPattern": "मान्य होस्ट नाम दर्ज करें (जैसे smtp.example.com)।"
+    },
+    "encryption": {
+      "tls": "TLS",
+      "ssl": "SSL",
+      "none": "कोई नहीं"
+    }
+  },
+  "sms": {
+    "title": "एसएमएस कॉन्फ़िगरेशन",
+    "loading": "एसएमएस कॉन्फ़िगरेशन लोड हो रहा है…",
+    "loadError": "एसएमएस कॉन्फ़िगरेशन लोड करने में विफल। कृपया पुनः प्रयास करें।",
+    "saveError": "एसएमएस कॉन्फ़िगरेशन सहेजने में विफल। कृपया पुनः प्रयास करें।",
+    "validationMessage": "सभी अनिवार्य एसएमएस सेटिंग्स भरें।",
+    "gatewayTitle": "एसएमएस गेटवे",
+    "eventsTitle": "इवेंट सूचनाएँ",
+    "templatesTitle": "संदेश टेम्पलेट",
+    "addTemplate": "टेम्पलेट जोड़ें",
+    "editTemplate": "टेम्पलेट संपादित करें",
+    "saveGateway": "गेटवे सहेजें",
+    "saveEvents": "इवेंट सहेजें",
+    "showApiKey": "API कुंजी दिखाएँ",
+    "hideApiKey": "API कुंजी छिपाएँ",
+    "fields": {
+      "api_url": "API URL",
+      "api_key": "API कुंजी",
+      "status": "स्थिति",
+      "sender_id": "प्रेषक आईडी",
+      "message_type": "संदेश प्रकार",
+      "template_name": "टेम्पलेट नाम",
+      "message_template": "संदेश टेम्पलेट",
+      "event": "इवेंट"
+    },
+    "placeholders": {
+      "api_key": "एसएमएस API कुंजी दर्ज करें (वर्तमान रखने के लिए खाली छोड़ें)"
+    }
+  },
+  "tax": {
+    "title": "कर सेटिंग्स",
+    "loading": "कर सेटिंग्स लोड हो रही हैं…",
+    "loadError": "कर सेटिंग्स लोड करने में विफल। कृपया पुनः प्रयास करें।",
+    "saveError": "कर सेटिंग्स सहेजने में विफल। कृपया पुनः प्रयास करें।",
+    "validationMessage": "सभी अनिवार्य कर सेटिंग्स भरें।",
+    "slabValidation": "सभी अनिवार्य स्लैब फ़ील्ड भरें।",
+    "slabSaveError": "पेशेवर कर स्लैब सहेजने में विफल।",
+    "slabDeleteError": "पेशेवर कर स्लैब हटाने में विफल।",
+    "ptTitle": "पेशेवर कर कॉन्फ़िगरेशन",
+    "slabsTitle": "पेशेवर कर स्लैब",
+    "addSlab": "स्लैब जोड़ें",
+    "editSlab": "स्लैब संपादित करें",
+    "modalSubtitle": "वेतन सीमा और पेशेवर कर राशि कॉन्फ़िगर करें।",
+    "tdsTitle": "टीडीएस सेटिंग्स",
+    "searchSlabsPlaceholder": "पीटी स्लैब खोजें...",
+    "noLimit": "कोई सीमा नहीं",
+    "toAmountMinError": "अंतिम राशि प्रारंभिक राशि के बराबर या अधिक होनी चाहिए।",
+    "ptApplicable": {
+      "label": "पेशेवर कर लागू",
+      "description": "पेरोल में पेशेवर कर कटौती सक्षम करें।"
+    },
+    "tdsApplicable": {
+      "label": "टीडीएस लागू",
+      "description": "वेतन प्रसंस्करण के दौरान टीडीएस कटौती सक्षम करें।"
+    },
+    "columns": {
+      "from_amount": "प्रारंभिक राशि",
+      "to_amount": "अंतिम राशि",
+      "tax_amount": "कर राशि"
+    },
+    "fields": {
+      "state": "राज्य",
+      "deduction_frequency": "कटौती आवृत्ति",
+      "pt_based_on": "पीटी आधारित",
+      "tax_regime": "कर व्यवस्था",
+      "financial_year": "वित्तीय वर्ष",
+      "tds_method": "टीडीएस गणना विधि",
+      "standard_deduction": "मानक कटौती (₹)",
+      "from_amount": "से राशि (₹)",
+      "to_amount": "तक राशि (₹)",
+      "tax_amount": "कर राशि (₹)"
+    },
+    "placeholders": {
+      "to_amount": "ऊपरी सीमा न हो तो खाली छोड़ें"
+    },
+    "options": {
+      "monthly": "मासिक",
+      "half_yearly": "अर्धवार्षिक",
+      "yearly": "वार्षिक",
+      "gross_salary": "सकल वेतन",
+      "basic_salary": "मूल वेतन",
+      "new_regime": "नई व्यवस्था",
+      "old_regime": "पुरानी व्यवस्था",
+      "monthly_projection": "मासिक अनुमान",
+      "actual": "वास्तविक"
+    },
+    "toggles": {
+      "round_off_tds": {
+        "label": "टीडीएस राउंड ऑफ",
+        "description": "टीडीएस राशि को निकटतम रुपये तक राउंड करें।"
+      },
+      "consider_previous_employment": {
+        "label": "पिछला रोजगार शामिल करें",
+        "description": "गणना में पिछले नियोक्ता की आय और टीडीएस शामिल करें।"
+      },
+      "auto_generate_form16": {
+        "label": "फॉर्म 16 स्वतः बनाएँ",
+        "description": "वर्ष-अंत प्रसंस्करण के बाद स्वतः फॉर्म 16 बनाएँ।"
+      },
+      "show_tds_on_payslip": {
+        "label": "पेस्लिप पर टीडीएस दिखाएँ",
+        "description": "सैलरी स्लिप पर टीडीएस कटौती विवरण दिखाएँ।"
+      }
+    }
+  },
+  "payroll": {
+    "title": "पेरोल सेटिंग्स",
+    "loading": "पेरोल सेटिंग्स लोड हो रही हैं…",
+    "loadError": "पेरोल सेटिंग्स लोड करने में विफल। कृपया पुनः प्रयास करें।",
+    "saveError": "पेरोल सेटिंग्स सहेजने में विफल। कृपया पुनः प्रयास करें।",
+    "validationMessage": "सभी अनिवार्य पेरोल सेटिंग्स भरें।",
+    "salaryCalcTitle": "वेतन गणना सेटिंग्स",
+    "overtimeTitle": "ओवरटाइम सेटिंग्स",
+    "slipTitle": "सैलरी स्लिप सेटिंग्स",
+    "otApplicable": {
+      "label": "ओटी लागू",
+      "description": "पेरोल प्रोसेसिंग में ओवरटाइम गणना सक्षम करें।"
+    },
+    "fields": {
+      "salary_basis": "वेतन आधार",
+      "working_days_basis": "कार्य दिवस आधार",
+      "salary_calculation_based_on": "वेतन गणना आधारित",
+      "ot_calculation_based_on": "ओटी गणना आधारित",
+      "normal_day_ot_rate": "सामान्य दिन ओटी दर (×)",
+      "weekly_off_ot_rate": "साप्ताहिक अवकाश ओटी दर (×)",
+      "holiday_ot_rate": "छुट्टी ओटी दर (×)",
+      "minimum_ot_minutes": "न्यूनतम ओटी (मिनट)",
+      "salary_slip_format": "सैलरी स्लिप प्रारूप"
+    },
+    "toggles": {
+      "generate_automatically": {
+        "label": "सैलरी स्लिप स्वतः बनाएँ",
+        "description": "पेरोल प्रसंस्करण के बाद स्वतः सैलरी स्लिप बनाएँ।"
+      },
+      "generate_salary_slip_automatically": {
+        "label": "सैलरी स्लिप स्वतः बनाएँ",
+        "description": "पेरोल प्रसंस्करण के बाद स्वतः सैलरी स्लिप बनाएँ।"
+      },
+      "show_attendance_details": {
+        "label": "उपस्थिति विवरण दिखाएँ",
+        "description": "सैलरी स्लिप पर उपस्थिति सारांश शामिल करें।"
+      },
+      "show_leave_details": {
+        "label": "अवकाश विवरण दिखाएँ",
+        "description": "सैलरी स्लिप पर अवकाश सारांश शामिल करें।"
+      },
+      "show_earnings": {
+        "label": "आय दिखाएँ",
+        "description": "सैलरी स्लिप पर आय विवरण दिखाएँ।"
+      },
+      "show_deductions": {
+        "label": "कटौतियाँ दिखाएँ",
+        "description": "सैलरी स्लिप पर कटौती विवरण दिखाएँ।"
+      },
+      "show_employer_contributions": {
+        "label": "नियोक्ता योगदान दिखाएँ",
+        "description": "स्लिप पर नियोक्ता योगदान विवरण शामिल करें।"
+      },
+      "show_bank_details": {
+        "label": "बैंक विवरण दिखाएँ",
+        "description": "स्लिप पर कर्मचारी बैंक खाता विवरण दिखाएँ।"
+      },
+      "digital_signature": {
+        "label": "डिजिटल हस्ताक्षर",
+        "description": "बनी सैलरी स्लिप पर डिजिटल हस्ताक्षर प्रिंट करें।"
+      }
+    }
+  },
+  "numbering": {
+    "title": "कॉन्फ़िगर की गई नंबरिंग श्रृंखलाएँ",
+    "configureTitle": "श्रृंखला कॉन्फ़िगर करें",
+    "configureSubtitle": "{module} के लिए नंबरिंग श्रृंखला कॉन्फ़िगर करें",
+    "loadError": "कोड श्रृंखला लोड करने में विफल।",
+    "updateSuccess": "कोड श्रृंखला अपडेट हुई।",
+    "updateError": "कोड श्रृंखला अपडेट करने में विफल।",
+    "columns": {
+      "module": "इकाई / मॉड्यूल",
+      "customPrefix": "कस्टम उपसर्ग",
+      "nextCounter": "अगला काउंटर",
+      "paddingDigits": "पैडिंग अंक",
+      "suffix": "प्रत्यय",
+      "sample": "लाइव फ़ॉर्मेटेड नमूना",
+      "status": "स्थिति",
+      "actions": "क्रियाएँ"
+    },
+    "fields": {
+      "customPrefix": "कस्टम उपसर्ग",
+      "nextCounter": "अगला काउंटर",
+      "paddingDigits": "पैडिंग अंक",
+      "suffix": "प्रत्यय",
+      "status": "स्थिति"
+    }
+  }
+}

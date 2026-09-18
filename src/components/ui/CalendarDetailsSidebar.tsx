@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useRef, type ReactNode } from "react";
-import { MONTH_CALENDAR_MONTHS } from "@/components/ui/MonthCalendar";
+import { getLocalizedMonthName } from "@/components/ui/MonthCalendar";
 import { RoundLoader } from "@/components/ui/RoundLoader";
 import { parseDateToIso } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
+import { useI18n, translateHrmsLookup } from "@/i18n";
 
 export type CalendarSidebarItem = {
   id: string | number;
@@ -75,6 +76,7 @@ export function CalendarDetailsSidebar({
   className,
   onItemClick,
 }: CalendarDetailsSidebarProps) {
+  const { language, t } = useI18n();
   const listRef = useRef<HTMLDivElement>(null);
   const nextId = useMemo(
     () => items.find((item) => item.isNext)?.id ?? null,
@@ -110,7 +112,9 @@ export function CalendarDetailsSidebar({
       )}
     >
       <div className="card-header bg-card border-b border-[var(--border)] p-5 shrink-0">
-        <h5 className="card-title mb-0 text-lg font-bold text-title">{title}</h5>
+        <h5 className="card-title mb-0 text-lg font-bold text-title">
+          {translateHrmsLookup(language, "titles", title)}
+        </h5>
         {subtitle ? <p className="text-xs text-muted mt-1 mb-0">{subtitle}</p> : null}
       </div>
 
@@ -118,7 +122,7 @@ export function CalendarDetailsSidebar({
         {loading && items.length === 0 ? (
           <div className="employee-profile-loading py-10">
             <RoundLoader />
-            <p>Loading…</p>
+            <p>{t("common.loading")}</p>
           </div>
         ) : items.length === 0 ? (
           <div className="p-5 text-sm text-muted">{emptyMessage}</div>
@@ -136,7 +140,7 @@ export function CalendarDetailsSidebar({
                   <div className="flex flex-col items-center justify-center w-12 h-12 flex-shrink-0 bg-[var(--body-bg)] rounded-lg text-title border border-[var(--border)]">
                     <span className="text-[10px] font-bold uppercase tracking-widest text-secondary">
                       {hDate
-                        ? MONTH_CALENDAR_MONTHS[hDate.getMonth()].slice(0, 3)
+                        ? getLocalizedMonthName(hDate.getMonth() + 1, language, "short").slice(0, 4)
                         : "—"}
                     </span>
                     <span className="text-lg font-black leading-none mt-0.5">
@@ -145,10 +149,14 @@ export function CalendarDetailsSidebar({
                   </div>
                   <div className="flex flex-col pt-0.5 min-w-0">
                     <h4 className="font-bold text-title text-sm flex items-center gap-2 flex-wrap mb-0">
-                      <span className="truncate">{item.title}</span>
+                      <span className="truncate">
+                        {translateHrmsLookup(language, "headers", item.title)}
+                      </span>
                       {isNext || item.badge ? (
                         <span className="badge bg-soft-primary uppercase tracking-wider text-[9px] px-1.5 py-0.5">
-                          {item.badge || "Next"}
+                          {item.badge
+                            ? translateHrmsLookup(language, "headers", item.badge)
+                            : t("attendance.holidays.next")}
                         </span>
                       ) : null}
                     </h4>
@@ -160,7 +168,7 @@ export function CalendarDetailsSidebar({
                             item.metaToneClass || "bg-warning",
                           )}
                         />
-                        {item.meta}
+                        {translateHrmsLookup(language, "headers", item.meta)}
                       </span>
                     ) : null}
                   </div>

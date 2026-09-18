@@ -2,14 +2,16 @@
 
 import { MasterDataPage } from "@/components/ui/MasterDataPage";
 import { ALLOCATION_STATS } from "@/lib/leave-stats";
+import { useI18n } from "@/i18n";
 
 export default function LeaveAllocationPage() {
+  const { t } = useI18n();
   return (
     <MasterDataPage
       moduleId="leave-allocation"
       stats={ALLOCATION_STATS}
-      modalSubtitle="Allocate annual leave balance to employees by leave type."
-      emptyStateMessage="Allocate leave balances for employees at the start of the year or on joining."
+      modalSubtitle={t("leave.pages.allocation.subtitle")}
+      emptyStateMessage={t("leave.pages.allocation.empty")}
     />
   );
 }

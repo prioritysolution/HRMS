@@ -9,10 +9,11 @@ import { FormFieldsRenderer, buildInitialFormValues } from "@/components/ui/Form
 import { validateFormField, validateFormFields, type FormValue } from "@/lib/form-validation";
 import type { FormField, HrmsRow } from "@/types/hrms";
 import { useToast } from "@/components/ui/ToastProvider";
-import { codeSeriesService, type CodeSeriesConfig, type CodeSeriesModule } from "@/lib/api/services/code-series.service";
+import { codeSeriesService, type CodeSeriesConfig } from "@/lib/api/services/code-series.service";
+import { useI18n, translateHrmsLookup } from "@/i18n";
 
 type CodeSeriesRow = {
-  id: string; // module key
+  id: string;
   module: string;
   module_name: string;
   customPrefix: string;
@@ -41,6 +42,7 @@ const configFields: FormField[] = [
 ];
 
 export default function ConfigureNumberingSequencePage() {
+  const { t, language } = useI18n();
   const [data, setData] = useState<CodeSeriesRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [editRow, setEditRow] = useState<CodeSeriesRow | null>(null);
@@ -50,16 +52,25 @@ export default function ConfigureNumberingSequencePage() {
   const [values, setValues] = useState<Record<string, FormValue>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  const translatedConfigFields = useMemo(
+    () =>
+      configFields.map((field) => ({
+        ...field,
+        label: t(`settings.numbering.fields.${field.name}`),
+      })),
+    [t],
+  );
+
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
       const [modules, configs] = await Promise.all([
         codeSeriesService.modules(),
-        codeSeriesService.list()
+        codeSeriesService.list(),
       ]);
 
       const configMap = new Map<string, CodeSeriesConfig>(
-        configs.map((c) => [c.Module_key, c])
+        configs.map((c) => [c.Module_key, c]),
       );
 
       const rows: CodeSeriesRow[] = modules.map((m) => {
@@ -77,12 +88,15 @@ export default function ConfigureNumberingSequencePage() {
         };
       });
       setData(rows);
-    } catch (err) {
-      toast.error({ title: "Error", message: "Failed to load code series." });
+    } catch {
+      toast.error({
+        title: t("settings.common.error"),
+        message: t("settings.numbering.loadError"),
+      });
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [toast, t]);
 
   useEffect(() => {
     void loadData();
@@ -133,11 +147,17 @@ export default function ConfigureNumberingSequencePage() {
         status: Number(values.status ?? 1),
       });
 
-      toast.success({ title: "Success", message: "Code series updated." });
+      toast.success({
+        title: t("settings.common.success"),
+        message: t("settings.numbering.updateSuccess"),
+      });
       await loadData();
       setEditRow(null);
-    } catch (err) {
-      toast.error({ title: "Error", message: "Failed to update code series." });
+    } catch {
+      toast.error({
+        title: t("settings.common.error"),
+        message: t("settings.numbering.updateError"),
+      });
     } finally {
       setSaving(false);
     }
@@ -147,111 +167,120 @@ export default function ConfigureNumberingSequencePage() {
     () => [
       {
         key: "module_name",
-        header: "ENTITY / MODULE",
+        header: t("settings.numbering.columns.module"),
         render: (row) => row.module_name,
       },
       {
         key: "customPrefix",
-        header: "CUSTOM PREFIX",
-        render: (row) => (
+        header: t("settings.numbering.columns.customPrefix"),
+        render: (row) =>
           row.customPrefix ? (
-            <span className="badge bg-soft-primary text-primary">
-              {row.customPrefix}
-            </span>
-          ) : <span className="text-muted">—</span>
-        ),
+            <span className="badge bg-soft-primary text-primary">{row.customPrefix}</span>
+          ) : (
+            <span className="text-muted">—</span>
+          ),
       },
       {
         key: "nextCounter",
-        header: "NEXT COUNTER",
+        header: t("settings.numbering.columns.nextCounter"),
         render: (row) => row.nextCounter ?? <span className="text-muted">—</span>,
       },
       {
         key: "paddingDigits",
-        header: "PADDING DIGITS",
+        header: t("settings.numbering.columns.paddingDigits"),
         render: (row) => row.paddingDigits ?? <span className="text-muted">—</span>,
       },
       {
         key: "suffix",
-        header: "SUFFIX",
+        header: t("settings.numbering.columns.suffix"),
         render: (row) => row.suffix || <span className="text-muted">—</span>,
       },
       {
         key: "liveFormattedSample",
-        header: "LIVE FORMATTED SAMPLE",
-        render: (row) => row.liveFormattedSample || <span className="text-muted">Not Configured</span>,
+        header: t("settings.numbering.columns.sample"),
+        render: (row) =>
+          row.liveFormattedSample || (
+            <span className="text-muted">{t("settings.common.notConfigured")}</span>
+          ),
       },
       {
         key: "status",
-        header: "STATUS",
+        header: t("settings.numbering.columns.status"),
         render: (row) => (
           <StatusBadge
-            label={row.status === 1 ? "Active" : "Inactive"}
+            label={translateHrmsLookup(language, "labels", row.status === 1 ? "Active" : "Inactive")}
             tone={statusTone(row.status === 1 ? "Active" : "Inactive")}
           />
         ),
       },
       {
         key: "actions",
-        header: "ACTIONS",
+        header: t("settings.numbering.columns.actions"),
         render: (row) => (
           <button
             type="button"
             onClick={() => setEditRow(row)}
             className="btn btn-sm bg-soft-success text-success hover:bg-success hover:text-white flex items-center gap-1.5 text-xs font-medium border-0 transition-colors"
           >
-            <SlidersHorizontal size={14} /> Configure Series
+            <SlidersHorizontal size={14} /> {t("settings.common.configureSeries")}
           </button>
         ),
       },
     ],
-    []
+    [t],
   );
 
   return (
     <div className="container-fluid py-4">
       <DataTable
         title={
-          <div className="text-lg font-semibold">
-            Configured Numbering Sequences
-          </div>
+          <div className="text-lg font-semibold">{t("settings.numbering.title")}</div>
         }
         columns={columns}
         rows={data}
         loading={loading}
-        searchPlaceholder="Filter records..."
+        searchPlaceholder={t("settings.common.filterRecords")}
       />
 
       <Modal
         open={!!editRow}
         onClose={() => setEditRow(null)}
-        title="Configure Series"
-        subtitle={`Configure numbering sequence for ${editRow?.module_name}`}
+        title={t("settings.numbering.configureTitle")}
+        subtitle={t("settings.numbering.configureSubtitle", {
+          module: editRow?.module_name ?? "",
+        })}
         size="md"
         footer={
           <>
-            <button 
-              type="submit" 
-              form="configure-series-form" 
+            <button
+              type="submit"
+              form="configure-series-form"
               className="btn btn-primary"
               disabled={saving}
             >
-              {saving ? "Saving..." : "Save Configuration"}
+              {saving
+                ? t("settings.common.saving")
+                : t("settings.common.saveConfiguration")}
             </button>
-            <button 
-              type="button" 
-              className="btn btn-outline-danger" 
+            <button
+              type="button"
+              className="btn btn-outline-danger"
               onClick={() => setEditRow(null)}
               disabled={saving}
             >
-              Cancel
+              {t("common.cancel")}
             </button>
           </>
         }
       >
-        <form id="configure-series-form" className="form-grid form-grid-1" onSubmit={handleSave} noValidate>
+        <form
+          id="configure-series-form"
+          className="form-grid form-grid-1"
+          onSubmit={handleSave}
+          noValidate
+        >
           <FormFieldsRenderer
-            fields={configFields}
+            fields={translatedConfigFields}
             values={values}
             errors={errors}
             onChange={handleFieldChange}

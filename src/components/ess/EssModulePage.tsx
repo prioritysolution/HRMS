@@ -9,8 +9,14 @@ import {
   type Column,
 } from "@/components/ui/DataTable";
 import { useToast } from "@/components/ui/ToastProvider";
-import { getEssModule, getEssFormFields, getEssModuleDescription } from "@/config/ess-modules";
+import { getEssModule, getEssFormFields } from "@/config/ess-modules";
 import { getEssMockRows } from "@/data/ess-mock";
+import {
+  useI18n,
+  translateEssLookup,
+  translateEssDescription,
+  translateEssEmpty,
+} from "@/i18n";
 import { ApiError } from "@/lib/api/client";
 import { authService } from "@/lib/api/services/auth.service";
 import {
@@ -21,7 +27,7 @@ import {
 import { formatDateDisplay } from "@/lib/date-utils";
 import { getModuleEmptyIcon } from "@/lib/module-icons";
 import type { AuthMeProfile } from "@/lib/api/types";
-import type { HrmsRow, TableColumn } from "@/types/hrms";
+import type { FormField, HrmsRow, TableColumn } from "@/types/hrms";
 import { AlertCircle, Download } from "lucide-react";
 
 type EssModulePageProps = {
@@ -36,54 +42,17 @@ type EssModulePageProps = {
   loadRows?: (profile: AuthMeProfile | null) => Promise<HrmsRow[]>;
 };
 
-function formatCellValue(value: HrmsRow[string], type?: TableColumn["type"]): string {
+function formatCellValue(
+  value: HrmsRow[string],
+  type: TableColumn["type"] | undefined,
+  yesLabel: string,
+  noLabel: string,
+): string {
   if (value === undefined || value === null || value === "") return "—";
-  if (type === "boolean") return value === true || value === "true" || value === 1 ? "Yes" : "No";
+  if (type === "boolean") return value === true || value === "true" || value === 1 ? yesLabel : noLabel;
   if (type === "currency") return `₹${Number(value).toLocaleString("en-IN")}`;
   if (type === "date") return formatDateDisplay(String(value)) || "—";
   return String(value);
-}
-
-function buildColumns(
-  configColumns: TableColumn[],
-  showDownload?: boolean,
-): Column<HrmsRow>[] {
-  const cols = configColumns.map((column) => {
-    if (column.type === "status") {
-      return {
-        key: column.key,
-        header: column.header,
-        render: (row: HrmsRow) => <SoftStatus value={String(row[column.key] ?? "—")} />,
-      };
-    }
-    return {
-      key: column.key,
-      header: column.header,
-      render: (row: HrmsRow) => formatCellValue(row[column.key], column.type),
-    };
-  });
-
-  if (showDownload) {
-    cols.push({
-      key: "_download",
-      header: "Action",
-      render: (row: HrmsRow) => (
-        <button
-          type="button"
-          className="btn btn-sm btn-soft-primary inline-flex items-center gap-1"
-          onClick={() => {
-            /* demo download */
-            window.alert(`Downloading payslip for ${row.Payroll_month ?? "selected month"}…`);
-          }}
-        >
-          <Download size={14} />
-          Download
-        </button>
-      ),
-    });
-  }
-
-  return cols;
 }
 
 export function EssModulePage({
@@ -97,6 +66,7 @@ export function EssModulePage({
   hrApprovalNotice = false,
   loadRows,
 }: EssModulePageProps) {
+  const { language, t } = useI18n();
   const config = getEssModule(moduleId);
   const toast = useToast();
   const [profile, setProfile] = useState<AuthMeProfile | null>(null);
@@ -107,11 +77,71 @@ export function EssModulePage({
 
   const employeeCode = getEssEmployeeCode(null, profile);
   const employeeName = getEssEmployeeName(profile);
-  const formFields = useMemo(() => getEssFormFields(moduleId), [moduleId]);
-  const columns = useMemo(
-    () => buildColumns(config.columns, showDownloadAction),
-    [config.columns, showDownloadAction],
-  );
+  const title = translateEssLookup(language, "titles", config.title);
+  const section = t("ess.section");
+  const description = translateEssDescription(language, moduleId);
+  const actionLabel = config.actionLabel
+    ? translateEssLookup(language, "titles", config.actionLabel)
+    : t("ess.ui.addNew");
+
+  const formFields = useMemo((): FormField[] => {
+    return getEssFormFields(moduleId).map((field) => ({
+      ...field,
+      label: translateEssLookup(language, "labels", field.label),
+      options: field.options?.map((opt) => {
+        if (typeof opt === "string") {
+          return translateEssLookup(language, "options", opt);
+        }
+        return {
+          ...opt,
+          label: translateEssLookup(language, "options", opt.label),
+        };
+      }),
+    }));
+  }, [language, moduleId]);
+
+  const columns = useMemo((): Column<HrmsRow>[] => {
+    const yesLabel = t("common.yes");
+    const noLabel = t("common.no");
+    const cols = config.columns.map((column) => {
+      const header = translateEssLookup(language, "headers", column.header);
+      if (column.type === "status") {
+        return {
+          key: column.key,
+          header,
+          render: (row: HrmsRow) => <SoftStatus value={String(row[column.key] ?? "—")} />,
+        };
+      }
+      return {
+        key: column.key,
+        header,
+        render: (row: HrmsRow) =>
+          formatCellValue(row[column.key], column.type, yesLabel, noLabel),
+      };
+    });
+
+    if (showDownloadAction) {
+      cols.push({
+        key: "_download",
+        header: t("ess.ui.action"),
+        render: (row: HrmsRow) => (
+          <button
+            type="button"
+            className="btn btn-sm btn-soft-primary inline-flex items-center gap-1"
+            onClick={() => {
+              const month = String(row.Payroll_month ?? t("ess.ui.selectedMonth"));
+              window.alert(t("ess.ui.downloadAlert", { month }));
+            }}
+          >
+            <Download size={14} />
+            {t("ess.download")}
+          </button>
+        ),
+      });
+    }
+
+    return cols;
+  }, [config.columns, language, showDownloadAction, t]);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -132,13 +162,13 @@ export function EssModulePage({
             ? err.message
             : err instanceof Error
               ? err.message
-              : "Failed to load records.";
+              : t("ess.ui.loadFailed");
         toast.error(message);
       }
     } finally {
       setLoading(false);
     }
-  }, [employeeCode, loadRows, moduleId, toast]);
+  }, [employeeCode, loadRows, moduleId, t, toast]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- initial/async data load
@@ -169,61 +199,56 @@ export function EssModulePage({
 
       if (editRow) {
         setRows((prev) => prev.map((r) => (r.id === editRow.id ? enriched : r)));
-        toast.success("Record updated successfully.");
+        toast.success(t("ess.ui.recordUpdated"));
       } else {
         setRows((prev) => [enriched, ...prev]);
         if (isCriticalRequestType(String(values.Request_type ?? ""))) {
-          toast.success("Request submitted. Awaiting HR approval.");
+          toast.success(t("ess.ui.requestSubmittedHr"));
         } else if (moduleId === "ess-leave-apply") {
-          toast.success("Leave application submitted for approval.");
+          toast.success(t("ess.ui.leaveSubmitted"));
         } else {
-          toast.success("Submitted successfully.");
+          toast.success(t("ess.ui.submitted"));
         }
       }
 
       setAddOpen(false);
       setEditRow(null);
     },
-    [editRow, employeeCode, employeeName, moduleId, toast],
+    [editRow, employeeCode, employeeName, moduleId, t, toast],
   );
+
+  const emptyMessage =
+    emptyStateMessage ?? translateEssEmpty(language, moduleId, title);
 
   return (
     <>
-      <PageHeader
-        title={config.title}
-        section={config.section}
-        action={headerAction}
-      />
+      <PageHeader title={title} section={section} action={headerAction} />
       <div className="container-fluid">
         {hrApprovalNotice ? (
           <div className="ess-hr-notice mb-4">
             <AlertCircle size={18} aria-hidden="true" />
             <p>
-              Changes to critical information (address, bank details, PAN, etc.) require{" "}
-              <strong>HR approval</strong> before they take effect.
+              {t("ess.ui.hrNoticeBefore")} <strong>{t("ess.ui.hrApproval")}</strong>{" "}
+              {t("ess.ui.hrNoticeAfter")}
             </p>
           </div>
         ) : null}
 
-        {getEssModuleDescription(moduleId) ? (
-          <p className="ess-page-description mb-4">{getEssModuleDescription(moduleId)}</p>
-        ) : null}
+        {description ? <p className="ess-page-description mb-4">{description}</p> : null}
 
         <DataTable
           columns={columns}
           rows={rows}
-          title={config.title}
-          searchPlaceholder={`Search ${config.title.toLowerCase()}…`}
+          title={title}
+          searchPlaceholder={t("ess.ui.searchPlaceholder", { title: title.toLowerCase() })}
           searchKeys={config.searchKeys}
-          actionLabel={allowAdd ? "Add New" : undefined}
+          actionLabel={allowAdd ? actionLabel : undefined}
           onAction={allowAdd ? () => setAddOpen(true) : undefined}
           showRowActions={allowEdit}
           onRowEdit={allowEdit ? (row) => setEditRow(row) : undefined}
           loading={loading}
           emptyStateIcon={getModuleEmptyIcon(moduleId)}
-          emptyStateMessage={
-            emptyStateMessage ?? `No ${config.title.toLowerCase()} records found.`
-          }
+          emptyStateMessage={emptyMessage}
         />
       </div>
 
@@ -234,12 +259,16 @@ export function EssModulePage({
             setAddOpen(false);
             setEditRow(null);
           }}
-          title={editRow ? `Edit ${config.title}` : `New ${config.title}`}
-          subtitle={modalSubtitle ?? getEssModuleDescription(moduleId)}
+          title={
+            editRow
+              ? t("ess.ui.editTitle", { title })
+              : t("ess.ui.newTitle", { title })
+          }
+          subtitle={modalSubtitle ?? description}
           fields={formFields}
           initialValues={editRow ?? undefined}
           onSubmit={handleSubmit}
-          submitLabel={editRow ? "Update" : "Submit"}
+          submitLabel={editRow ? t("ess.ui.update") : t("ess.ui.submit")}
         />
       ) : null}
     </>

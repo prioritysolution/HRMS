@@ -1,5 +1,9 @@
+"use client";
+
 import Image from "next/image";
 import { LoginBackgroundVideo } from "@/components/auth/LoginBackgroundVideo";
+import { TopbarLanguageMenu } from "@/components/layout/TopbarLanguageMenu";
+import { useI18n } from "@/i18n";
 
 type AuthShellProps = {
   title: string;
@@ -8,6 +12,8 @@ type AuthShellProps = {
 };
 
 export function AuthShell({ title, subtitle, children }: AuthShellProps) {
+  const { t } = useI18n();
+
   return (
     <section className="auth-page auth-page--login">
       <div className="login-background" aria-hidden="true">
@@ -26,9 +32,9 @@ export function AuthShell({ title, subtitle, children }: AuthShellProps) {
         <div className="login-showcase-panel">
           <header className="login-showcase-headline">
             <h2>
-              Empowering People.
+              {t("auth.showcaseLine1")}
               <br />
-              Driving Performance.
+              {t("auth.showcaseLine2")}
             </h2>
             <span className="login-showcase-rule" aria-hidden="true" />
           </header>
@@ -36,7 +42,7 @@ export function AuthShell({ title, subtitle, children }: AuthShellProps) {
           <div className="login-showcase-art">
             <Image
               src="/images/login-hero-left-trans.png"
-              alt="PrioHRM — employee management, attendance, payroll, and mobile access"
+              alt={t("auth.heroAlt")}
               fill
               priority
               sizes="(max-width: 980px) 0px, 58vw"
@@ -44,14 +50,15 @@ export function AuthShell({ title, subtitle, children }: AuthShellProps) {
             />
           </div>
 
-          <p className="login-showcase-footer">
-            Smarter HR <span aria-hidden="true">|</span> Better Teams{" "}
-            <span aria-hidden="true">|</span> Greater Success
-          </p>
+          <p className="login-showcase-footer">{t("auth.showcaseFooter")}</p>
         </div>
 
         <div className="login-form-panel">
           <div className="login-form-card">
+            <div className="login-card-header">
+              <TopbarLanguageMenu />
+            </div>
+
             <div className="login-card-brand">
               <Image
                 src="/images/logos/prio-hrm-login-brand.png"
@@ -78,7 +85,7 @@ export function AuthShell({ title, subtitle, children }: AuthShellProps) {
                 rel="noopener noreferrer"
                 className="login-card-footer-link"
               >
-                Powered by Priority Solutions
+                {t("auth.poweredBy")}
               </a>
               <span aria-hidden="true" />
             </div>

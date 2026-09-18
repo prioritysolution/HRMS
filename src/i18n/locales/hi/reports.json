@@ -1,0 +1,149 @@
+{
+  "section": "रिपोर्ट",
+  "common": {
+    "allBranches": "सभी शाखाएँ",
+    "searchBranch": "शाखा खोजें...",
+    "activeYear": "सक्रिय वर्ष",
+    "searchFinYear": "वित्तीय वर्ष खोजें...",
+    "connectionError": "अपना कनेक्शन जाँचें और फिर कोशिश करें।",
+    "filterSummaryRecords": "{count} रिकॉर्ड (वर्तमान फ़िल्टर के अनुसार)",
+    "filterSummaryRecord": "{count} रिकॉर्ड (वर्तमान फ़िल्टर के अनुसार)",
+    "filterSummaryEmployees": "{count} कर्मचारी (वर्तमान फ़िल्टर के अनुसार)",
+    "filterSummaryEmployee": "{count} कर्मचारी (वर्तमान फ़िल्टर के अनुसार)",
+    "dateRange": " · {from} से {to}",
+    "minLate": " · न्यूनतम देरी ≥ {mins} मिनट",
+    "minEarly": " · न्यूनतम जल्दी ≥ {mins} मिनट",
+    "exampleMins": "जैसे {n}",
+    "exampleDays": "जैसे {n}"
+  },
+  "leavePending": {
+    "minPendingDays": "न्यूनतम लंबित दिन",
+    "empty": "शाखा, न्यूनतम लंबित दिन या अवकाश प्रकार फ़िल्टर बदलकर देखें।"
+  },
+  "leaveEmployee": {
+    "empty": "वित्तीय वर्ष, शाखा या अवकाश प्रकार फ़िल्टर बदलकर देखें।"
+  },
+  "leaveRegister": {
+    "empty": "तिथि सीमा, अवकाश प्रकार या स्थिति फ़िल्टर बदलकर देखें।"
+  },
+  "employeeRegister": {
+    "searchPlaceholder": "कर्मचारी रजिस्टर खोजें...",
+    "emptyTitle": "कोई कर्मचारी नहीं मिला",
+    "empty": "कर्मचारी खोजने के लिए फ़िल्टर या खोज बदलकर देखें।",
+    "loadError": "कर्मचारी रजिस्टर लोड नहीं हो सका",
+    "exportTitle": "कर्मचारी रजिस्टर रिपोर्ट",
+    "sheetName": "कर्मचारी रजिस्टर",
+    "emptyExport": "वर्तमान फ़िल्टर से कोई कर्मचारी रिकॉर्ड मेल नहीं खाता।",
+    "successExport": "फ़िल्टर किए गए कर्मचारी रजिस्टर का डाउनलोड शुरू हो गया है।"
+  },
+  "employeeHistory": {
+    "searchPlaceholder": "सेवा इतिहास खोजें...",
+    "emptyTitle": "कोई सेवा इतिहास नहीं मिला",
+    "empty": "रिकॉर्ड खोजने के लिए फ़िल्टर या तिथि सीमा बदलकर देखें।",
+    "loadError": "सेवा इतिहास लोड नहीं हो सका",
+    "exportTitle": "कर्मचारी सेवा इतिहास रिपोर्ट",
+    "sheetName": "सेवा इतिहास",
+    "emptyExport": "वर्तमान फ़िल्टर से कोई सेवा इतिहास रिकॉर्ड मेल नहीं खाता।",
+    "successExport": "फ़िल्टर किए गए सेवा इतिहास रिपोर्ट का डाउनलोड शुरू हो गया है।"
+  },
+  "attendanceLate": {
+    "searchPlaceholder": "देर से आने की रिपोर्ट खोजें...",
+    "loadError": "देर से आने की रिपोर्ट लोड नहीं हो सकी",
+    "minLate": "न्यूनतम देरी (मिनट)",
+    "exportTitle": "देर से आने की रिपोर्ट",
+    "sheetName": "देर से आना",
+    "emptyExport": "वर्तमान फ़िल्टर से कोई देर से आने का रिकॉर्ड मेल नहीं खाता।",
+    "successExport": "फ़िल्टर की गई देर से आने की रिपोर्ट का डाउनलोड शुरू हो गया है।"
+  },
+  "attendanceEarly": {
+    "searchPlaceholder": "जल्दी जाने की रिपोर्ट खोजें...",
+    "loadError": "जल्दी जाने की रिपोर्ट लोड नहीं हो सकी",
+    "minEarly": "न्यूनतम जल्दी (मिनट)",
+    "exportTitle": "जल्दी जाने की रिपोर्ट",
+    "sheetName": "जल्दी जाना",
+    "emptyExport": "वर्तमान फ़िल्टर से कोई जल्दी जाने का रिकॉर्ड मेल नहीं खाता।",
+    "successExport": "फ़िल्टर की गई जल्दी जाने की रिपोर्ट का डाउनलोड शुरू हो गया है।"
+  },
+  "attendanceSummary": {
+    "searchPlaceholder": "उपस्थिति सारांश खोजें...",
+    "loadError": "उपस्थिति सारांश लोड नहीं हो सका",
+    "exportTitle": "उपस्थिति सारांश रिपोर्ट",
+    "sheetName": "उपस्थिति सारांश",
+    "emptyExport": "वर्तमान फ़िल्टर से कोई उपस्थिति सारांश रिकॉर्ड मेल नहीं खाता।",
+    "successExport": "फ़िल्टर किए गए उपस्थिति सारांश का डाउनलोड शुरू हो गया है।"
+  },
+  "attendanceEmployee": {
+    "searchPlaceholder": "कर्मचारी उपस्थिति खोजें...",
+    "loadError": "कर्मचारी उपस्थिति लोड नहीं हो सकी",
+    "exportTitle": "कर्मचारी उपस्थिति रिपोर्ट",
+    "sheetName": "कर्मचारी उपस्थिति",
+    "emptyExport": "वर्तमान फ़िल्टर से कोई उपस्थिति रिकॉर्ड मेल नहीं खाता।",
+    "successExport": "फ़िल्टर की गई कर्मचारी उपस्थिति रिपोर्ट का डाउनलोड शुरू हो गया है।"
+  },
+  "kpi": {
+    "title": "KPI डैशबोर्ड",
+    "action": "KPI कॉन्फ़िगर करें",
+    "colTarget": "लक्ष्य",
+    "colActual": "वास्तविक",
+    "colOwner": "मालिक",
+    "revenueTitle": "राजस्व KPI",
+    "revenueHint": "लक्ष्य",
+    "revenueDesc": "मासिक आवर्ती राजस्व बनाम लक्ष्य",
+    "hiringTitle": "भर्ती KPI",
+    "hiringHint": "लक्ष्य",
+    "hiringDesc": "इस तिमाही में भरी गई खुली भूमिकाएँ",
+    "retentionTitle": "धारण KPI",
+    "retentionHint": "लक्ष्य",
+    "retentionDesc": "कर्मचारी धारण दर",
+    "rowMrr": "मासिक आवर्ती राजस्व",
+    "rowMrrSecondary": "वित्त",
+    "rowMrrOwner": "फाइनेंस ऑप्स",
+    "rowHire": "भर्ती का समय",
+    "rowHireSecondary": "पीपल",
+    "rowHireOwner": "एचआर ऑप्स",
+    "rowRetention": "ग्राहक धारण",
+    "rowRetentionSecondary": "सक्सेस",
+    "rowRetentionOwner": "सीएस टीम",
+    "statusMet": "पूरा",
+    "statusBehind": "पीछे"
+  },
+  "employeePerformance": {
+    "title": "कर्मचारी प्रदर्शन",
+    "action": "रिपोर्ट निर्यात",
+    "colDepartment": "विभाग",
+    "colScore": "स्कोर",
+    "colPeriod": "अवधि",
+    "avgTitle": "औसत रेटिंग",
+    "avgHint": "चक्र",
+    "avgDesc": "औसत कर्मचारी स्कोर",
+    "reviewedTitle": "समीक्षित",
+    "reviewedHint": "चक्र",
+    "reviewedDesc": "पूर्ण समीक्षा वाले कर्मचारी",
+    "focusTitle": "ध्यान आवश्यक",
+    "focusHint": "चक्र",
+    "focusDesc": "लक्ष्य से कम प्रदर्शन",
+    "statusExcellent": "उत्कृष्ट",
+    "statusGood": "अच्छा",
+    "statusReview": "समीक्षा"
+  },
+  "customerEngagement": {
+    "title": "ग्राहक एंगेजमेंट",
+    "action": "रिपोर्ट निर्यात",
+    "colTouches": "संपर्क",
+    "colOwner": "मालिक",
+    "colLastActive": "अंतिम सक्रिय",
+    "engagedTitle": "एंगेज्ड खाते",
+    "engagedHint": "माह",
+    "engagedDesc": "हाल की गतिविधि वाले ग्राहक",
+    "npsTitle": "NPS स्कोर",
+    "npsHint": "तिमाही",
+    "npsDesc": "नेट प्रमोटर स्कोर",
+    "silentTitle": "निष्क्रिय खाते",
+    "silentHint": "माह",
+    "silentDesc": "30 दिनों में कोई गतिविधि नहीं",
+    "touches": "{count} संपर्क",
+    "statusHigh": "उच्च",
+    "statusHealthy": "स्वस्थ",
+    "statusAtRisk": "जोखिम में"
+  }
+}

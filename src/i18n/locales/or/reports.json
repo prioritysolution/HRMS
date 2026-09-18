@@ -1,0 +1,149 @@
+{
+  "section": "ରିପୋର୍ଟ",
+  "common": {
+    "allBranches": "ସବୁ ଶାଖା",
+    "searchBranch": "ଶାଖା ଖୋଜନ୍ତୁ...",
+    "activeYear": "ସକ୍ରିୟ ବର୍ଷ",
+    "searchFinYear": "ଆର୍ଥିକ ବର୍ଷ ଖୋଜନ୍ତୁ...",
+    "connectionError": "ଆପଣଙ୍କ ସଂଯୋଗ ଯାଞ୍ଚ କରି ପୁନଃ ଚେଷ୍ଟା କରନ୍ତୁ।",
+    "filterSummaryRecords": "{count} ରେକର୍ଡ (ବର୍ତ୍ତମାନ ଫିଲ୍ଟର ଅନୁଯାୟୀ)",
+    "filterSummaryRecord": "{count} ରେକର୍ଡ (ବର୍ତ୍ତମାନ ଫିଲ୍ଟର ଅନୁଯାୟୀ)",
+    "filterSummaryEmployees": "{count} ଜଣ କର୍ମଚାରୀ (ବର୍ତ୍ତମାନ ଫିଲ୍ଟର ଅନୁଯାୟୀ)",
+    "filterSummaryEmployee": "{count} ଜଣ କର୍ମଚାରୀ (ବର୍ତ୍ତମାନ ଫିଲ୍ଟର ଅନୁଯାୟୀ)",
+    "dateRange": " · {from} ରୁ {to}",
+    "minLate": " · ସର୍ବନିମ୍ନ ବିଳମ୍ବ ≥ {mins} ମିନିଟ୍",
+    "minEarly": " · ସର୍ବନିମ୍ନ ଶୀଘ୍ର ≥ {mins} ମିନିଟ୍",
+    "exampleMins": "ଯେପରି {n}",
+    "exampleDays": "ଯେପରି {n}"
+  },
+  "leavePending": {
+    "minPendingDays": "ସର୍ବନିମ୍ନ ବିଚାରାଧୀନ ଦିନ",
+    "empty": "ଶାଖା, ସର୍ବନିମ୍ନ ବିଚାରାଧୀନ ଦିନ କିମ୍ବା ଛୁଟି ପ୍ରକାର ଫିଲ୍ଟର ବଦଳାଇ ଚେଷ୍ଟା କରନ୍ତୁ।"
+  },
+  "leaveEmployee": {
+    "empty": "ଆର୍ଥିକ ବର୍ଷ, ଶାଖା କିମ୍ବା ଛୁଟି ପ୍ରକାର ଫିଲ୍ଟର ବଦଳାଇ ଚେଷ୍ଟା କରନ୍ତୁ।"
+  },
+  "leaveRegister": {
+    "empty": "ତାରିଖ ପରିସର, ଛୁଟି ପ୍ରକାର କିମ୍ବା ସ୍ଥିତି ଫିଲ୍ଟର ବଦଳାଇ ଚେଷ୍ଟା କରନ୍ତୁ।"
+  },
+  "employeeRegister": {
+    "searchPlaceholder": "କର୍ମଚାରୀ ରେଜିଷ୍ଟର ଖୋଜନ୍ତୁ...",
+    "emptyTitle": "କୌଣସି କର୍ମଚାରୀ ମିଳିଲେ ନାହିଁ",
+    "empty": "କର୍ମଚାରୀ ଖୋଜିବାକୁ ଫିଲ୍ଟର କିମ୍ବା ସର୍ଚ୍ଚ ବଦଳାଇ ଚେଷ୍ଟା କରନ୍ତୁ।",
+    "loadError": "କର୍ମଚାରୀ ରେଜିଷ୍ଟର ଲୋଡ୍ ହେଲା ନାହିଁ",
+    "exportTitle": "କର୍ମଚାରୀ ରେଜିଷ୍ଟର ରିପୋର୍ଟ",
+    "sheetName": "କର୍ମଚାରୀ ରେଜିଷ୍ଟର",
+    "emptyExport": "ବର୍ତ୍ତମାନ ଫିଲ୍ଟର ସହ କୌଣସି କର୍ମଚାରୀ ରେକର୍ଡ ମେଳ ଖାଉ ନାହିଁ।",
+    "successExport": "ଫିଲ୍ଟର କରାଯାଇଥିବା କର୍ମଚାରୀ ରେଜିଷ୍ଟର ଡାଉନଲୋଡ୍ ଆରମ୍ଭ ହୋଇଛି।"
+  },
+  "employeeHistory": {
+    "searchPlaceholder": "ସେବା ଇତିହାସ ଖୋଜନ୍ତୁ...",
+    "emptyTitle": "କୌଣସି ସେବା ଇତିହାସ ମିଳିଲା ନାହିଁ",
+    "empty": "ରେକର୍ଡ ଖୋଜିବାକୁ ଫିଲ୍ଟର କିମ୍ବା ତାରିଖ ପରିସର ବଦଳାଇ ଚେଷ୍ଟା କରନ୍ତୁ।",
+    "loadError": "ସେବା ଇତିହାସ ଲୋଡ୍ ହେଲା ନାହିଁ",
+    "exportTitle": "କର୍ମଚାରୀ ସେବା ଇତିହାସ ରିପୋର୍ଟ",
+    "sheetName": "ସେବା ଇତିହାସ",
+    "emptyExport": "ବର୍ତ୍ତମାନ ଫିଲ୍ଟର ସହ କୌଣସି ସେବା ଇତିହାସ ରେକର୍ଡ ମେଳ ଖାଉ ନାହିଁ।",
+    "successExport": "ଫିଲ୍ଟର କରାଯାଇଥିବା ସେବା ଇତିହାସ ରିପୋର୍ଟ ଡାଉନଲୋଡ୍ ଆରମ୍ଭ ହୋଇଛି।"
+  },
+  "attendanceLate": {
+    "searchPlaceholder": "ବିଳମ୍ବରେ ଆସିବା ରିପୋର୍ଟ ଖୋଜନ୍ତୁ...",
+    "loadError": "ବିଳମ୍ବରେ ଆସିବା ରିପୋର୍ଟ ଲୋଡ୍ ହେଲା ନାହିଁ",
+    "minLate": "ସର୍ବନିମ୍ନ ବିଳମ୍ବ (ମିନିଟ୍)",
+    "exportTitle": "ବିଳମ୍ବରେ ଆସିବା ରିପୋର୍ଟ",
+    "sheetName": "ବିଳମ୍ବରେ ଆସିବା",
+    "emptyExport": "ବର୍ତ୍ତମାନ ଫିଲ୍ଟର ସହ କୌଣସି ବିଳମ୍ବରେ ଆସିବା ରେକର୍ଡ ମେଳ ଖାଉ ନାହିଁ।",
+    "successExport": "ଫିଲ୍ଟର କରାଯାଇଥିବା ବିଳମ୍ବରେ ଆସିବା ରିପୋର୍ଟ ଡାଉନଲୋଡ୍ ଆରମ୍ଭ ହୋଇଛି।"
+  },
+  "attendanceEarly": {
+    "searchPlaceholder": "ଶୀଘ୍ର ଯିବା ରିପୋର୍ଟ ଖୋଜନ୍ତୁ...",
+    "loadError": "ଶୀଘ୍ର ଯିବା ରିପୋର୍ଟ ଲୋଡ୍ ହେଲା ନାହିଁ",
+    "minEarly": "ସର୍ବନିମ୍ନ ଶୀଘ୍ର (ମିନିଟ୍)",
+    "exportTitle": "ଶୀଘ୍ର ଯିବା ରିପୋର୍ଟ",
+    "sheetName": "ଶୀଘ୍ର ଯିବା",
+    "emptyExport": "ବର୍ତ୍ତମାନ ଫିଲ୍ଟର ସହ କୌଣସି ଶୀଘ୍ର ଯିବା ରେକର୍ଡ ମେଳ ଖାଉ ନାହିଁ।",
+    "successExport": "ଫିଲ୍ଟର କରାଯାଇଥିବା ଶୀଘ୍ର ଯିବା ରିପୋର୍ଟ ଡାଉନଲୋଡ୍ ଆରମ୍ଭ ହୋଇଛି।"
+  },
+  "attendanceSummary": {
+    "searchPlaceholder": "ଉପସ୍ଥିତି ସାରାଂଶ ଖୋଜନ୍ତୁ...",
+    "loadError": "ଉପସ୍ଥିତି ସାରାଂଶ ଲୋଡ୍ ହେଲା ନାହିଁ",
+    "exportTitle": "ଉପସ୍ଥିତି ସାରାଂଶ ରିପୋର୍ଟ",
+    "sheetName": "ଉପସ୍ଥିତି ସାରାଂଶ",
+    "emptyExport": "ବର୍ତ୍ତମାନ ଫିଲ୍ଟର ସହ କୌଣସି ଉପସ୍ଥିତି ସାରାଂଶ ରେକର୍ଡ ମେଳ ଖାଉ ନାହିଁ।",
+    "successExport": "ଫିଲ୍ଟର କରାଯାଇଥିବା ଉପସ୍ଥିତି ସାରାଂଶ ଡାଉନଲୋଡ୍ ଆରମ୍ଭ ହୋଇଛି।"
+  },
+  "attendanceEmployee": {
+    "searchPlaceholder": "କର୍ମଚାରୀ ଉପସ୍ଥିତି ଖୋଜନ୍ତୁ...",
+    "loadError": "କର୍ମଚାରୀ ଉପସ୍ଥିତି ଲୋଡ୍ ହେଲା ନାହିଁ",
+    "exportTitle": "କର୍ମଚାରୀ ଉପସ୍ଥିତି ରିପୋର୍ଟ",
+    "sheetName": "କର୍ମଚାରୀ ଉପସ୍ଥିତି",
+    "emptyExport": "ବର୍ତ୍ତମାନ ଫିଲ୍ଟର ସହ କୌଣସି ଉପସ୍ଥିତି ରେକର୍ଡ ମେଳ ଖାଉ ନାହିଁ।",
+    "successExport": "ଫିଲ୍ଟର କରାଯାଇଥିବା କର୍ମଚାରୀ ଉପସ୍ଥିତି ରିପୋର୍ଟ ଡାଉନଲୋଡ୍ ଆରମ୍ଭ ହୋଇଛି।"
+  },
+  "kpi": {
+    "title": "KPI ଡ୍ୟାସବୋର୍ଡ",
+    "action": "KPI କନଫିଗର୍ କରନ୍ତୁ",
+    "colTarget": "ଲକ୍ଷ୍ୟ",
+    "colActual": "ପ୍ରକୃତ",
+    "colOwner": "ମାଲିକ",
+    "revenueTitle": "ରାଜସ୍ୱ KPI",
+    "revenueHint": "ଲକ୍ଷ୍ୟ",
+    "revenueDesc": "ମାସିକ ପୁନରାବୃତ୍ତ ରାଜସ୍ୱ ବନାମ ଲକ୍ଷ୍ୟ",
+    "hiringTitle": "ନିଯୁକ୍ତି KPI",
+    "hiringHint": "ଲକ୍ଷ୍ୟ",
+    "hiringDesc": "ଏହି ତ୍ରୈମାସିକରେ ପୂରଣ ହୋଇଥିବା ଖୋଲା ପଦ",
+    "retentionTitle": "ଧାରଣ KPI",
+    "retentionHint": "ଲକ୍ଷ୍ୟ",
+    "retentionDesc": "କର୍ମଚାରୀ ଧାରଣ ହାର",
+    "rowMrr": "ମାସିକ ପୁନରାବୃତ୍ତ ରାଜସ୍ୱ",
+    "rowMrrSecondary": "ଫାଇନାନ୍ସ",
+    "rowMrrOwner": "ଫାଇନାନ୍ସ ଅପ୍ସ",
+    "rowHire": "ନିଯୁକ୍ତି ସମୟ",
+    "rowHireSecondary": "ପିପୁଲ୍",
+    "rowHireOwner": "HR ଅପ୍ସ",
+    "rowRetention": "ଗ୍ରାହକ ଧାରଣ",
+    "rowRetentionSecondary": "ସକ୍ସେସ୍",
+    "rowRetentionOwner": "CS ଟିମ୍",
+    "statusMet": "ପୂରଣ",
+    "statusBehind": "ପଛରେ"
+  },
+  "employeePerformance": {
+    "title": "କର୍ମଚାରୀ ପ୍ରଦର୍ଶନ",
+    "action": "ରିପୋର୍ଟ ଏକ୍ସପୋର୍ଟ",
+    "colDepartment": "ବିଭାଗ",
+    "colScore": "ସ୍କୋର",
+    "colPeriod": "ସମୟକାଳ",
+    "avgTitle": "ହାରାହାରି ରେଟିଙ୍ଗ",
+    "avgHint": "ଚକ୍ର",
+    "avgDesc": "ହାରାହାରି କର୍ମଚାରୀ ସ୍କୋର",
+    "reviewedTitle": "ସମୀକ୍ଷିତ",
+    "reviewedHint": "ଚକ୍ର",
+    "reviewedDesc": "ସମ୍ପୂର୍ଣ୍ଣ ସମୀକ୍ଷା ଥିବା କର୍ମଚାରୀ",
+    "focusTitle": "ଧ୍ୟାନ ଆବଶ୍ୟକ",
+    "focusHint": "ଚକ୍ର",
+    "focusDesc": "ଲକ୍ଷ୍ୟ ତଳେ ପ୍ରଦର୍ଶନ",
+    "statusExcellent": "ଉତ୍କୃଷ୍ଟ",
+    "statusGood": "ଭଲ",
+    "statusReview": "ସମୀକ୍ଷା"
+  },
+  "customerEngagement": {
+    "title": "ଗ୍ରାହକ ଏଙ୍ଗେଜମେଣ୍ଟ",
+    "action": "ରିପୋର୍ଟ ଏକ୍ସପୋର୍ଟ",
+    "colTouches": "ଯୋଗାଯୋଗ",
+    "colOwner": "ମାଲିକ",
+    "colLastActive": "ଶେଷ ସକ୍ରିୟ",
+    "engagedTitle": "ଏଙ୍ଗେଜ୍ଡ ଆକାଉଣ୍ଟ",
+    "engagedHint": "ମାସ",
+    "engagedDesc": "ସାମ୍ପ୍ରତିକ କାର୍ଯ୍ୟକଳାପ ଥିବା ଗ୍ରାହକ",
+    "npsTitle": "NPS ସ୍କୋର",
+    "npsHint": "ତ୍ରୈମାସିକ",
+    "npsDesc": "ନେଟ୍ ପ୍ରୋମୋଟର ସ୍କୋର",
+    "silentTitle": "ନିଷ୍କ୍ରିୟ ଆକାଉଣ୍ଟ",
+    "silentHint": "ମାସ",
+    "silentDesc": "୩୦ ଦିନରେ କୌଣସି କାର୍ଯ୍ୟକଳାପ ନାହିଁ",
+    "touches": "{count} ଯୋଗାଯୋଗ",
+    "statusHigh": "ଉଚ୍ଚ",
+    "statusHealthy": "ସୁସ୍ଥ",
+    "statusAtRisk": "ବିପଦରେ"
+  }
+}

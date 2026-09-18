@@ -19,6 +19,7 @@ import {
 } from "@/lib/api";
 import { formatDateDisplay, pad2 } from "@/lib/date-utils";
 import { getModuleEmptyIcon } from "@/lib/module-icons";
+import { useI18n, translateHrmsLookup } from "@/i18n";
 import type {
   ReportExportColumn,
   ReportFieldGroup,
@@ -96,7 +97,10 @@ function formatNumber(value: HrmsRow[string]): string {
 }
 
 export default function LateComingReportPage() {
+  const { language, t } = useI18n();
   const config = getHrmsModule(MODULE_ID);
+  const pageTitle = translateHrmsLookup(language, "titles", config.title);
+  const pageSection = translateHrmsLookup(language, "sections", config.section);
   const toast = useToast();
   const defaults = useMemo(() => currentMonthRange(), []);
 
@@ -114,6 +118,28 @@ export default function LateComingReportPage() {
     Array<{ value: string; label: string }>
   >([]);
 
+  const exportColumns = useMemo(
+    () =>
+      EXPORT_COLUMNS.map((column) => ({
+        ...column,
+        header: translateHrmsLookup(language, "headers", column.header),
+      })),
+    [language],
+  );
+
+  const pdfFieldGroups = useMemo(
+    () =>
+      PDF_FIELD_GROUPS.map((group) => ({
+        ...group,
+        title: translateHrmsLookup(language, "labels", group.title),
+        fields: group.fields.map((field) => ({
+          ...field,
+          header: translateHrmsLookup(language, "headers", field.header),
+        })),
+      })),
+    [language],
+  );
+
   const loadRows = useCallback(async () => {
     setLoading(true);
     try {
@@ -128,16 +154,16 @@ export default function LateComingReportPage() {
       setRows([]);
       setFilteredRows([]);
       toast.error({
-        title: "Unable to load late coming report",
+        title: t("reports.attendanceLate.loadError"),
         message:
           error instanceof ApiError
             ? error.message
-            : "Please check your connection and try again.",
+            : t("reports.common.connectionError"),
       });
     } finally {
       setLoading(false);
     }
-  }, [fromDate, toDate, minLateMinutes, toast]);
+  }, [fromDate, toDate, minLateMinutes, t, toast]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- initial/async data load
@@ -187,21 +213,38 @@ export default function LateComingReportPage() {
 
   const filterFields = useMemo(
     () => [
-      { key: "Branch_Id", label: "Branch", options: branchOptions },
-      { key: "Dept_Id", label: "Department", options: deptOptions },
+      {
+        key: "Branch_Id",
+        label: translateHrmsLookup(language, "labels", "Branch"),
+        options: branchOptions,
+      },
+      {
+        key: "Dept_Id",
+        label: translateHrmsLookup(language, "labels", "Department"),
+        options: deptOptions,
+      },
     ],
-    [branchOptions, deptOptions],
+    [branchOptions, deptOptions, language],
   );
 
   const filterSummary = useMemo(() => {
     const count = filteredRows.length;
+    const base =
+      count === 1
+        ? t("reports.common.filterSummaryRecord", { count })
+        : t("reports.common.filterSummaryRecords", { count });
     const range =
       fromDate || toDate
-        ? ` · ${fromDate || "…"} to ${toDate || "…"}`
+        ? t("reports.common.dateRange", {
+            from: fromDate || "…",
+            to: toDate || "…",
+          })
         : "";
-    const minLate = minLateMinutes ? ` · min late ≥ ${minLateMinutes} mins` : "";
-    return `${count} record${count === 1 ? "" : "s"} (as per current filters)${range}${minLate}`;
-  }, [filteredRows.length, fromDate, toDate, minLateMinutes]);
+    const minLate = minLateMinutes
+      ? t("reports.common.minLate", { mins: minLateMinutes })
+      : "";
+    return `${base}${range}${minLate}`;
+  }, [filteredRows.length, fromDate, toDate, minLateMinutes, t]);
 
   const handleFilteredRowsChange = useCallback((next: HrmsRow[]) => {
     setFilteredRows(next);
@@ -209,11 +252,11 @@ export default function LateComingReportPage() {
 
   return (
     <>
-      <PageHeader title={config.title} section={config.section} hideTitle />
+      <PageHeader title={pageTitle} section={pageSection} hideTitle />
       <div className="container-fluid">
         <DataTable
-          title={config.title}
-          searchPlaceholder="Search late coming report..."
+          title={pageTitle}
+          searchPlaceholder={t("reports.attendanceLate.searchPlaceholder")}
           rows={rows}
           loading={loading}
           searchKeys={config.searchKeys}
@@ -221,13 +264,13 @@ export default function LateComingReportPage() {
           showRowActions={false}
           onFilteredRowsChange={handleFilteredRowsChange}
           emptyStateIcon={getModuleEmptyIcon(MODULE_ID)}
-          emptyStateTitle="No late coming records found"
-          emptyStateMessage="Try adjusting the date range or minimum late minutes."
+          emptyStateTitle={t("attendance.pages.reportLate.emptyTitle")}
+          emptyStateMessage={t("attendance.pages.reportLate.empty")}
           filterExtra={
             <>
               <div className="table-filter-item">
                 <label className="table-filter-label" htmlFor="late-coming-from">
-                  From
+                  {translateHrmsLookup(language, "labels", "From")}
                 </label>
                 <input
                   id="late-coming-from"
@@ -239,7 +282,7 @@ export default function LateComingReportPage() {
               </div>
               <div className="table-filter-item">
                 <label className="table-filter-label" htmlFor="late-coming-to">
-                  To
+                  {translateHrmsLookup(language, "labels", "To")}
                 </label>
                 <input
                   id="late-coming-to"
@@ -251,14 +294,14 @@ export default function LateComingReportPage() {
               </div>
               <div className="table-filter-item">
                 <label className="table-filter-label" htmlFor="late-coming-min">
-                  Min Late (Mins)
+                  {t("reports.attendanceLate.minLate")}
                 </label>
                 <input
                   id="late-coming-min"
                   type="number"
                   min={0}
                   className="form-control form-control-sm"
-                  placeholder="e.g. 15"
+                  placeholder={t("reports.common.exampleMins", { n: 15 })}
                   value={minLateMinutes}
                   onChange={(event) => setMinLateMinutes(event.target.value)}
                 />
@@ -267,37 +310,38 @@ export default function LateComingReportPage() {
           }
           extraActions={
             <ReportExportButtons
-              title="Late Coming Report"
+              title={t("reports.attendanceLate.exportTitle")}
               rows={filteredRows}
-              columns={EXPORT_COLUMNS}
+              columns={exportColumns}
               filterSummary={filterSummary}
               pdfLayout="cards"
-              fieldGroups={PDF_FIELD_GROUPS}
+              fieldGroups={pdfFieldGroups}
               cardTitle={{
                 primaryKey: "Display_name",
                 secondaryKey: "Employee_code",
                 badgeKey: "Status",
               }}
-              sheetName="Late Coming"
+              sheetName={t("reports.attendanceLate.sheetName")}
               disabled={loading}
-              emptyMessage="No late coming records match the current filters."
-              successMessage="Download started for the filtered late coming report."
+              emptyMessage={t("reports.attendanceLate.emptyExport")}
+              successMessage={t("reports.attendanceLate.successExport")}
             />
           }
           columns={[
             {
               key: "Display_name",
-              header: "Employee",
+              header: translateHrmsLookup(language, "headers", "Employee"),
               render: (row) => (
                 <PersonCell
                   name={String(row.Display_name ?? row.Employee_name ?? "")}
                   subtitle={String(row.Employee_code ?? "")}
+                  avatar={row.Photo_path || (row as any).photo_path || (row as any).avatar}
                 />
               ),
             },
             {
               key: "Attendance_date",
-              header: "Date",
+              header: translateHrmsLookup(language, "headers", "Date"),
               render: (row) =>
                 formatDateDisplay(
                   String(row.Attendance_date_raw ?? row.Attendance_date ?? ""),
@@ -305,42 +349,42 @@ export default function LateComingReportPage() {
             },
             {
               key: "Branch_Name",
-              header: "Branch",
+              header: translateHrmsLookup(language, "headers", "Branch"),
               render: (row) => formatCell(row.Branch_Name),
             },
             {
               key: "Dept_Name",
-              header: "Department",
+              header: translateHrmsLookup(language, "headers", "Department"),
               render: (row) => formatCell(row.Dept_Name),
             },
             {
               key: "Shift_name",
-              header: "Shift",
+              header: translateHrmsLookup(language, "headers", "Shift"),
               render: (row) => formatCell(row.Shift_name),
             },
             {
               key: "Shift_start",
-              header: "Shift Start",
+              header: translateHrmsLookup(language, "headers", "Shift Start"),
               render: (row) => formatCell(row.Shift_start),
             },
             {
               key: "Shift_late_after",
-              header: "Late After",
+              header: translateHrmsLookup(language, "headers", "Late After"),
               render: (row) => formatCell(row.Shift_late_after),
             },
             {
               key: "Check_in",
-              header: "Check In",
+              header: translateHrmsLookup(language, "headers", "Check In"),
               render: (row) => formatCell(row.Check_in),
             },
             {
               key: "Late_minutes",
-              header: "Late (Mins)",
+              header: translateHrmsLookup(language, "headers", "Late (Mins)"),
               render: (row) => formatNumber(row.Late_minutes),
             },
             {
               key: "Status",
-              header: "Status",
+              header: translateHrmsLookup(language, "headers", "Status"),
               render: (row) => (
                 <SoftStatus
                   value={String(row.Status ?? row.Attendance_status_name ?? "")}
@@ -349,12 +393,12 @@ export default function LateComingReportPage() {
             },
             {
               key: "Source_name",
-              header: "Source",
+              header: translateHrmsLookup(language, "headers", "Source"),
               render: (row) => formatCell(row.Source_name),
             },
             {
               key: "Remarks",
-              header: "Remarks",
+              header: translateHrmsLookup(language, "headers", "Remarks"),
               render: (row) => <ClampedText text={String(row.Remarks ?? "")} />,
             },
           ]}

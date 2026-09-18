@@ -6,6 +6,7 @@ import { LogOut } from "lucide-react";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { useUIStore } from "@/components/layout/UIProvider";
 import { useAuth } from "@/lib/auth/AuthProvider";
+import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 
 type LogoutButtonProps = {
@@ -21,6 +22,7 @@ export function LogoutButton({
 }: LogoutButtonProps) {
   const { logout } = useAuth();
   const { closeMobile } = useUIStore();
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -55,9 +57,10 @@ export function LogoutButton({
         setOpen(false);
       }}
       onConfirm={handleConfirm}
-      title="Logout?"
-      message="Are you sure you want to logout?"
-      confirmLabel="Logout"
+      title={t("common.logoutTitle")}
+      message={t("common.logoutMessage")}
+      confirmLabel={t("common.logout")}
+      cancelLabel={t("common.cancel")}
       variant="danger"
       loading={loading}
     />
@@ -74,7 +77,9 @@ export function LogoutButton({
         onClick={handleOpen}
       >
         <LogOut size={variant === "sidebar" ? 18 : 15} strokeWidth={2} />
-        <span className={variant === "sidebar" ? "menu-text" : undefined}>Logout</span>
+        <span className={variant === "sidebar" ? "menu-text" : undefined}>
+          {t("common.logout")}
+        </span>
       </button>
 
       {mounted && open ? createPortal(dialog, document.body) : null}

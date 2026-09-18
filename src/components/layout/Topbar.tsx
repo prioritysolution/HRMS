@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Bell,
+  ChevronDown,
   Maximize,
   Menu,
   Minimize,
@@ -16,6 +17,7 @@ import {
   UserRound,
   X,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { notifications } from "@/data/mock";
 import { navigation, type NavSection } from "@/config/navigation";
 import { LogoutButton } from "@/components/layout/LogoutButton";
@@ -27,6 +29,7 @@ import { readMenuCache, writeMenuCache } from "@/lib/menu/menu-cache";
 import { useUIStore } from "@/components/layout/UIProvider";
 import { BrandLogo } from "@/components/ui/BrandLogo";
 import { resolvePublicFileUrl } from "@/lib/env";
+import { useI18n } from "@/i18n";
 
 type SearchResult = {
   label: string;
@@ -111,19 +114,20 @@ function TopbarAvatar({
 export function Topbar() {
   const router = useRouter();
   const { theme, toggleTheme, toggleSidebar, mobileOpen } = useUIStore();
-  const { user } = useAuth();
+  const { user, ready } = useAuth();
+  const { t } = useI18n();
   const [openNoti, setOpenNoti] = useState(false);
   const [openUser, setOpenUser] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
-  const [menuSections, setMenuSections] = useState<NavSection[]>(navigation);
+  const [menuSections, setMenuSections] = useState<NavSection[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [highlightedResult, setHighlightedResult] = useState(0);
   const notiRef = useRef<HTMLDivElement>(null);
   const userRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
-  const displayName = user?.name ?? "PrioHRM User";
+  const displayName = user?.name ?? "";
   const displayEmail = user?.email ?? "";
-  const displayRole = user?.role ?? "Admin";
+  const displayRole = user?.role ?? "";
 
   const searchResults = flattenNavigation(menuSections).filter((item) => {
     const query = searchQuery.trim().toLowerCase();
@@ -197,7 +201,7 @@ export function Topbar() {
               event.stopPropagation();
               toggleSidebar();
             }}
-            aria-label={mobileOpen ? "Close sidebar" : "Open sidebar"}
+            aria-label={mobileOpen ? t("topbar.closeSidebar") : t("topbar.openSidebar")}
             aria-expanded={mobileOpen}
             aria-controls="app-sidebar"
           >
@@ -212,7 +216,7 @@ export function Topbar() {
           <div className="topbar-search" ref={searchRef}>
             <Search size={16} className="topbar-search-icon" />
             <input
-              placeholder="Search anything..."
+              placeholder={t("topbar.searchPlaceholder")}
               value={searchQuery}
               onChange={(event) => {
                 setSearchQuery(event.target.value);
@@ -258,7 +262,7 @@ export function Topbar() {
                     </button>
                   ))
                 ) : (
-                  <div className="topbar-search-empty">No menu found</div>
+                  <div className="topbar-search-empty">{t("topbar.noMenuFound")}</div>
                 )}
               </div>
             )}
@@ -268,7 +272,7 @@ export function Topbar() {
             type="button"
             className="topbar-icon"
             onClick={toggleTheme}
-            aria-label="Toggle theme"
+            aria-label={t("topbar.toggleTheme")}
           >
             {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
           </button>
@@ -279,7 +283,7 @@ export function Topbar() {
             type="button"
             className="topbar-icon topbar-icon-desktop"
             onClick={toggleFullscreen}
-            aria-label="Toggle fullscreen"
+            aria-label={t("topbar.toggleFullscreen")}
           >
             {fullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
           </button>
@@ -287,7 +291,7 @@ export function Topbar() {
           <button
             type="button"
             className="topbar-icon topbar-icon-desktop"
-            aria-label="Settings"
+            aria-label={t("topbar.settings")}
           >
             <Settings size={16} />
           </button>
@@ -300,7 +304,7 @@ export function Topbar() {
                 setOpenNoti((v) => !v);
                 setOpenUser(false);
               }}
-              aria-label="Notifications"
+              aria-label={t("topbar.notifications")}
             >
               <Bell size={16} />
               <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[var(--danger)]" />
@@ -308,8 +312,8 @@ export function Topbar() {
             {openNoti && (
               <div className="dropdown-panel">
                 <div className="border-b border-[var(--border)] px-4 py-3">
-                  <h5 className="m-0 text-sm font-semibold">Notifications</h5>
-                  <p className="m-0 text-xs text-muted">You have 12 new notifications</p>
+                  <h5 className="m-0 text-sm font-semibold">{t("topbar.notificationsTitle")}</h5>
+                  <p className="m-0 text-xs text-muted">{t("topbar.notificationsSubtitle")}</p>
                 </div>
                 <div className="max-h-72 overflow-auto">
                   {notifications.map((item) => (
@@ -328,20 +332,47 @@ export function Topbar() {
           </div>
 
           <div className="relative" ref={userRef}>
-            <button
-              type="button"
-              className="topbar-user-trigger"
-              onClick={() => {
-                setOpenUser((v) => !v);
-                setOpenNoti(false);
-              }}
-            >
-              <TopbarAvatar name={displayName} photoPath={user?.photoPath} />
-              <div className="topbar-user-meta">
-                <div className="text-sm font-bold leading-none">{displayName}</div>
-                <div className="mt-1 text-xs text-muted">{displayRole}</div>
+            {!ready || !user ? (
+              <div
+                className="topbar-user-trigger flex items-center gap-2 opacity-85 pointer-events-none select-none"
+                aria-busy="true"
+                aria-label="Loading profile..."
+              >
+                <div className="ui-skeleton w-[34px] h-[34px] rounded-full flex-shrink-0" />
+                <div className="topbar-user-meta hidden lg:flex flex-col gap-1.5 py-0.5">
+                  <div className="ui-skeleton w-20 h-3 rounded" />
+                  <div className="ui-skeleton w-14 h-2.5 rounded" />
+                </div>
               </div>
-            </button>
+            ) : (
+              <button
+                type="button"
+                className={cn("topbar-user-trigger", openUser && "is-open")}
+                onClick={() => {
+                  setOpenUser((v) => !v);
+                  setOpenNoti(false);
+                }}
+                aria-expanded={openUser}
+                aria-haspopup="menu"
+              >
+                <div className="topbar-avatar-wrapper">
+                  <TopbarAvatar name={displayName} photoPath={user?.photoPath} />
+                  <span className="topbar-user-status-dot" aria-hidden="true" />
+                </div>
+                <div className="topbar-user-meta hidden lg:flex lg:flex-col">
+                  <span className="topbar-user-name">{displayName}</span>
+                  <span className="topbar-user-role">{displayRole}</span>
+                </div>
+                <ChevronDown
+                  size={14}
+                  strokeWidth={2}
+                  className={cn(
+                    "topbar-user-chevron hidden lg:block",
+                    openUser && "rotate-180"
+                  )}
+                />
+              </button>
+            )}
             {openUser && (
               <div className="dropdown-panel w-56">
                 <div className="border-b border-[var(--border)] px-4 py-3">
@@ -358,7 +389,7 @@ export function Topbar() {
                   className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-[var(--card-soft)]"
                   onClick={() => setOpenUser(false)}
                 >
-                  <UserRound size={15} /> Profile
+                  <UserRound size={15} /> {t("common.profile")}
                 </Link>
                 <LogoutButton variant="menu" onOpen={() => setOpenUser(false)} />
               </div>

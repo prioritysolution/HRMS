@@ -5,6 +5,7 @@ import { Eye, EyeOff, Lock, ShieldCheck } from "lucide-react";
 import { useToast } from "@/components/ui/ToastProvider";
 import { authService } from "@/lib/api/services/auth.service";
 import { ApiError } from "@/lib/api/client";
+import { useI18n } from "@/i18n";
 
 type ChangePasswordFormProps = {
   compact?: boolean;
@@ -13,6 +14,7 @@ type ChangePasswordFormProps = {
 
 export function ChangePasswordForm({ compact = false, className }: ChangePasswordFormProps) {
   const toast = useToast();
+  const { t } = useI18n();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -24,17 +26,17 @@ export function ChangePasswordForm({ compact = false, className }: ChangePasswor
     event.preventDefault();
 
     if (newPassword.length < 8) {
-      toast.error("New password must be at least 8 characters.");
+      toast.error(t("profile.passwordMinLength"));
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      toast.error("Passwords do not match.");
+      toast.error(t("profile.passwordMismatch"));
       return;
     }
 
     if (currentPassword === newPassword) {
-      toast.error("New password must be different from the current password.");
+      toast.error(t("profile.passwordSameAsCurrent"));
       return;
     }
 
@@ -45,15 +47,13 @@ export function ChangePasswordForm({ compact = false, className }: ChangePasswor
         new_password: newPassword,
         confirm_password: confirmPassword,
       });
-      toast.success("Password changed successfully.");
+      toast.success(t("profile.passwordSuccess"));
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
     } catch (error) {
       const message =
-        error instanceof ApiError
-          ? error.message
-          : "Unable to change password. Please try again.";
+        error instanceof ApiError ? error.message : t("profile.passwordFailed");
       toast.error(message);
     } finally {
       setSaving(false);
@@ -68,10 +68,8 @@ export function ChangePasswordForm({ compact = false, className }: ChangePasswor
             <Lock size={28} />
           </div>
           <div>
-            <h5 className="mb-1">Update your password</h5>
-            <p className="text-muted mb-0">
-              Use a strong password including numbers and symbols.
-            </p>
+            <h5 className="mb-1">{t("profile.passwordUpdateTitle")}</h5>
+            <p className="text-muted mb-0">{t("profile.passwordUpdateHint")}</p>
           </div>
         </div>
       ) : (
@@ -80,15 +78,15 @@ export function ChangePasswordForm({ compact = false, className }: ChangePasswor
             <Lock size={18} />
           </div>
           <div>
-            <h5>Change password</h5>
-            <p>Keep your account secure with a strong password.</p>
+            <h5>{t("profile.passwordTitle")}</h5>
+            <p>{t("profile.passwordHint")}</p>
           </div>
         </div>
       )}
 
       <form onSubmit={(event) => void handleSubmit(event)} className="ess-password-form">
         <div className="form-group mb-3">
-          <label htmlFor="profile-current-password">Current Password</label>
+          <label htmlFor="profile-current-password">{t("profile.currentPassword")}</label>
           <div className="ess-password-input-wrap">
             <input
               id="profile-current-password"
@@ -103,7 +101,7 @@ export function ChangePasswordForm({ compact = false, className }: ChangePasswor
               type="button"
               className="ess-password-toggle"
               onClick={() => setShowCurrent((value) => !value)}
-              aria-label={showCurrent ? "Hide password" : "Show password"}
+              aria-label={showCurrent ? t("profile.hidePassword") : t("profile.showPassword")}
             >
               {showCurrent ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
@@ -111,7 +109,7 @@ export function ChangePasswordForm({ compact = false, className }: ChangePasswor
         </div>
 
         <div className="form-group mb-3">
-          <label htmlFor="profile-new-password">New Password</label>
+          <label htmlFor="profile-new-password">{t("profile.newPassword")}</label>
           <div className="ess-password-input-wrap">
             <input
               id="profile-new-password"
@@ -127,7 +125,7 @@ export function ChangePasswordForm({ compact = false, className }: ChangePasswor
               type="button"
               className="ess-password-toggle"
               onClick={() => setShowNew((value) => !value)}
-              aria-label={showNew ? "Hide password" : "Show password"}
+              aria-label={showNew ? t("profile.hidePassword") : t("profile.showPassword")}
             >
               {showNew ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
@@ -135,7 +133,7 @@ export function ChangePasswordForm({ compact = false, className }: ChangePasswor
         </div>
 
         <div className="form-group mb-4">
-          <label htmlFor="profile-confirm-password">Confirm New Password</label>
+          <label htmlFor="profile-confirm-password">{t("profile.confirmPassword")}</label>
           <input
             id="profile-confirm-password"
             type="password"
@@ -150,7 +148,7 @@ export function ChangePasswordForm({ compact = false, className }: ChangePasswor
 
         <div className="ess-password-tips mb-4">
           <ShieldCheck size={16} />
-          <span>Never share your password. HR will never ask for it.</span>
+          <span>{t("profile.passwordTip")}</span>
         </div>
 
         <div className="ess-password-actions">
@@ -159,7 +157,7 @@ export function ChangePasswordForm({ compact = false, className }: ChangePasswor
             className="btn btn-primary ess-password-submit"
             disabled={saving}
           >
-            {saving ? "Updating…" : "Change Password"}
+            {saving ? t("profile.updating") : t("profile.changePassword")}
           </button>
         </div>
       </form>

@@ -95,6 +95,9 @@ function toTodayAttendance(value: unknown): DashboardTodayAttendance[] {
       Attendance_status_name:
         optionalText(readValue(record, ["Attendance_status_name", "attendance_status_name"])) ??
         "",
+      Photo_path: optionalText(
+        readValue(record, ["Photo_path", "photo_path", "Photo", "photo", "avatar"]),
+      ),
     };
   });
 }
