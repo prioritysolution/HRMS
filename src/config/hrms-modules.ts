@@ -1221,7 +1221,7 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
     searchKeys: ["Employee_code", "Display_name"],
     columns: [
       { key: "Employee_code", header: "Employee Code" },
-      { key: "Display_name", header: "Employee Name", type: "person", subtitleKey: "Employee_code" },
+      { key: "Display_name", header: "Employee Name", type: "person", subtitleKey: "Employee_code", avatarKey: "Photo_path" },
       { key: "Department", header: "Department", filterable: true },
       { key: "Date_of_joining", header: "Join Date", type: "date" },
       { key: "Onboarding_stage", header: "Stage", filterable: true },
@@ -1247,7 +1247,7 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
     modalSize: "lg",
     searchKeys: ["Employee_name", "Event_type", "Remarks"],
     columns: [
-      { key: "Employee_name", header: "Employee", type: "person", subtitleKey: "Employee_code" },
+      { key: "Employee_name", header: "Employee", type: "person", subtitleKey: "Employee_code", avatarKey: "Photo_path" },
       { key: "Event_type", header: "Event Type", filterable: true },
       { key: "Effective_date", header: "Effective Date", type: "date" },
       { key: "Old_value", header: "Previous" },
@@ -1383,7 +1383,7 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
     nameKey: "Employee_name",
     searchKeys: ["Employee_name", "Employee_code", "Attendance_date", "Attendance_status"],
     columns: [
-      { key: "Employee_name", header: "Employee", type: "person", subtitleKey: "Employee_code" },
+      { key: "Employee_name", header: "Employee", type: "person", subtitleKey: "Employee_code", avatarKey: "Photo_path" },
       { key: "Attendance_date", header: "Date", type: "date" },
       { key: "Check_in", header: "Check In", type: "time" },
       { key: "Check_out", header: "Check Out", type: "time" },
@@ -1423,7 +1423,7 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
     nameKey: "Employee_name",
     searchKeys: ["Employee_name", "Employee_code", "Branch_Name", "Attendance_date", "Shift_name"],
     columns: [
-      { key: "Employee_name", header: "Employee", type: "person", subtitleKey: "Employee_code" },
+      { key: "Employee_name", header: "Employee", type: "person", subtitleKey: "Employee_code", avatarKey: "Photo_path" },
       { key: "Branch_Name", header: "Branch" },
       { key: "Attendance_date", header: "Date", type: "date" },
       { key: "Shift_name", header: "Shift", filterable: true },
@@ -1645,7 +1645,7 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
     nameKey: "Employee_name",
     searchKeys: ["Employee_name", "Employee_code", "Attendance_date", "Source"],
     columns: [
-      { key: "Employee_name", header: "Employee", type: "person", subtitleKey: "Employee_code" },
+      { key: "Employee_name", header: "Employee", type: "person", subtitleKey: "Employee_code", avatarKey: "Photo_path" },
       { key: "Attendance_date", header: "Date", type: "date" },
       { key: "Working_minutes", header: "Working (min)" },
       { key: "Overtime_minutes", header: "OT (min)" },
@@ -1681,7 +1681,7 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
     nameKey: "Employee_name",
     searchKeys: ["Employee_name", "Punch_time", "Punch_type", "Source"],
     columns: [
-      { key: "Employee_name", header: "Employee", type: "person", subtitleKey: "Employee_code" },
+      { key: "Employee_name", header: "Employee", type: "person", subtitleKey: "Employee_code", avatarKey: "Photo_path" },
       { key: "Punch_time", header: "Punch Time" },
       { key: "Punch_type", header: "Punch Type", filterable: true },
       { key: "Source", header: "Source", filterable: true },
@@ -1715,7 +1715,7 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
     nameKey: "Employee_name",
     searchKeys: ["Employee_name", "Attendance_date"],
     columns: [
-      { key: "Employee_name", header: "Employee", type: "person", subtitleKey: "Employee_code" },
+      { key: "Employee_name", header: "Employee", type: "person", subtitleKey: "Employee_code", avatarKey: "Photo_path" },
       { key: "Attendance_date", header: "Date", type: "date" },
       { key: "Check_in", header: "Requested In", type: "time" },
       { key: "Check_out", header: "Requested Out", type: "time" },
@@ -1739,7 +1739,7 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
     nameKey: "Employee_name",
     searchKeys: ["Employee_name"],
     columns: [
-      { key: "Employee_name", header: "Employee", type: "person", subtitleKey: "Employee_code" },
+      { key: "Employee_name", header: "Employee", type: "person", subtitleKey: "Employee_code", avatarKey: "Photo_path" },
       { key: "Punch_time", header: "Expected Punch" },
       { key: "Punch_type", header: "Missing Type" },
       { key: "Source", header: "Source", filterable: true },
@@ -1761,7 +1761,7 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
     nameKey: "Employee_name",
     searchKeys: ["Employee_name"],
     columns: [
-      { key: "Employee_name", header: "Employee", type: "person", subtitleKey: "Employee_code" },
+      { key: "Employee_name", header: "Employee", type: "person", subtitleKey: "Employee_code", avatarKey: "Photo_path" },
       { key: "Attendance_date", header: "Date", type: "date" },
       { key: "Overtime_minutes", header: "OT Minutes" },
       { key: "Shift_name", header: "Shift", filterable: true },
@@ -1783,7 +1783,7 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
     nameKey: "Employee_name",
     searchKeys: ["Employee_name", "Shift_name"],
     columns: [
-      { key: "Employee_name", header: "Employee", type: "person", subtitleKey: "Employee_code" },
+      { key: "Employee_name", header: "Employee", type: "person", subtitleKey: "Employee_code", avatarKey: "Photo_path" },
       { key: "Shift_name", header: "Shift", filterable: true },
       { key: "From_date", header: "From Date", type: "date" },
       { key: "To_date", header: "To Date", type: "date" },
@@ -1825,7 +1825,7 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
     modalSize: "lg",
     searchKeys: ["Employee_name", "Employee_code", "Duty_location"],
     columns: [
-      { key: "Employee_name", header: "Employee", type: "person", subtitleKey: "Employee_code" },
+      { key: "Employee_name", header: "Employee", type: "person", subtitleKey: "Employee_code", avatarKey: "Photo_path" },
       { key: "Duty_date", header: "Duty Date", type: "date" },
       { key: "Duty_location", header: "Location", filterable: true },
       { key: "From_time", header: "From", type: "time" },
@@ -2145,7 +2145,7 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
     modalSize: "lg",
     searchKeys: ["Employee_name", "Employee_code", "Leave_type", "Year"],
     columns: [
-      { key: "Employee_name", header: "Employee", type: "person", subtitleKey: "Employee_code" },
+      { key: "Employee_name", header: "Employee", type: "person", subtitleKey: "Employee_code", avatarKey: "Photo_path" },
       { key: "Leave_type", header: "Leave Type", filterable: true },
       { key: "Year", header: "Year", filterable: true },
       { key: "Allocated_days", header: "Allocated" },
@@ -2267,7 +2267,7 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
       "Remarks",
     ],
     columns: [
-      { key: "Employee_name", header: "Employee", type: "person", subtitleKey: "Employee_code" },
+      { key: "Employee_name", header: "Employee", type: "person", subtitleKey: "Employee_code", avatarKey: "Photo_path" },
       { key: "Application_no", header: "Application No." },
       { key: "Leave_code", header: "Leave", filterable: true },
       { key: "From_date", header: "From", type: "date" },
@@ -2364,7 +2364,7 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
     modalSize: "lg",
     searchKeys: ["Employee_name", "Employee_code", "Leave_type", "Application_status"],
     columns: [
-      { key: "Employee_name", header: "Employee", type: "person", subtitleKey: "Employee_code" },
+      { key: "Employee_name", header: "Employee", type: "person", subtitleKey: "Employee_code", avatarKey: "Photo_path" },
       { key: "Leave_type", header: "Leave Type", filterable: true },
       { key: "From_date", header: "From Date", type: "date" },
       { key: "To_date", header: "To Date", type: "date" },
@@ -2443,7 +2443,7 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
     modalSize: "lg",
     searchKeys: ["Employee_name", "Employee_code", "Leave_type", "Calendar_month", "Leave_status"],
     columns: [
-      { key: "Employee_name", header: "Employee", type: "person", subtitleKey: "Employee_code" },
+      { key: "Employee_name", header: "Employee", type: "person", subtitleKey: "Employee_code", avatarKey: "Photo_path" },
       { key: "Leave_type", header: "Leave Type", filterable: true },
       { key: "From_date", header: "From Date", type: "date" },
       { key: "To_date", header: "To Date", type: "date" },
@@ -2477,7 +2477,7 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
     modalSize: "lg",
     searchKeys: ["Employee_name", "Employee_code", "Leave_type", "Request_status"],
     columns: [
-      { key: "Employee_name", header: "Employee", type: "person", subtitleKey: "Employee_code" },
+      { key: "Employee_name", header: "Employee", type: "person", subtitleKey: "Employee_code", avatarKey: "Photo_path" },
       { key: "Leave_type", header: "Leave Type", filterable: true },
       { key: "Encashment_year", header: "Year", filterable: true },
       { key: "Days_to_encash", header: "Days" },
@@ -2688,7 +2688,7 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
     modalSize: "lg",
     searchKeys: ["Employee_name", "Employee_code", "Revision_type", "Revision_status"],
     columns: [
-      { key: "Employee_name", header: "Employee", type: "person", subtitleKey: "Employee_code" },
+      { key: "Employee_name", header: "Employee", type: "person", subtitleKey: "Employee_code", avatarKey: "Photo_path" },
       { key: "Salary_structure", header: "Structure", filterable: true },
       { key: "Revision_type", header: "Type", filterable: true },
       { key: "Old_gross", header: "Old Gross", type: "currency" },
@@ -2840,7 +2840,7 @@ export const HRMS_MODULES: Record<string, HrmsModuleConfig> = {
     modalSize: "lg",
     searchKeys: ["Employee_name", "Employee_code", "Payroll_month", "Payslip_status", "Bank_transfer_status"],
     columns: [
-      { key: "Employee_name", header: "Employee", type: "person", subtitleKey: "Employee_code" },
+      { key: "Employee_name", header: "Employee", type: "person", subtitleKey: "Employee_code", avatarKey: "Photo_path" },
       { key: "Payroll_month", header: "Month", filterable: true },
       { key: "Gross_pay", header: "Gross Pay", type: "currency" },
       { key: "Total_deductions", header: "Deductions", type: "currency" },

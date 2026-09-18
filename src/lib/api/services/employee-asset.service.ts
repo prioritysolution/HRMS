@@ -112,6 +112,9 @@ export function employeeAssetToRow(record: EmployeeAssetRecord): HrmsRow {
     Allocation_status: allocationStatusLabel(status, returnDate),
     Status: Number(status ?? 1),
     Remarks: optionalText(readValue(source, ["Remarks", "remarks"])) ?? "",
+    Photo_path: optionalText(
+      readValue(source, ["Photo_path", "photo_path", "Photo", "photo", "avatar", "Logo_Url"]),
+    ),
   };
 }
 

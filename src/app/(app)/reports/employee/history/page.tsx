@@ -17,6 +17,7 @@ import {
   applOptionsToSelectOptions,
   branchService,
   departmentService,
+  employeeService,
   employeeServiceHistoryReportService,
 } from "@/lib/api";
 import { formatDateDisplay } from "@/lib/date-utils";
@@ -103,6 +104,18 @@ export default function EmployeeServiceHistoryReportPage() {
   const [eventTypeOptions, setEventTypeOptions] = useState<
     Array<{ value: string; label: string }>
   >([]);
+  const [employees, setEmployees] = useState<HrmsRow[]>([]);
+
+  const employeeMap = useMemo(() => {
+    const map = new Map<string, HrmsRow>();
+    employees.forEach((emp) => {
+      const id = String(emp.Employee_id ?? emp.id ?? "").trim();
+      const code = String(emp.Employee_code ?? "").trim();
+      if (id && id !== "0") map.set(id, emp);
+      if (code) map.set(code.toLowerCase(), emp);
+    });
+    return map;
+  }, [employees]);
 
   const exportColumns = useMemo(
     () =>
@@ -160,15 +173,17 @@ export default function EmployeeServiceHistoryReportPage() {
 
     async function loadLookups() {
       try {
-        const [branches, departments, eventTypes] = await Promise.all([
+        const [branches, departments, eventTypes, employeeList] = await Promise.all([
           branchService.list({ status: 1 }),
           departmentService.list({ status: 1 }),
           applOptionService.list({
             opt_grp_id: SERVICE_HISTORY_OPT_GRP_ID,
             is_active: 1,
           }),
+          employeeService.list({ status: 1 }),
         ]);
         if (cancelled) return;
+        setEmployees(employeeList);
 
         setBranchOptions(
           branches
@@ -324,13 +339,26 @@ export default function EmployeeServiceHistoryReportPage() {
             {
               key: "Display_name",
               header: translateHrmsLookup(language, "headers", "Employee"),
-              render: (row) => (
-                <PersonCell
-                  name={String(row.Display_name ?? row.Employee_name ?? "")}
-                  subtitle={String(row.Employee_code ?? "")}
-                  avatar={row.Photo_path || (row as any).photo_path || (row as any).avatar}
-                />
-              ),
+              render: (row) => {
+                const empId = String(row.Employee_id ?? "").trim();
+                const empCode = String(row.Employee_code ?? "").trim().toLowerCase();
+                const emp = employeeMap.get(empId) || employeeMap.get(empCode);
+                const avatar =
+                  row.Photo_path ||
+                  (row as any).photo_path ||
+                  (row as any).avatar ||
+                  emp?.Photo_path ||
+                  (emp as any)?.photo_path ||
+                  (emp as any)?.avatar;
+
+                return (
+                  <PersonCell
+                    name={String(row.Display_name ?? row.Employee_name ?? emp?.Display_name ?? emp?.Employee_name ?? "")}
+                    subtitle={String(row.Employee_code ?? emp?.Employee_code ?? "")}
+                    avatar={avatar}
+                  />
+                );
+              },
             },
             {
               key: "Branch_Name",

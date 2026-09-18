@@ -142,6 +142,9 @@ export function employeeServiceHistoryReportToRow(
     Remarks: optionalText(readValue(source, ["Remarks", "remarks"])),
     Created_by: optionalNumber(readValue(source, ["Created_by", "created_by"])),
     Created_at: optionalText(readValue(source, ["Created_at", "created_at"])),
+    Photo_path: optionalText(
+      readValue(source, ["Photo_path", "photo_path", "Photo", "photo", "avatar", "Logo_Url"]),
+    ),
   };
 }
 

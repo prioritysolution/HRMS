@@ -11,7 +11,12 @@ export { designationService } from "@/lib/api/services/designation.service";
 export { gradeService } from "@/lib/api/services/grade.service";
 export { gradeSalaryService } from "@/lib/api/services/grade-salary.service";
 export { workShiftService } from "@/lib/api/services/work-shift.service";
-export { employeeService } from "@/lib/api/services/employee.service";
+export {
+  employeeService,
+  getEmployeePhotoMap,
+  clearEmployeePhotoMapCache,
+  enrichRowsWithEmployeePhotos,
+} from "@/lib/api/services/employee.service";
 export { employeeRegisterReportService } from "@/lib/api/services/employee-register-report.service";
 export { employeeServiceHistoryReportService } from "@/lib/api/services/employee-service-history-report.service";
 export { attendanceSummaryReportService } from "@/lib/api/services/attendance-summary-report.service";

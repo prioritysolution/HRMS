@@ -2,7 +2,11 @@ import { ATTENDANCE_SOURCE_TYPES, ATTENDANCE_STATUS_OPTIONS } from "@/config/att
 import { apiClient } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/endpoints";
 import { applOptionService } from "@/lib/api/services/appl-options.service";
-import { employeeService } from "@/lib/api/services/employee.service";
+import {
+  employeeService,
+  getEmployeePhotoMap,
+  enrichRowsWithEmployeePhotos,
+} from "@/lib/api/services/employee.service";
 import { workShiftService } from "@/lib/api/services/work-shift.service";
 import type {
   ApplOptionRecord,
@@ -280,7 +284,19 @@ export function monthlyAttendanceToRow(record: MonthlyAttendanceRecord): HrmsRow
     Employee_id: employeeId,
     Employee_code: optionalText(readValue(source, ["Employee_code", "employee_code"])) ?? "",
     Employee_name: optionalText(readValue(source, ["Employee_name", "employee_name"])) ?? "",
-    Photo_path: optionalText(readValue(source, ["Photo_path", "photo_path"])) ?? "",
+    Photo_path:
+      optionalText(
+        readValue(source, [
+          "Photo_path",
+          "photo_path",
+          "Photo",
+          "photo",
+          "avatar",
+          "Avatar",
+          "Emp_Photo",
+          "emp_photo",
+        ]),
+      ) ?? "",
     Branch_Id: optionalNumber(readValue(source, ["Branch_Id", "branch_id"])) ?? 0,
     Dept_Id: optionalNumber(readValue(source, ["Dept_Id", "dept_id"])) ?? 0,
     Dept_Name: optionalText(readValue(source, ["Dept_Name", "dept_name"])) ?? "",
@@ -321,6 +337,21 @@ export function attendanceToRow(record: AttendanceRecord): HrmsRow {
       optionalText(readValue(source, ["Employee_code", "employee_code"])) ?? "",
     Employee_name:
       optionalText(readValue(source, ["Employee_name", "employee_name"])) ?? "",
+    Photo_path:
+      optionalText(
+        readValue(source, [
+          "Photo_path",
+          "photo_path",
+          "Photo",
+          "photo",
+          "avatar",
+          "Avatar",
+          "Emp_Photo",
+          "emp_photo",
+          "Profile_photo",
+          "profile_photo",
+        ]),
+      ) ?? "",
     Branch_Id: optionalNumber(readValue(source, ["Branch_Id", "branch_id"])),
     Branch_Name:
       optionalText(
@@ -363,6 +394,21 @@ export function punchToRow(record: AttendancePunchRecord): HrmsRow {
       optionalText(readValue(source, ["Employee_code", "employee_code"])) ?? "",
     Employee_name:
       optionalText(readValue(source, ["Employee_name", "employee_name"])) ?? "",
+    Photo_path:
+      optionalText(
+        readValue(source, [
+          "Photo_path",
+          "photo_path",
+          "Photo",
+          "photo",
+          "avatar",
+          "Avatar",
+          "Emp_Photo",
+          "emp_photo",
+          "Profile_photo",
+          "profile_photo",
+        ]),
+      ) ?? "",
     Device_id: optionalNumber(readValue(source, ["Device_id", "device_id"])),
     Device_name: optionalText(readValue(source, ["Device_name", "device_name"])) ?? "",
     Punch_time: optionalText(readValue(source, ["Punch_time", "punch_time"])) ?? "",
@@ -451,30 +497,22 @@ function resolveOptionCode(
   codeValue: unknown,
   options: ApplOptionRecord[],
 ): number {
-  const label = String(value ?? "").trim();
-  if (label) {
-    const asNumber = Number(label);
-    if (Number.isFinite(asNumber) && asNumber > 0) {
-      const byExactCode = options.find((option) => Number(option.Opt_Code) === asNumber);
-      if (byExactCode) return Number(byExactCode.Opt_Code);
-      if (options.length === 0) return asNumber;
-    }
+  const directCode = optionalNumber(codeValue);
+  if (directCode !== null && directCode > 0) return directCode;
 
-    const byLabel = options.find(
-      (option) => String(option.Opt_Description).toLowerCase() === label.toLowerCase(),
-    );
-    if (byLabel) return Number(byLabel.Opt_Code);
+  const numeric = optionalNumber(value);
+  if (numeric !== null && numeric > 0) return numeric;
 
-    const byCode = options.find((option) => String(option.Opt_Code) === label);
-    if (byCode) return Number(byCode.Opt_Code);
+  const label = optionalText(value);
+  if (!label) return 0;
 
-    // A selected label that does not match loaded options must not keep the old code.
-    if (options.length > 0) return 0;
-  }
+  const target = label.toLowerCase();
+  const matched = options.find((option) => {
+    const optLabel = String(option.Opt_Description ?? "").trim().toLowerCase();
+    return optLabel === target;
+  });
 
-  const fallbackCode = Number(codeValue);
-  if (Number.isFinite(fallbackCode) && fallbackCode > 0) return fallbackCode;
-  return 0;
+  return Number(matched?.Srl_No ?? 0);
 }
 
 export function rowToAttendancePayload(
@@ -482,12 +520,12 @@ export function rowToAttendancePayload(
   context: AttendanceWriteContext,
 ): AttendanceWritePayload {
   const employeeId = resolveEmployeeId(row, context.employees);
-  if (!Number.isFinite(employeeId) || employeeId <= 0) {
+  if (!employeeId) {
     throw new Error("Employee is required.");
   }
 
-  const attendanceDateRaw = String(row.Attendance_date ?? "").trim();
-  const attendanceDate = parseDateToIso(attendanceDateRaw) || attendanceDateRaw;
+  const attendanceDateRaw = row.Attendance_date;
+  const attendanceDate = parseDateToIso(attendanceDateRaw) || optionalText(attendanceDateRaw);
   if (!attendanceDate) {
     throw new Error("Attendance date is required.");
   }
@@ -562,14 +600,18 @@ export const attendanceService = {
     const payload = await apiClient.get<unknown>(
       withListQuery(API_ENDPOINTS.attendance.list, query),
     );
-    return asAttendanceList(payload).map(attendanceToRow);
+    const rows = asAttendanceList(payload).map(attendanceToRow);
+    const photoMap = await getEmployeePhotoMap();
+    return enrichRowsWithEmployeePhotos(rows, photoMap);
   },
 
   dailyList: async (query?: AttendanceListQuery): Promise<HrmsRow[]> => {
     const payload = await apiClient.get<unknown>(
       withListQuery(API_ENDPOINTS.attendance.daily, query),
     );
-    return asAttendanceList(payload).map(attendanceToRow);
+    const rows = asAttendanceList(payload).map(attendanceToRow);
+    const photoMap = await getEmployeePhotoMap();
+    return enrichRowsWithEmployeePhotos(rows, photoMap);
   },
 
   monthly: async (
@@ -579,9 +621,11 @@ export const attendanceService = {
       withMonthlyListQuery(API_ENDPOINTS.attendance.monthly, query),
     );
     const data = asMonthlyAttendance(payload);
+    const rows = data.records.map(monthlyAttendanceToRow);
+    const photoMap = await getEmployeePhotoMap();
     return {
       summary: data.summary ?? emptyMonthlySummary(),
-      rows: data.records.map(monthlyAttendanceToRow),
+      rows: enrichRowsWithEmployeePhotos(rows, photoMap),
     };
   },
 
@@ -620,7 +664,9 @@ export const attendanceService = {
     const payload = await apiClient.get<unknown>(
       withPunchListQuery(API_ENDPOINTS.attendance.punchList, query),
     );
-    return asPunchList(payload).map(punchToRow);
+    const rows = asPunchList(payload).map(punchToRow);
+    const photoMap = await getEmployeePhotoMap();
+    return enrichRowsWithEmployeePhotos(rows, photoMap);
   },
 
   punchCreate: async (row: HrmsRow): Promise<HrmsRow> => {

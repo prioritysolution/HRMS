@@ -16,6 +16,8 @@ import {
   gradeService,
   organizationService,
   workShiftService,
+  getEmployeePhotoMap,
+  enrichRowsWithEmployeePhotos,
 } from "@/lib/api";
 import { applOptionsToSelectOptions } from "@/lib/api/services/appl-options.service";
 import {
@@ -140,6 +142,7 @@ function buildColumns(
   language: AppLanguage,
   yesLabel: string,
   noLabel: string,
+  employeePhotoMap?: Map<string, string>,
 ): Column<HrmsRow>[] {
   return configColumns.map((column) => {
     const header = translateHrmsLookup(language, "headers", column.header);
@@ -148,7 +151,7 @@ function buildColumns(
         key: column.key,
         header,
         render: (row) => {
-          const avatarVal =
+          const directAvatar =
             (column.avatarKey ? row[column.avatarKey] : undefined) ??
             row.Photo_path ??
             row.photo_path ??
@@ -158,6 +161,20 @@ function buildColumns(
             row.image ??
             row.Logo_Url ??
             row.Logo_Path;
+
+          const empId = row.Employee_id ?? row.Employee_Id;
+          const empCode = row.Employee_code ?? row.Employee_Code;
+          const empName = row.Employee_name ?? row.Employee_Name ?? row.Display_name ?? row[column.key];
+
+          const avatarVal =
+            directAvatar ||
+            (empId ? employeePhotoMap?.get(String(empId)) : undefined) ||
+            (empCode
+              ? employeePhotoMap?.get(String(empCode).trim().toLowerCase()) ??
+                employeePhotoMap?.get(String(empCode).trim())
+              : undefined) ||
+            (empName ? employeePhotoMap?.get(String(empName).trim().toLowerCase()) : undefined);
+
           return (
             <PersonCell
               name={String(row[column.key] ?? "—")}
@@ -388,6 +405,28 @@ export function MasterDataPage({
     row: HrmsRow;
     status: "Approved" | "Rejected";
   } | null>(null);
+  const [employeePhotoMap, setEmployeePhotoMap] = useState<Map<string, string>>(new Map());
+
+  useEffect(() => {
+    let cancelled = false;
+    const hasPersonCol = config.columns.some(
+      (col) =>
+        col.type === "person" ||
+        col.key === "Employee_name" ||
+        col.key === "Display_name" ||
+        col.subtitleKey === "Employee_code",
+    );
+    if (hasPersonCol) {
+      void getEmployeePhotoMap().then((map) => {
+        if (!cancelled && map && map.size > 0) {
+          setEmployeePhotoMap(map);
+        }
+      });
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, [config.columns]);
 
   const columns = useMemo(() => {
     const base = buildColumns(
@@ -395,6 +434,7 @@ export function MasterDataPage({
       language,
       t("common.yes"),
       t("common.no"),
+      employeePhotoMap,
     );
     if (!isLeaveRequisitionModule && !isLeaveApprovalModule) return base;
 
@@ -422,13 +462,24 @@ export function MasterDataPage({
             const post = String(row.Designation ?? "").trim();
             const branch = String(row.Branch_Name ?? "").trim();
             const subtitle = [code, post || branch].filter(Boolean).join(" · ");
-            const avatar =
+            const directAvatar =
               row.Photo_path ??
               row.photo_path ??
               row.Photo ??
               row.photo ??
               row.avatar ??
               row.image;
+            const empId = row.Employee_id ?? row.Employee_Id;
+            const empCode = row.Employee_code ?? row.Employee_Code;
+            const empName = row.Employee_name ?? row.Employee_Name;
+            const avatar =
+              directAvatar ||
+              (empId ? employeePhotoMap.get(String(empId)) : undefined) ||
+              (empCode
+                ? employeePhotoMap.get(String(empCode).trim().toLowerCase()) ??
+                  employeePhotoMap.get(String(empCode).trim())
+                : undefined) ||
+              (empName ? employeePhotoMap.get(String(empName).trim().toLowerCase()) : undefined);
             return (
               <PersonCell
                 name={name || code || "—"}
@@ -470,6 +521,7 @@ export function MasterDataPage({
     });
   }, [
     config.columns,
+    employeePhotoMap,
     isLeaveApprovalModule,
     isLeaveRequisitionAdmin,
     isLeaveRequisitionModule,
@@ -1416,16 +1468,20 @@ export function MasterDataPage({
     }
 
     const result = await apiService.list(resolvedFetchParams);
+    const rawRows = Array.isArray(result) ? result : result.rows;
+    const photoMap = employeePhotoMap.size > 0 ? employeePhotoMap : await getEmployeePhotoMap();
+    const rows = enrichRowsWithEmployeePhotos(rawRows, photoMap);
+
     if (Array.isArray(result)) {
       if (isServerPagedModule) setListTotal(result.length);
-      return sortConfigRows(moduleId, result);
+      return sortConfigRows(moduleId, rows);
     }
 
     if (isServerPagedModule) {
       setListTotal(Number(result.total ?? result.rows.length));
     }
-    return sortConfigRows(moduleId, result.rows);
-  }, [apiService, isServerPagedModule, moduleId, resolvedFetchParams, usesApi]);
+    return sortConfigRows(moduleId, rows);
+  }, [apiService, employeePhotoMap, isServerPagedModule, moduleId, resolvedFetchParams, usesApi]);
 
   const loadRows = useCallback(
     async (options?: { showLoader?: boolean }) => {

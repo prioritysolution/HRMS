@@ -94,6 +94,9 @@ export function employeeServiceHistoryToRow(record: EmployeeServiceHistoryRecord
     Created_by: optionalNumber(readValue(source, ["Created_by", "created_by"])),
     Created_at:
       optionalText(readValue(source, ["Created_at", "created_at", "Created_At"])) ?? "",
+    Photo_path: optionalText(
+      readValue(source, ["Photo_path", "photo_path", "Photo", "photo", "avatar", "Logo_Url"]),
+    ),
   };
 }
 

@@ -128,6 +128,16 @@ export default function AssetAllocationPage() {
   const [loading, setLoading] = useState(true);
   const [addOpen, setAddOpen] = useState(false);
   const [editRow, setEditRow] = useState<HrmsRow | null>(null);
+  const employeeMap = useMemo(() => {
+    const map = new Map<string, HrmsRow>();
+    employees.forEach((emp) => {
+      const id = String(emp.Employee_id ?? emp.id ?? "").trim();
+      const code = String(emp.Employee_code ?? "").trim();
+      if (id && id !== "0") map.set(id, emp);
+      if (code) map.set(code.toLowerCase(), emp);
+    });
+    return map;
+  }, [employees]);
 
   const baseFormFields = useMemo(() => getModuleFormFields(config), [config]);
 
@@ -333,13 +343,28 @@ export default function AssetAllocationPage() {
             {
               key: "Employee_name",
               header: translateHrmsLookup(language, "headers", "Employee"),
-              render: (row) => (
-                <PersonCell
-                  name={String(row.Employee_name ?? "—")}
-                  subtitle={String(row.Employee_code ?? "")}
-                  avatar={row.Photo_path || (row as any).photo_path || (row as any).avatar}
-                />
-              ),
+              render: (row) => {
+                const empId = String(row.Employee_id ?? "").trim();
+                const empCode = String(row.Employee_code ?? "").trim().toLowerCase();
+                const emp = employeeMap.get(empId) || employeeMap.get(empCode);
+                const avatar =
+                  row.Photo_path ||
+                  (row as any).photo_path ||
+                  (row as any).avatar ||
+                  emp?.Photo_path ||
+                  (emp as any)?.photo_path ||
+                  (emp as any)?.avatar ||
+                  (emp as any)?.Photo ||
+                  (emp as any)?.Logo_Url;
+
+                return (
+                  <PersonCell
+                    name={String(row.Employee_name ?? emp?.Employee_name ?? emp?.Display_name ?? "—")}
+                    subtitle={String(row.Employee_code ?? emp?.Employee_code ?? "")}
+                    avatar={avatar}
+                  />
+                );
+              },
             },
             {
               key: "Asset_code",
