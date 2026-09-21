@@ -525,7 +525,8 @@ export function rowToAttendancePayload(
   }
 
   const attendanceDateRaw = row.Attendance_date;
-  const attendanceDate = parseDateToIso(attendanceDateRaw) || optionalText(attendanceDateRaw);
+  const attendanceDateText = String(attendanceDateRaw ?? "").trim();
+  const attendanceDate = parseDateToIso(attendanceDateText) || optionalText(attendanceDateText);
   if (!attendanceDate) {
     throw new Error("Attendance date is required.");
   }
