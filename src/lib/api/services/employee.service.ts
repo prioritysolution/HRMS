@@ -2017,6 +2017,7 @@ export const employeeService = {
         body,
       );
 
+    clearEmployeePhotoMapCache();
     return employeeRowFromSaveResponse(response, row);
   },
 
@@ -2061,6 +2062,7 @@ export const employeeService = {
         body,
       );
 
+    clearEmployeePhotoMapCache();
     return employeeRowFromSaveResponse(
       response,
       row,
@@ -2090,6 +2092,7 @@ export const employeeService = {
       );
     }
 
+    clearEmployeePhotoMapCache();
     return apiClient.delete<{
       success?: boolean;
       message?: string;
@@ -2104,3 +2107,75 @@ export const employeeService = {
     );
   },
 };
+
+let cachedEmployeePhotoMap: Map<string, string> | null = null;
+let cachedEmployeePhotoMapPromise: Promise<Map<string, string>> | null = null;
+
+export function clearEmployeePhotoMapCache(): void {
+  cachedEmployeePhotoMap = null;
+  cachedEmployeePhotoMapPromise = null;
+}
+
+export async function getEmployeePhotoMap(forceRefresh = false): Promise<Map<string, string>> {
+  if (cachedEmployeePhotoMap && !forceRefresh) {
+    return cachedEmployeePhotoMap;
+  }
+  if (!cachedEmployeePhotoMapPromise || forceRefresh) {
+    cachedEmployeePhotoMapPromise = employeeService
+      .list({ status: 1 })
+      .then((employees) => {
+        const map = new Map<string, string>();
+        for (const emp of employees) {
+          const photo = String(
+            emp.Photo_path ??
+              (emp as any).photo_path ??
+              emp.Photo ??
+              (emp as any).photo ??
+              (emp as any).avatar ??
+              "",
+          ).trim();
+          if (!photo) continue;
+          if (emp.Employee_id) {
+            map.set(String(emp.Employee_id), photo);
+          }
+          if (emp.id) {
+            map.set(String(emp.id), photo);
+          }
+          if (emp.Employee_code) {
+            const code = String(emp.Employee_code).trim();
+            map.set(code.toLowerCase(), photo);
+            map.set(code, photo);
+          }
+          const name = String(emp.Display_name ?? emp.Employee_name ?? "").trim().toLowerCase();
+          if (name) {
+            map.set(name, photo);
+          }
+        }
+        cachedEmployeePhotoMap = map;
+        return map;
+      })
+      .catch(() => cachedEmployeePhotoMap ?? new Map<string, string>());
+  }
+  return cachedEmployeePhotoMapPromise;
+}
+
+export function enrichRowsWithEmployeePhotos(
+  rows: HrmsRow[],
+  photoMap: Map<string, string>,
+): HrmsRow[] {
+  if (!photoMap || photoMap.size === 0) return rows;
+  return rows.map((row) => {
+    if (row.Photo_path) return row;
+    const empId = row.Employee_id ?? row.Employee_Id;
+    const empCode = row.Employee_code ?? row.Employee_Code;
+    const empName = row.Employee_name ?? row.Employee_Name ?? row.Display_name;
+    const photo =
+      (empId ? photoMap.get(String(empId)) : undefined) ||
+      (empCode
+        ? photoMap.get(String(empCode).trim().toLowerCase()) ??
+          photoMap.get(String(empCode).trim())
+        : undefined) ||
+      (empName ? photoMap.get(String(empName).trim().toLowerCase()) : undefined);
+    return photo ? { ...row, Photo_path: photo } : row;
+  });
+}

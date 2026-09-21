@@ -16,6 +16,7 @@ import { RoundLoader } from "@/components/ui/RoundLoader";
 import { StatusToggle } from "@/components/ui/StatusToggle";
 import { TableSectionHeader } from "@/components/ui/TableSectionHeader";
 import { useToast } from "@/components/ui/ToastProvider";
+import { useI18n, translateHrmsLookup } from "@/i18n";
 import type { ProfessionalTaxSlab, TaxSettings } from "@/data/settings-mock";
 import { applOptionService, OPT_GRP_IDS } from "@/lib/api/services/appl-options.service";
 import { finYearService } from "@/lib/api/services/fin-year.service";
@@ -82,32 +83,34 @@ function toDynamicOptions(
     .filter((opt) => opt.value && opt.label);
 }
 
-const slabFields: FormField[] = [
-  {
-    label: "From Amount (₹)",
-    name: "from_amount",
-    type: "number",
-    required: true,
-    min: 0,
-    defaultValue: "0",
-  },
-  {
-    label: "To Amount (₹)",
-    name: "to_amount",
-    type: "number",
-    required: false,
-    min: 0,
-    placeholder: "Leave blank for no upper limit",
-  },
-  {
-    label: "Tax Amount (₹)",
-    name: "tax_amount",
-    type: "number",
-    required: true,
-    min: 0,
-    defaultValue: "0",
-  },
-];
+function buildSlabFields(t: (key: string) => string): FormField[] {
+  return [
+    {
+      label: t("settings.tax.fields.from_amount"),
+      name: "from_amount",
+      type: "number",
+      required: true,
+      min: 0,
+      defaultValue: "0",
+    },
+    {
+      label: t("settings.tax.fields.to_amount"),
+      name: "to_amount",
+      type: "number",
+      required: false,
+      min: 0,
+      placeholder: t("settings.tax.placeholders.to_amount"),
+    },
+    {
+      label: t("settings.tax.fields.tax_amount"),
+      name: "tax_amount",
+      type: "number",
+      required: true,
+      min: 0,
+      defaultValue: "0",
+    },
+  ];
+}
 
 const TDS_TOGGLES = [
   {
@@ -145,8 +148,8 @@ function toNumber(value: FormValue, fallback = 0): number {
   return Number.isFinite(numeric) ? numeric : fallback;
 }
 
-function formatCurrency(value: number | null): string {
-  if (value === null || value === undefined) return "No limit";
+function formatCurrency(value: number | null, fallbackText = "No limit"): string {
+  if (value === null || value === undefined) return fallbackText;
   return new Intl.NumberFormat("en-IN", {
     style: "currency",
     currency: "INR",
@@ -185,6 +188,7 @@ function resolveOptionValue(
 }
 
 export default function TaxSettingsPage() {
+  const { t, language } = useI18n();
   const toast = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -199,10 +203,45 @@ export default function TaxSettingsPage() {
     { value: "1", label: "2026-2027", yearId: "1" },
   ]);
 
+  const translateOptionLabel = useCallback(
+    (opt: DynamicOption) => {
+      const valLower = opt.value.toLowerCase().replace(/[\s-]/g, "_");
+      const key = `settings.tax.options.${valLower}`;
+      const translated = t(key);
+      if (translated && translated !== key) return translated;
+      const labelLower = opt.label.toLowerCase().replace(/[\s-]/g, "_");
+      const key2 = `settings.tax.options.${labelLower}`;
+      const translated2 = t(key2);
+      if (translated2 && translated2 !== key2) return translated2;
+      return translateHrmsLookup(language, "labels", opt.label);
+    },
+    [t, language],
+  );
+
+  const localizedFrequencyOptions = useMemo(
+    () => frequencyOptions.map((o) => ({ ...o, label: translateOptionLabel(o) })),
+    [frequencyOptions, translateOptionLabel],
+  );
+
+  const localizedPtBasedOnOptions = useMemo(
+    () => ptBasedOnOptions.map((o) => ({ ...o, label: translateOptionLabel(o) })),
+    [ptBasedOnOptions, translateOptionLabel],
+  );
+
+  const localizedRegimeOptions = useMemo(
+    () => regimeOptions.map((o) => ({ ...o, label: translateOptionLabel(o) })),
+    [regimeOptions, translateOptionLabel],
+  );
+
+  const localizedTdsMethodOptions = useMemo(
+    () => tdsMethodOptions.map((o) => ({ ...o, label: translateOptionLabel(o) })),
+    [tdsMethodOptions, translateOptionLabel],
+  );
+
   const ptConfigFields = useMemo<FormField[]>(
     () => [
       {
-        label: "State",
+        label: t("settings.tax.fields.state"),
         name: "pt_state",
         type: "select",
         required: true,
@@ -210,37 +249,37 @@ export default function TaxSettingsPage() {
         options: DEFAULT_STATE_OPTIONS,
       },
       {
-        label: "Deduction Frequency",
+        label: t("settings.tax.fields.deduction_frequency"),
         name: "pt_deduction_frequency",
         type: "select",
         required: true,
-        defaultValue: frequencyOptions[0]?.value ?? "Monthly",
-        options: frequencyOptions,
+        defaultValue: localizedFrequencyOptions[0]?.value ?? "Monthly",
+        options: localizedFrequencyOptions,
       },
       {
-        label: "PT Based On",
+        label: t("settings.tax.fields.pt_based_on"),
         name: "pt_based_on",
         type: "select",
         required: true,
-        defaultValue: ptBasedOnOptions[0]?.value ?? "Gross Salary",
-        options: ptBasedOnOptions,
+        defaultValue: localizedPtBasedOnOptions[0]?.value ?? "Gross Salary",
+        options: localizedPtBasedOnOptions,
       },
     ],
-    [frequencyOptions, ptBasedOnOptions],
+    [t, localizedFrequencyOptions, localizedPtBasedOnOptions],
   );
 
   const tdsConfigFields = useMemo<FormField[]>(
     () => [
       {
-        label: "Tax Regime",
+        label: t("settings.tax.fields.tax_regime"),
         name: "tax_regime",
         type: "select",
         required: true,
-        defaultValue: regimeOptions[0]?.value ?? "New Regime",
-        options: regimeOptions,
+        defaultValue: localizedRegimeOptions[0]?.value ?? "New Regime",
+        options: localizedRegimeOptions,
       },
       {
-        label: "Financial Year",
+        label: t("settings.tax.fields.financial_year"),
         name: "fin_year_id",
         type: "select",
         required: true,
@@ -248,15 +287,15 @@ export default function TaxSettingsPage() {
         options: finYearOptions,
       },
       {
-        label: "TDS Calculation Method",
+        label: t("settings.tax.fields.tds_method"),
         name: "tds_calculation_method",
         type: "select",
         required: true,
-        defaultValue: tdsMethodOptions[0]?.value ?? "Monthly Projection",
-        options: tdsMethodOptions,
+        defaultValue: localizedTdsMethodOptions[0]?.value ?? "Monthly Projection",
+        options: localizedTdsMethodOptions,
       },
       {
-        label: "Standard Deduction (₹)",
+        label: t("settings.tax.fields.standard_deduction"),
         name: "standard_deduction",
         type: "number",
         required: true,
@@ -265,7 +304,7 @@ export default function TaxSettingsPage() {
         defaultValue: "75000",
       },
     ],
-    [regimeOptions, finYearOptions, tdsMethodOptions],
+    [t, localizedRegimeOptions, finYearOptions, localizedTdsMethodOptions],
   );
 
   const allConfigFields = useMemo(
@@ -289,11 +328,13 @@ export default function TaxSettingsPage() {
     show_tds_on_payslip: "1",
   }));
 
+  const currentSlabFields = useMemo(() => buildSlabFields(t), [t]);
+
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [slabModalOpen, setSlabModalOpen] = useState(false);
   const [editSlab, setEditSlab] = useState<ProfessionalTaxSlab | null>(null);
   const [slabValues, setSlabValues] = useState<Record<string, FormValue>>(() =>
-    buildInitialFormValues(slabFields),
+    buildInitialFormValues(currentSlabFields),
   );
   const [slabErrors, setSlabErrors] = useState<Record<string, string>>({});
 
@@ -383,19 +424,19 @@ export default function TaxSettingsPage() {
 
       if (!result.ok) {
         toast.error({
-          title: "Unable to load settings",
+          title: t("settings.common.loadFailed"),
           message: result.message,
         });
       }
     } catch {
       toast.error({
-        title: "Unable to load settings",
-        message: "Failed to load tax settings. Please try again.",
+        title: t("settings.common.loadFailed"),
+        message: t("settings.tax.loadError"),
       });
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [toast, t]);
 
   useEffect(() => {
     void loadSettings();
@@ -404,13 +445,13 @@ export default function TaxSettingsPage() {
   useEffect(() => {
     if (!slabModalOpen) {
       setEditSlab(null);
-      setSlabValues(buildInitialFormValues(slabFields));
+      setSlabValues(buildInitialFormValues(currentSlabFields));
       setSlabErrors({});
       return;
     }
     if (editSlab) {
       setSlabValues(
-        buildInitialFormValues(slabFields, {
+        buildInitialFormValues(currentSlabFields, {
           ...(editSlab as unknown as HrmsRow),
           to_amount:
             editSlab.to_amount === null || editSlab.to_amount === undefined
@@ -419,10 +460,10 @@ export default function TaxSettingsPage() {
         }),
       );
     } else {
-      setSlabValues(buildInitialFormValues(slabFields));
+      setSlabValues(buildInitialFormValues(currentSlabFields));
     }
     setSlabErrors({});
-  }, [slabModalOpen, editSlab]);
+  }, [slabModalOpen, editSlab, currentSlabFields]);
 
   const handleChange = (name: string, value: FormValue) => {
     setValues((prev) => ({ ...prev, [name]: value }));
@@ -439,7 +480,7 @@ export default function TaxSettingsPage() {
 
   const handleSlabChange = (name: string, value: FormValue) => {
     setSlabValues((prev) => ({ ...prev, [name]: value }));
-    const field = slabFields.find((item) => item.name === name);
+    const field = currentSlabFields.find((item) => item.name === name);
     if (!field) return;
     setSlabErrors((prev) => {
       const next = { ...prev };
@@ -456,8 +497,8 @@ export default function TaxSettingsPage() {
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors);
       toast.error({
-        title: "Validation error",
-        message: "Please fill all mandatory tax settings.",
+        title: t("settings.common.validationError"),
+        message: t("settings.tax.validationMessage"),
       });
       return;
     }
@@ -473,19 +514,19 @@ export default function TaxSettingsPage() {
         pt_applicable: toFlag(values.pt_applicable),
         pt_state: String(values.pt_state ?? "Gujarat"),
         pt_deduction_frequency:
-          String(values.pt_deduction_frequency) === "Half-Yearly"
+          String(values.pt_deduction_frequency ?? "").toLowerCase().includes("half")
             ? "half_yearly"
-            : String(values.pt_deduction_frequency) === "Yearly"
+            : String(values.pt_deduction_frequency ?? "").toLowerCase().includes("year")
               ? "yearly"
               : "monthly",
-        pt_based_on: String(values.pt_based_on) === "Basic Salary" ? "basic" : "gross",
+        pt_based_on: String(values.pt_based_on ?? "").toLowerCase().includes("basic") ? "basic" : "gross",
         pt_slabs: slabs,
         tds_applicable: toFlag(values.tds_applicable),
-        tax_regime: String(values.tax_regime) === "Old Regime" ? "old" : "new",
+        tax_regime: String(values.tax_regime ?? "").toLowerCase().includes("old") ? "old" : "new",
         financial_year: selectedFyOption?.label || String(values.fin_year_id ?? "1"),
         fin_year_id: finYearIdNum,
         tds_calculation_method:
-          String(values.tds_calculation_method) === "Actual" ? "actual" : "monthly_projection",
+          String(values.tds_calculation_method ?? "").toLowerCase().includes("actual") ? "actual" : "monthly_projection",
         standard_deduction: toNumber(values.standard_deduction, 75000),
         round_off_tds: toFlag(values.round_off_tds),
         consider_previous_employment: toFlag(values.consider_previous_employment),
@@ -495,7 +536,7 @@ export default function TaxSettingsPage() {
 
       const result = await taxSettingsService.update(payload);
       if (!result.ok || !result.data) {
-        toast.error({ title: "Save failed", message: result.message });
+        toast.error({ title: t("settings.common.saveFailed"), message: result.message });
         return;
       }
 
@@ -533,11 +574,11 @@ export default function TaxSettingsPage() {
         auto_generate_form16: String(data.auto_generate_form16 ?? "1"),
         show_tds_on_payslip: String(data.show_tds_on_payslip ?? "1"),
       });
-      toast.success({ title: "Saved", message: result.message });
+      toast.success({ title: t("settings.common.saved"), message: result.message });
     } catch {
       toast.error({
-        title: "Save failed",
-        message: "Failed to save tax settings. Please try again.",
+        title: t("settings.common.saveFailed"),
+        message: t("settings.tax.saveError"),
       });
     } finally {
       setSaving(false);
@@ -556,12 +597,12 @@ export default function TaxSettingsPage() {
 
   const handleSaveSlab = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const nextErrors = validateFormFields(slabFields, slabValues);
+    const nextErrors = validateFormFields(currentSlabFields, slabValues);
     if (Object.keys(nextErrors).length > 0) {
       setSlabErrors(nextErrors);
       toast.error({
-        title: "Validation error",
-        message: "Please fill all mandatory slab fields.",
+        title: t("settings.common.validationError"),
+        message: t("settings.tax.slabValidation"),
       });
       return;
     }
@@ -576,7 +617,7 @@ export default function TaxSettingsPage() {
     if (payload.to_amount !== null && payload.to_amount < payload.from_amount) {
       setSlabErrors((prev) => ({
         ...prev,
-        to_amount: "To Amount must be greater than or equal to From Amount.",
+        to_amount: t("settings.tax.toAmountMinError"),
       }));
       return;
     }
@@ -588,7 +629,7 @@ export default function TaxSettingsPage() {
         : await taxSettingsService.createSlab(payload);
 
       if (!result.ok) {
-        toast.error({ title: "Save failed", message: result.message });
+        toast.error({ title: t("settings.common.saveFailed"), message: result.message });
         return;
       }
 
@@ -600,11 +641,11 @@ export default function TaxSettingsPage() {
         if (fullRefreshed.data) setSlabs(fullRefreshed.data.pt_slabs);
       }
       setSlabModalOpen(false);
-      toast.success({ title: "Saved", message: result.message });
+      toast.success({ title: t("settings.common.saved"), message: result.message });
     } catch {
       toast.error({
-        title: "Save failed",
-        message: "Failed to save professional tax slab.",
+        title: t("settings.common.saveFailed"),
+        message: t("settings.tax.slabSaveError"),
       });
     } finally {
       setSavingSlab(false);
@@ -615,15 +656,15 @@ export default function TaxSettingsPage() {
     try {
       const result = await taxSettingsService.removeSlab(row.id);
       if (!result.ok) {
-        toast.error({ title: "Delete failed", message: result.message });
+        toast.error({ title: t("settings.common.deleteFailed"), message: result.message });
         return;
       }
       setSlabs((prev) => prev.filter((item) => item.id !== row.id));
-      toast.success({ title: "Deleted", message: result.message });
+      toast.success({ title: t("settings.common.deleted"), message: result.message });
     } catch {
       toast.error({
-        title: "Delete failed",
-        message: "Failed to delete professional tax slab.",
+        title: t("settings.common.deleteFailed"),
+        message: t("settings.tax.slabDeleteError"),
       });
     }
   };
@@ -632,35 +673,39 @@ export default function TaxSettingsPage() {
     () => [
       {
         key: "from_amount",
-        header: "FROM AMOUNT",
-        render: (row) => formatCurrency(row.from_amount),
+        header: t("settings.tax.columns.from_amount"),
+        render: (row) => formatCurrency(row.from_amount, t("settings.tax.noLimit")),
       },
       {
         key: "to_amount",
-        header: "TO AMOUNT",
-        render: (row) => formatCurrency(row.to_amount),
+        header: t("settings.tax.columns.to_amount"),
+        render: (row) => formatCurrency(row.to_amount, t("settings.tax.noLimit")),
       },
       {
         key: "tax_amount",
-        header: "TAX AMOUNT",
-        render: (row) => formatCurrency(row.tax_amount),
+        header: t("settings.tax.columns.tax_amount"),
+        render: (row) => formatCurrency(row.tax_amount, t("settings.tax.noLimit")),
       },
     ],
-    [],
+    [t],
   );
 
   return (
     <>
-      <PageHeader title="Tax Settings" section="Settings" hideTitle />
+      <PageHeader
+        title={t("settings.tax.title")}
+        section={t("settings.common.section")}
+        hideTitle
+      />
 
       {loading ? (
         <div className="container-fluid">
           <div className="card">
             <div className="card-body">
-              <TableSectionHeader title="Tax Settings" />
+              <TableSectionHeader title={t("settings.tax.title")} />
               <div className="employee-profile-loading">
                 <RoundLoader />
-                <p>Loading tax settings…</p>
+                <p>{t("settings.tax.loading")}</p>
               </div>
             </div>
           </div>
@@ -670,7 +715,7 @@ export default function TaxSettingsPage() {
           <div className="card">
             <div className="card-body">
               <form id="tax-settings-form" onSubmit={(event) => void handleSave(event)} noValidate>
-                <TableSectionHeader title="Professional Tax Configuration" />
+                <TableSectionHeader title={t("settings.tax.ptTitle")} />
 
                 <div className="notification-option-list">
                   <div className="notification-option">
@@ -679,15 +724,15 @@ export default function TaxSettingsPage() {
                         <IndianRupee size={18} />
                       </div>
                       <div className="notification-option-copy">
-                        <h6>Professional Tax Applicable</h6>
-                        <p>Enable professional tax deduction in payroll.</p>
+                        <h6>{t("settings.tax.ptApplicable.label")}</h6>
+                        <p>{t("settings.tax.ptApplicable.description")}</p>
                       </div>
                     </div>
                     <StatusToggle
                       name="pt_applicable"
                       value={String(values.pt_applicable ?? "0")}
-                      activeLabel="Yes"
-                      inactiveLabel="No"
+                      activeLabel={t("common.yes")}
+                      inactiveLabel={t("common.no")}
                       onChange={(nextValue) => handleChange("pt_applicable", nextValue)}
                       disabled={saving}
                     />
@@ -705,7 +750,7 @@ export default function TaxSettingsPage() {
 
                 <div className="pt-4">
                   <TableSectionHeader
-                    title="Professional Tax Slabs"
+                    title={t("settings.tax.slabsTitle")}
                     action={
                       <button
                         type="button"
@@ -713,14 +758,14 @@ export default function TaxSettingsPage() {
                         onClick={openAddSlab}
                       >
                         <Plus size={16} />
-                        Add Slab
+                        {t("settings.tax.addSlab")}
                       </button>
                     }
                   />
                   <DataTable
                     columns={slabColumns}
                     rows={slabs}
-                    searchPlaceholder="Search PT slabs..."
+                    searchPlaceholder={t("settings.tax.searchSlabsPlaceholder")}
                     showRowActions
                     onRowEdit={openEditSlab}
                     onRowDelete={handleDeleteSlab}
@@ -728,7 +773,7 @@ export default function TaxSettingsPage() {
                 </div>
 
                 <div className="email-config-test-block">
-                  <TableSectionHeader title="TDS Settings" />
+                  <TableSectionHeader title={t("settings.tax.tdsTitle")} />
 
                   <div className="notification-option-list">
                     <div className="notification-option">
@@ -737,15 +782,15 @@ export default function TaxSettingsPage() {
                           <Receipt size={18} />
                         </div>
                         <div className="notification-option-copy">
-                          <h6>TDS Applicable</h6>
-                          <p>Enable TDS deduction during salary processing.</p>
+                          <h6>{t("settings.tax.tdsApplicable.label")}</h6>
+                          <p>{t("settings.tax.tdsApplicable.description")}</p>
                         </div>
                       </div>
                       <StatusToggle
                         name="tds_applicable"
                         value={String(values.tds_applicable ?? "0")}
-                        activeLabel="Yes"
-                        inactiveLabel="No"
+                        activeLabel={t("common.yes")}
+                        inactiveLabel={t("common.no")}
                         onChange={(nextValue) => handleChange("tds_applicable", nextValue)}
                         disabled={saving}
                       />
@@ -771,15 +816,15 @@ export default function TaxSettingsPage() {
                               <Icon size={18} />
                             </div>
                             <div className="notification-option-copy">
-                              <h6>{option.label}</h6>
-                              <p>{option.description}</p>
+                              <h6>{t(`settings.tax.toggles.${option.name}.label`)}</h6>
+                              <p>{t(`settings.tax.toggles.${option.name}.description`)}</p>
                             </div>
                           </div>
                           <StatusToggle
                             name={option.name}
                             value={String(values[option.name] ?? "0")}
-                            activeLabel="Yes"
-                            inactiveLabel="No"
+                            activeLabel={t("common.yes")}
+                            inactiveLabel={t("common.no")}
                             onChange={(nextValue) => handleChange(option.name, nextValue)}
                             disabled={saving}
                           />
@@ -791,7 +836,7 @@ export default function TaxSettingsPage() {
 
                 <div className="flex justify-end pt-4">
                   <button type="submit" className="btn btn-primary" disabled={saving}>
-                    {saving ? "Saving..." : "Save Settings"}
+                    {saving ? t("settings.common.saving") : t("settings.common.saveSettings")}
                   </button>
                 </div>
               </form>
@@ -803,8 +848,8 @@ export default function TaxSettingsPage() {
       <Modal
         open={slabModalOpen}
         onClose={() => setSlabModalOpen(false)}
-        title={editSlab ? "Edit PT Slab" : "Add PT Slab"}
-        subtitle="Configure salary range and professional tax amount."
+        title={editSlab ? t("settings.tax.editSlab") : t("settings.tax.addSlab")}
+        subtitle={t("settings.tax.modalSubtitle")}
         size="md"
         footer={
           <>
@@ -814,7 +859,7 @@ export default function TaxSettingsPage() {
               className="btn btn-primary"
               disabled={savingSlab}
             >
-              {savingSlab ? "Saving..." : "Save Slab"}
+              {savingSlab ? t("settings.common.saving") : t("settings.tax.addSlab")}
             </button>
             <button
               type="button"
@@ -822,7 +867,7 @@ export default function TaxSettingsPage() {
               onClick={() => setSlabModalOpen(false)}
               disabled={savingSlab}
             >
-              Cancel
+              {t("common.cancel")}
             </button>
           </>
         }
@@ -834,7 +879,7 @@ export default function TaxSettingsPage() {
           noValidate
         >
           <FormFieldsRenderer
-            fields={slabFields}
+            fields={currentSlabFields}
             values={slabValues}
             errors={slabErrors}
             onChange={handleSlabChange}

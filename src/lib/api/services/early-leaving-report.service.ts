@@ -1,6 +1,10 @@
 import { getCurrentOrgId } from "@/lib/auth/org-context";
 import { apiClient } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/endpoints";
+import {
+  getEmployeePhotoMap,
+  enrichRowsWithEmployeePhotos,
+} from "@/lib/api/services/employee.service";
 import type {
   EarlyLeavingReportQuery,
   EarlyLeavingReportRecord,
@@ -86,6 +90,19 @@ export function earlyLeavingReportToRow(record: EarlyLeavingReportRecord): HrmsR
     Employee_code: optionalText(readValue(source, ["Employee_code", "employee_code"])),
     Employee_name: employeeName,
     Display_name: employeeName,
+    Photo_path:
+      optionalText(
+        readValue(source, [
+          "Photo_path",
+          "photo_path",
+          "Photo",
+          "photo",
+          "avatar",
+          "Avatar",
+          "Emp_Photo",
+          "emp_photo",
+        ]),
+      ) ?? "",
     Branch_Id: optionalId(readValue(source, ["Branch_Id", "branch_id"])),
     Branch_Name: optionalText(readValue(source, ["Branch_Name", "branch_name"])),
     Dept_Id: optionalId(readValue(source, ["Dept_Id", "dept_id"])),
@@ -149,6 +166,8 @@ export const earlyLeavingReportService = {
     const payload = await apiClient.get<unknown>(
       withQuery(API_ENDPOINTS.earlyLeavingReport.list, query),
     );
-    return asList(payload).map(earlyLeavingReportToRow);
+    const rows = asList(payload).map(earlyLeavingReportToRow);
+    const photoMap = await getEmployeePhotoMap();
+    return enrichRowsWithEmployeePhotos(rows, photoMap);
   },
 };

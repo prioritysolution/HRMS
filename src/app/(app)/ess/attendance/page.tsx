@@ -17,6 +17,7 @@ import {
   type MonthCalendarLegendItem,
 } from "@/components/ui/MonthCalendar";
 import { useToast } from "@/components/ui/ToastProvider";
+import { useI18n } from "@/i18n";
 import { ApiError } from "@/lib/api/client";
 import { authService } from "@/lib/api/services/auth.service";
 import {
@@ -26,16 +27,6 @@ import {
 } from "@/lib/api/services/my-attendance.service";
 import { isSameDay } from "@/lib/date-utils";
 import type { MyAttendanceCalendar } from "@/lib/api/types";
-
-const ATTENDANCE_LEGEND: MonthCalendarLegendItem[] = [
-  { tone: "present", label: "Present" },
-  { tone: "absent", label: "Absent" },
-  { tone: "leave", label: "Leave" },
-  { tone: "holiday", label: "Holiday" },
-  { tone: "late", label: "Late" },
-  { tone: "half-day", label: "Half Day" },
-  { tone: "weekly-off", label: "Weekly Off" },
-];
 
 function formatMinutes(value: number | null | undefined): string | null {
   if (value == null || !Number.isFinite(Number(value))) return null;
@@ -49,6 +40,7 @@ function formatMinutes(value: number | null | undefined): string | null {
 }
 
 export default function EssAttendancePage() {
+  const { t } = useI18n();
   const toast = useToast();
   const today = useMemo(() => new Date(), []);
   const [year, setYear] = useState(today.getFullYear());
@@ -56,6 +48,19 @@ export default function EssAttendancePage() {
   const [calendar, setCalendar] = useState<MyAttendanceCalendar | null>(null);
   const [loading, setLoading] = useState(true);
   const [employeeId, setEmployeeId] = useState<number | null>(null);
+
+  const legend = useMemo(
+    (): MonthCalendarLegendItem[] => [
+      { tone: "present", label: t("ess.present") },
+      { tone: "absent", label: t("ess.absent") },
+      { tone: "leave", label: t("ess.leave") },
+      { tone: "holiday", label: t("ess.holiday") },
+      { tone: "late", label: t("ess.attendancePage.late") },
+      { tone: "half-day", label: t("ess.attendancePage.halfDay") },
+      { tone: "weekly-off", label: t("ess.attendancePage.weeklyOff") },
+    ],
+    [t],
+  );
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -80,12 +85,12 @@ export default function EssAttendancePage() {
           ? err.message
           : err instanceof Error
             ? err.message
-            : "Failed to load attendance calendar.";
+            : t("ess.attendancePage.loadError");
       toast.error(message);
     } finally {
       setLoading(false);
     }
-  }, [employeeId, month, toast, year]);
+  }, [employeeId, month, t, toast, year]);
 
   useEffect(() => {
     void load();
@@ -117,7 +122,9 @@ export default function EssAttendancePage() {
       const tone = myAttendanceDayTone(day);
       const label = myAttendanceDayLabel(day);
       const statusName =
-        day.Day_status_name || day.Attendance_status_name || (tone !== "default" ? tone.replace("-", " ") : "");
+        day.Day_status_name ||
+        day.Attendance_status_name ||
+        (tone !== "default" ? tone.replace("-", " ") : "");
       const checkIn = day.Check_in;
       const checkOut = day.Check_out;
       const worked = formatMinutes(day.Working_minutes);
@@ -129,31 +136,43 @@ export default function EssAttendancePage() {
         .join(" · ");
 
       const details = [
-        statusName ? { label: "Status", value: statusName } : null,
+        statusName ? { label: t("ess.attendancePage.status"), value: statusName } : null,
         day.Holiday_name
           ? {
-              label: "Holiday",
+              label: t("ess.holiday"),
               value: day.Holiday_type_name
                 ? `${day.Holiday_name} (${day.Holiday_type_name})`
                 : day.Holiday_name,
             }
           : null,
-        day.Leave_Name ? { label: "Leave", value: day.Leave_Name } : null,
+        day.Leave_Name ? { label: t("ess.leave"), value: day.Leave_Name } : null,
         day.Half_Day != null
-          ? { label: "Half Day", value: day.Half_Day === 2 ? "Second Half" : "First Half" }
+          ? {
+              label: t("ess.attendancePage.halfDay"),
+              value:
+                day.Half_Day === 2
+                  ? t("ess.attendancePage.secondHalf")
+                  : t("ess.attendancePage.firstHalf"),
+            }
           : null,
-        checkIn ? { label: "Check-in", value: checkIn } : null,
-        checkOut ? { label: "Check-out", value: checkOut } : null,
-        worked ? { label: "Working", value: worked } : null,
-        overtime ? { label: "Overtime", value: overtime } : null,
+        checkIn ? { label: t("ess.attendancePage.checkIn"), value: checkIn } : null,
+        checkOut ? { label: t("ess.attendancePage.checkOut"), value: checkOut } : null,
+        worked ? { label: t("ess.attendancePage.working"), value: worked } : null,
+        overtime ? { label: t("ess.attendancePage.overtime"), value: overtime } : null,
         day.Late_minutes && day.Late_minutes > 0
-          ? { label: "Late", value: `${day.Late_minutes} min` }
+          ? {
+              label: t("ess.attendancePage.late"),
+              value: t("ess.attendancePage.minutes", { count: day.Late_minutes }),
+            }
           : null,
         day.Early_leave_minutes && day.Early_leave_minutes > 0
-          ? { label: "Early leave", value: `${day.Early_leave_minutes} min` }
+          ? {
+              label: t("ess.attendancePage.earlyLeave"),
+              value: t("ess.attendancePage.minutes", { count: day.Early_leave_minutes }),
+            }
           : null,
-        day.Source ? { label: "Source", value: day.Source } : null,
-        day.Remarks ? { label: "Remarks", value: day.Remarks } : null,
+        day.Source ? { label: t("ess.attendancePage.source"), value: day.Source } : null,
+        day.Remarks ? { label: t("ess.attendancePage.remarks"), value: day.Remarks } : null,
       ].filter((row): row is { label: string; value: string } => row !== null);
 
       return {
@@ -173,7 +192,7 @@ export default function EssAttendancePage() {
         isToday: dateObj ? isSameDay(dateObj, today) : false,
       };
     });
-  }, [calendar?.days, today]);
+  }, [calendar?.days, t, today]);
 
   const sidebarItems: CalendarSidebarItem[] = useMemo(() => {
     const normalizedToday = new Date(
@@ -202,10 +221,7 @@ export default function EssAttendancePage() {
         label ||
         tone.replace("-", " ");
       const title =
-        day.Holiday_name ||
-        day.Leave_Name ||
-        statusName ||
-        "Day detail";
+        day.Holiday_name || day.Leave_Name || statusName || t("ess.attendancePage.dayDetail");
       const metaParts = [
         statusName && statusName !== title ? statusName : null,
         day.Check_in && day.Check_out
@@ -216,8 +232,7 @@ export default function EssAttendancePage() {
       const d = date ? new Date(`${date}T00:00:00`) : null;
       const isPast = d ? d < normalizedToday : false;
       const isTodayRow = Boolean(
-        day.Attendance_date &&
-          isSameDay(new Date(`${day.Attendance_date}T00:00:00`), today),
+        day.Attendance_date && isSameDay(new Date(`${day.Attendance_date}T00:00:00`), today),
       );
 
       return {
@@ -228,77 +243,77 @@ export default function EssAttendancePage() {
         metaToneClass: attendanceToneClass(tone),
         muted: isPast,
         isNext: Boolean(nextDate && date === nextDate && !isPast),
-        badge: isTodayRow ? "Today" : undefined,
+        badge: isTodayRow ? t("ess.attendancePage.today") : undefined,
       };
     });
-  }, [calendar?.days, today]);
+  }, [calendar?.days, t, today]);
 
   const summary = calendar?.summary;
+  const monthHint = calendar?.month_name || t("ess.thisMonth");
   const monthLabel =
-    calendar?.month_name ||
-    `${MONTH_CALENDAR_MONTHS[Math.max(0, month - 1)]} ${year}`;
+    calendar?.month_name || `${MONTH_CALENDAR_MONTHS[Math.max(0, month - 1)]} ${year}`;
 
   return (
     <>
-      <PageHeader title="My Attendance" section="Employee Self Service" />
+      <PageHeader title={t("ess.attendancePage.title")} section={t("ess.section")} />
       <div className="container-fluid">
         <div className="ess-stat-grid ess-stat-grid--attendance mb-4">
           <StatCard
-            title="Present"
+            title={t("ess.present")}
             value={String(summary?.Present_count ?? 0)}
             change=""
-            hint={calendar?.month_name || "This month"}
-            description="Present days"
+            hint={monthHint}
+            description={t("ess.attendancePage.presentDays")}
             tone="success"
             icon="calendar"
             positive
           />
           <StatCard
-            title="Absent"
+            title={t("ess.absent")}
             value={String(summary?.Absent_count ?? 0)}
             change=""
-            hint={calendar?.month_name || "This month"}
-            description="Absent days"
+            hint={monthHint}
+            description={t("ess.attendancePage.absentDays")}
             tone="danger"
             icon="users"
             positive={false}
           />
           <StatCard
-            title="Leave"
+            title={t("ess.leave")}
             value={String(summary?.Leave_count ?? 0)}
             change=""
-            hint={calendar?.month_name || "This month"}
-            description="Leave days"
+            hint={monthHint}
+            description={t("ess.attendancePage.leaveDays")}
             tone="info"
             icon="calendar"
             positive
           />
           <StatCard
-            title="Holiday"
+            title={t("ess.holiday")}
             value={String(summary?.Holiday_count ?? 0)}
             change=""
-            hint={calendar?.month_name || "This month"}
-            description="Holidays"
+            hint={monthHint}
+            description={t("ess.attendancePage.holidays")}
             tone="orange"
             icon="calendar"
             positive
           />
           <StatCard
-            title="Late"
+            title={t("ess.attendancePage.late")}
             value={String(summary?.Late_count ?? 0)}
             change=""
-            hint={calendar?.month_name || "This month"}
-            description="Late days"
+            hint={monthHint}
+            description={t("ess.attendancePage.lateDays")}
             tone="warning"
             icon="clock"
             positive={false}
           />
           <StatCard
-            title="Weekly Off"
+            title={t("ess.attendancePage.weeklyOff")}
             value={String(summary?.Weekly_off_count ?? 0)}
             change=""
-            hint={calendar?.month_name || "This month"}
-            description="Weekly offs"
+            hint={monthHint}
+            description={t("ess.attendancePage.weeklyOffs")}
             tone="primary"
             icon="calendar"
             positive
@@ -313,7 +328,7 @@ export default function EssAttendancePage() {
               <div className="card">
                 <div className="card-body employee-profile-loading">
                   <RoundLoader />
-                  <p>Loading attendance calendar…</p>
+                  <p>{t("ess.attendancePage.loading")}</p>
                 </div>
               </div>
             ) : (
@@ -323,25 +338,25 @@ export default function EssAttendancePage() {
                 days={calendarDays}
                 title={
                   calendar?.display_name
-                    ? `Attendance — ${calendar.display_name}`
-                    : "Attendance Calendar"
+                    ? t("ess.attendancePage.calendarNamed", { name: calendar.display_name })
+                    : t("ess.attendancePage.calendarTitle")
                 }
                 loading={loading}
                 onPrevMonth={goPrev}
                 onNextMonth={goNext}
                 onYearChange={setYear}
                 onMonthChange={setMonth}
-                legend={ATTENDANCE_LEGEND}
+                legend={legend}
               />
             )
           }
           sidebar={
             <CalendarDetailsSidebar
-              title="Day Details"
-              subtitle={`Notable days in ${monthLabel}`}
+              title={t("ess.attendancePage.dayDetails")}
+              subtitle={t("ess.attendancePage.notableSubtitle", { month: monthLabel })}
               items={sidebarItems}
               loading={loading}
-              emptyMessage="No leave, holiday, or exception days this month."
+              emptyMessage={t("ess.attendancePage.emptyNotable")}
               className="w-full"
             />
           }

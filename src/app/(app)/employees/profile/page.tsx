@@ -20,6 +20,7 @@ import { SoftStatus } from "@/components/ui/DataTable";
 import { authService } from "@/lib/api/services/auth.service";
 import type { AuthMeProfile } from "@/lib/api/types";
 import { resolvePublicFileUrl } from "@/lib/env";
+import { useI18n } from "@/i18n";
 
 function displayValue(value: string | number | null | undefined): string {
   if (value === undefined || value === null || value === "") return "—";
@@ -90,6 +91,7 @@ function ProfileFact({
 }
 
 export default function EmployeeProfilePage() {
+  const { t } = useI18n();
   const [profile, setProfile] = useState<AuthMeProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -100,18 +102,18 @@ export default function EmployeeProfilePage() {
     try {
       const data = await authService.getMeProfile();
       if (!data) {
-        setError("Unable to load your profile. Please sign in again.");
+        setError(t("profile.loadErrorAuth"));
         setProfile(null);
         return;
       }
       setProfile(data);
     } catch {
-      setError("Unable to load your profile. Check your connection and try again.");
+      setError(t("profile.loadErrorNetwork"));
       setProfile(null);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     void loadProfile();
@@ -126,19 +128,19 @@ export default function EmployeeProfilePage() {
 
   return (
     <>
-      <PageHeader title="My Profile" section="Employee Management" hideTitle />
+      <PageHeader title={t("profile.title")} section={t("profile.section")} hideTitle />
       <div className="container-fluid employee-profile-page">
         {loading ? (
           <div className="employee-profile-loading">
             <RoundLoader />
-            <p>Loading profile...</p>
+            <p>{t("profile.loading")}</p>
           </div>
         ) : error ? (
           <div className="card">
             <div className="card-body employee-profile-error">
               <p>{error}</p>
               <button type="button" className="btn btn-primary" onClick={() => void loadProfile()}>
-                Retry
+                {t("common.retry")}
               </button>
             </div>
           </div>
@@ -168,7 +170,7 @@ export default function EmployeeProfilePage() {
                     <div className="employee-profile-hero-meta">
                       <span className="badge bg-soft-primary">{profile.roleName}</span>
                       {profile.isAdmin ? (
-                        <span className="badge bg-soft-warning">Administrator</span>
+                        <span className="badge bg-soft-warning">{t("profile.administrator")}</span>
                       ) : null}
                       <span className="employee-profile-username">@{profile.userName}</span>
                     </div>
@@ -191,15 +193,15 @@ export default function EmployeeProfilePage() {
                   ) : null}
                   <div className="employee-profile-stat-strip">
                     <div className="employee-profile-stat">
-                      <span>User ID</span>
+                      <span>{t("profile.userId")}</span>
                       <strong>{displayValue(profile.userId)}</strong>
                     </div>
                     <div className="employee-profile-stat">
-                      <span>Org Code</span>
+                      <span>{t("profile.orgCode")}</span>
                       <strong>{displayValue(profile.orgCode)}</strong>
                     </div>
                     <div className="employee-profile-stat">
-                      <span>Branch</span>
+                      <span>{t("profile.branch")}</span>
                       <strong>{displayValue(profile.branchCode)}</strong>
                     </div>
                   </div>
@@ -212,35 +214,35 @@ export default function EmployeeProfilePage() {
                 <div className="card">
                   <div className="card-body">
                     <div className="employee-profile-section-head">
-                      <h4>Personal Information</h4>
-                      <p>Basic identity details linked to your login account.</p>
+                      <h4>{t("profile.personalInfo")}</h4>
+                      <p>{t("profile.personalInfoHint")}</p>
                     </div>
                     <div className="employee-profile-fact-grid">
                       <ProfileFact
-                        label="Display Name"
+                        label={t("profile.displayName")}
                         value={displayValue(profile.displayName)}
                         icon={UserRound}
                       />
                       <ProfileFact
-                        label="Username"
+                        label={t("profile.username")}
                         value={displayValue(profile.userName)}
                         icon={IdCard}
                       />
                       <ProfileFact
-                        label="First Name"
+                        label={t("profile.firstName")}
                         value={displayValue(profile.firstName)}
                       />
                       <ProfileFact
-                        label="Last Name"
+                        label={t("profile.lastName")}
                         value={displayValue(profile.lastName)}
                       />
                       <ProfileFact
-                        label="Email"
+                        label={t("profile.email")}
                         value={displayValue(profile.email)}
                         icon={Mail}
                       />
                       <ProfileFact
-                        label="Mobile"
+                        label={t("profile.mobile")}
                         value={displayValue(profile.mobile)}
                         icon={Phone}
                       />
@@ -251,39 +253,39 @@ export default function EmployeeProfilePage() {
                 <div className="card">
                   <div className="card-body">
                     <div className="employee-profile-section-head">
-                      <h4>Organization & Branch</h4>
-                      <p>Workplace mapping for this signed-in session.</p>
+                      <h4>{t("profile.organizationBranch")}</h4>
+                      <p>{t("profile.organizationBranchHint")}</p>
                     </div>
                     <div className="employee-profile-fact-grid employee-profile-fact-grid--org">
                       <ProfileFact
-                        label="Organization"
+                        label={t("profile.organization")}
                         value={displayValue(profile.orgName)}
                         icon={Building2}
                         span="full"
                       />
                       <ProfileFact
-                        label="Branch"
+                        label={t("profile.branch")}
                         value={displayValue(profile.branchName)}
                         icon={GitBranch}
                         span="wide"
                       />
                       <ProfileFact
-                        label="Organization Code"
+                        label={t("profile.organizationCode")}
                         value={displayValue(profile.orgCode)}
                         icon={Hash}
                       />
                       <ProfileFact
-                        label="Branch Code"
+                        label={t("profile.branchCode")}
                         value={displayValue(profile.branchCode)}
                         icon={Hash}
                       />
                       <ProfileFact
-                        label="Employee Code"
+                        label={t("profile.employeeCode")}
                         value={displayValue(profile.employeeCode)}
                         icon={IdCard}
                       />
                       <ProfileFact
-                        label="Employee ID"
+                        label={t("profile.employeeId")}
                         value={displayValue(profile.employeeId)}
                       />
                     </div>
@@ -293,34 +295,34 @@ export default function EmployeeProfilePage() {
                 <div className="card">
                   <div className="card-body">
                     <div className="employee-profile-section-head">
-                      <h4>Account & Access</h4>
-                      <p>Roles and permissions assigned to this user.</p>
+                      <h4>{t("profile.accountAccess")}</h4>
+                      <p>{t("profile.accountAccessHint")}</p>
                     </div>
                     <div className="employee-profile-fact-grid">
                       <ProfileFact
-                        label="Primary Role"
+                        label={t("profile.primaryRole")}
                         value={displayValue(profile.roleName)}
                         icon={ShieldCheck}
                       />
                       <ProfileFact
-                        label="Administrator"
-                        value={profile.isAdmin ? "Yes" : "No"}
+                        label={t("profile.administrator")}
+                        value={profile.isAdmin ? t("common.yes") : t("common.no")}
                       />
                       <ProfileFact
-                        label="Login Status"
+                        label={t("profile.loginStatus")}
                         value={displayValue(profile.loginStatus)}
                       />
                       <div className="employee-profile-fact employee-profile-fact--roles">
                         <div className="employee-profile-fact-label">
                           <Users size={14} aria-hidden="true" />
-                          <span>Assigned Roles</span>
+                          <span>{t("profile.assignedRoles")}</span>
                         </div>
                         {profile.roles.length > 0 ? (
                           <div className="employee-profile-role-list">
                             {profile.roles.map((role) => (
                               <span key={role.roleId} className="badge bg-soft-primary">
                                 {role.roleName}
-                                {role.isAdmin ? " · Admin" : ""}
+                                {role.isAdmin ? ` · ${t("profile.adminShort")}` : ""}
                               </span>
                             ))}
                           </div>

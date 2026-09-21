@@ -1,37 +1,46 @@
+"use client";
+
 import { ModulePage } from "@/components/ui/ModulePage";
+import { useI18n } from "@/i18n";
 
 export default function Page() {
+  const { t } = useI18n();
+
   return (
     <ModulePage
-      title="Employee Performance"
-      section="Reports"
-      actionLabel="Export Report"
-      columns={["Department", "Score", "Period"]}
+      title={t("reports.employeePerformance.title")}
+      section={t("reports.section")}
+      actionLabel={t("reports.employeePerformance.action")}
+      columns={[
+        t("reports.employeePerformance.colDepartment"),
+        t("reports.employeePerformance.colScore"),
+        t("reports.employeePerformance.colPeriod"),
+      ]}
       stats={[
         {
-          title: "Avg. Rating",
+          title: t("reports.employeePerformance.avgTitle"),
           value: "4.1",
           change: "+0.2",
-          hint: "cycle",
-          description: "Average employee score",
+          hint: t("reports.employeePerformance.avgHint"),
+          description: t("reports.employeePerformance.avgDesc"),
           tone: "success",
           icon: "trendingDown",
         },
         {
-          title: "Reviewed",
+          title: t("reports.employeePerformance.reviewedTitle"),
           value: "162",
           change: "78%",
-          hint: "cycle",
-          description: "Employees with completed reviews",
+          hint: t("reports.employeePerformance.reviewedHint"),
+          description: t("reports.employeePerformance.reviewedDesc"),
           tone: "primary",
           icon: "users",
         },
         {
-          title: "Needs Focus",
+          title: t("reports.employeePerformance.focusTitle"),
           value: "14",
           change: "-3",
-          hint: "cycle",
-          description: "Below target performance",
+          hint: t("reports.employeePerformance.focusHint"),
+          description: t("reports.employeePerformance.focusDesc"),
           tone: "warning",
           icon: "briefcase",
         },
@@ -44,7 +53,7 @@ export default function Page() {
           c1: "Engineering",
           c2: "4.7",
           c3: "Q3 2026",
-          status: "Excellent",
+          status: t("reports.employeePerformance.statusExcellent"),
         },
         {
           primary: "Sofia Reyes",
@@ -53,7 +62,7 @@ export default function Page() {
           c1: "Sales",
           c2: "4.3",
           c3: "Q3 2026",
-          status: "Good",
+          status: t("reports.employeePerformance.statusGood"),
         },
         {
           primary: "Noah Blake",
@@ -62,7 +71,7 @@ export default function Page() {
           c1: "Engineering",
           c2: "3.5",
           c3: "Q3 2026",
-          status: "Review",
+          status: t("reports.employeePerformance.statusReview"),
         },
       ]}
     />

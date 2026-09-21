@@ -1,0 +1,385 @@
+{
+  "common": {
+    "section": "Settings",
+    "saving": "Saving...",
+    "saveSettings": "Save Settings",
+    "saved": "Saved",
+    "saveFailed": "Save failed",
+    "loadFailed": "Unable to load settings",
+    "validationError": "Validation error",
+    "deleted": "Deleted",
+    "deleteFailed": "Delete failed",
+    "success": "Success",
+    "error": "Error",
+    "optional": "Optional",
+    "notConfigured": "Not Configured",
+    "configureSeries": "Configure Series",
+    "saveConfiguration": "Save Configuration",
+    "filterRecords": "Filter records...",
+    "yes": "Yes",
+    "no": "No",
+    "cancel": "Cancel"
+  },
+  "leave": {
+    "title": "Leave Settings",
+    "loading": "Loading leave settings…",
+    "loadError": "Failed to load leave settings. Please try again.",
+    "saveError": "Failed to save leave settings. Please try again.",
+    "options": {
+      "apply_future_leave": {
+        "label": "Apply for Future Leave",
+        "description": "Allow employees to apply leave for future dates."
+      },
+      "apply_previous_leave": {
+        "label": "Apply for Previous-date Leave",
+        "description": "Allow employees to apply leave for past dates."
+      },
+      "half_day_allowed": {
+        "label": "Half-day Leave Allowed",
+        "description": "Allow employees to apply half-day leave."
+      },
+      "apply_during_probation": {
+        "label": "Apply During Probation",
+        "description": "Allow leave applications while an employee is on probation."
+      },
+      "reason_mandatory": {
+        "label": "Reason Mandatory",
+        "description": "Require a reason when submitting a leave application."
+      },
+      "prevent_overlapping_leave": {
+        "label": "Prevent Overlapping Leave",
+        "description": "Block leave applications that overlap with existing leave."
+      }
+    }
+  },
+  "document": {
+    "title": "Document Settings",
+    "loading": "Loading document settings…",
+    "loadError": "Failed to load document settings. Please try again.",
+    "saveError": "Failed to save document settings. Please try again.",
+    "options": {
+      "approval_required": {
+        "label": "Approval Required",
+        "description": "Require approval before a document can be finalized."
+      },
+      "allow_edit_after_approval": {
+        "label": "Allow Edit After Approval",
+        "description": "Allow users to edit a document after it has been approved."
+      },
+      "allow_cancel_after_approval": {
+        "label": "Allow Cancel After Approval",
+        "description": "Allow users to cancel a document after it has been approved."
+      },
+      "allow_reprint": {
+        "label": "Allow Reprint",
+        "description": "Allow reprinting of already printed documents."
+      },
+      "show_duplicate_on_reprint": {
+        "label": "Show \"Duplicate\" on Reprint",
+        "description": "Mark reprinted documents with a \"Duplicate\" watermark or label."
+      }
+    }
+  },
+  "notifications": {
+    "title": "Notification Settings",
+    "loading": "Loading notification settings…",
+    "loadError": "Failed to load notification settings. Please try again.",
+    "saveError": "Failed to save notification settings. Please try again.",
+    "channels": {
+      "inapp_notification": {
+        "label": "In-App",
+        "description": "Show alerts inside PrioHRM."
+      },
+      "email_notification": {
+        "label": "Email",
+        "description": "Send alerts and updates by email."
+      },
+      "sms_notification": {
+        "label": "SMS",
+        "description": "Send text message notifications to employees."
+      },
+      "push_notification": {
+        "label": "Push",
+        "description": "Send mobile push notifications."
+      },
+      "whatsapp_notification": {
+        "label": "WhatsApp",
+        "description": "Send WhatsApp alerts when configured."
+      }
+    }
+  },
+  "financialYear": {
+    "subtitle": "Define financial year periods used across leave, payroll, and reports.",
+    "empty": "No financial years yet. Add a year to start configuring periods."
+  },
+  "attendance": {
+    "title": "Attendance Settings",
+    "loading": "Loading attendance settings…",
+    "loadError": "Failed to load attendance settings. Please try again.",
+    "saveError": "Failed to save attendance settings. Please try again.",
+    "validationMessage": "Please fill all mandatory attendance settings.",
+    "lateEarlyTitle": "Late & Early Rules",
+    "overtimeTitle": "Overtime Settings",
+    "fields": {
+      "late_grace_period_minutes": "Late Grace Period (Minutes)",
+      "early_leaving_grace_minutes": "Early Leaving Grace (Minutes)",
+      "late_mark_after_minutes": "Late Mark After (Minutes)",
+      "half_day_after_minutes": "Half Day After (Minutes)",
+      "absent_after_minutes": "Absent After (Minutes)",
+      "ot_calculation": "OT Calculation",
+      "minimum_ot_minutes": "Minimum OT (Minutes)",
+      "ot_round_off_minutes": "OT Round Off (Minutes)",
+      "maximum_ot_per_day_hours": "Maximum OT per Day (Hours)"
+    },
+    "toggles": {
+      "overtime_applicable": {
+        "label": "Overtime Applicable",
+        "description": "Enable overtime tracking and calculation for employees."
+      },
+      "ot_requires_approval": {
+        "label": "OT Requires Approval",
+        "description": "Require manager approval before overtime is credited."
+      },
+      "holiday_ot": {
+        "label": "Holiday OT",
+        "description": "Allow overtime on holidays."
+      },
+      "weekly_off_ot": {
+        "label": "Weekly Off OT",
+        "description": "Allow overtime on weekly offs."
+      }
+    }
+  },
+  "email": {
+    "title": "Email Configuration",
+    "loading": "Loading email configuration…",
+    "loadError": "Failed to load email configuration. Please try again.",
+    "saveError": "Failed to save email configuration. Please try again.",
+    "validationMessage": "Please fill all mandatory email settings.",
+    "smtpTitle": "SMTP Settings",
+    "testTitle": "Send Test Email",
+    "testSend": "Send Test Email",
+    "sending": "Sending...",
+    "testSuccess": "Test email sent",
+    "testFailed": "Test email failed",
+    "testError": "Failed to send test email. Please try again.",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "fields": {
+      "mailer": "Mailer",
+      "host": "Host",
+      "port": "Port",
+      "username": "Username",
+      "password": "Password",
+      "encryption": "Encryption",
+      "from_address": "From Address",
+      "from_name": "From Name",
+      "to_email": "Recipient Email",
+      "subject": "Subject",
+      "message": "Message"
+    },
+    "placeholders": {
+      "password": "Enter SMTP password",
+      "to_email": "Enter recipient email",
+      "hostPattern": "Enter a valid host name (e.g. smtp.example.com)."
+    },
+    "encryption": {
+      "tls": "TLS",
+      "ssl": "SSL",
+      "none": "None"
+    }
+  },
+  "sms": {
+    "title": "SMS Configuration",
+    "loading": "Loading SMS configuration…",
+    "loadError": "Failed to load SMS configuration. Please try again.",
+    "saveError": "Failed to save SMS configuration. Please try again.",
+    "validationMessage": "Please fill all mandatory SMS settings.",
+    "gatewayTitle": "SMS Gateway",
+    "eventsTitle": "Event Notifications",
+    "templatesTitle": "Message Templates",
+    "addTemplate": "Add Template",
+    "editTemplate": "Edit Template",
+    "saveGateway": "Save Gateway",
+    "saveEvents": "Save Events",
+    "showApiKey": "Show API key",
+    "hideApiKey": "Hide API key",
+    "fields": {
+      "api_url": "API URL",
+      "api_key": "API Key",
+      "status": "Status",
+      "sender_id": "Sender ID",
+      "message_type": "Message Type",
+      "template_name": "Template Name",
+      "message_template": "Message Template",
+      "event": "Event"
+    },
+    "placeholders": {
+      "api_key": "Enter SMS API key (leave blank to keep current)"
+    }
+  },
+  "tax": {
+    "title": "Tax Settings",
+    "loading": "Loading tax settings…",
+    "loadError": "Failed to load tax settings. Please try again.",
+    "saveError": "Failed to save tax settings. Please try again.",
+    "validationMessage": "Please fill all mandatory tax settings.",
+    "slabValidation": "Please fill all mandatory slab fields.",
+    "slabSaveError": "Failed to save professional tax slab.",
+    "slabDeleteError": "Failed to delete professional tax slab.",
+    "ptTitle": "Professional Tax Configuration",
+    "slabsTitle": "Professional Tax Slabs",
+    "addSlab": "Add Slab",
+    "editSlab": "Edit Slab",
+    "modalSubtitle": "Configure salary range and professional tax amount.",
+    "tdsTitle": "TDS Settings",
+    "searchSlabsPlaceholder": "Search PT slabs...",
+    "noLimit": "No limit",
+    "toAmountMinError": "To Amount must be greater than or equal to From Amount.",
+    "ptApplicable": {
+      "label": "Professional Tax Applicable",
+      "description": "Enable professional tax deduction in payroll."
+    },
+    "tdsApplicable": {
+      "label": "TDS Applicable",
+      "description": "Enable TDS deduction during salary processing."
+    },
+    "columns": {
+      "from_amount": "FROM AMOUNT",
+      "to_amount": "TO AMOUNT",
+      "tax_amount": "TAX AMOUNT"
+    },
+    "fields": {
+      "state": "State",
+      "deduction_frequency": "Deduction Frequency",
+      "pt_based_on": "PT Based On",
+      "tax_regime": "Tax Regime",
+      "financial_year": "Financial Year",
+      "tds_method": "TDS Calculation Method",
+      "standard_deduction": "Standard Deduction (₹)",
+      "from_amount": "From Amount (₹)",
+      "to_amount": "To Amount (₹)",
+      "tax_amount": "Tax Amount (₹)"
+    },
+    "placeholders": {
+      "to_amount": "Leave blank for no upper limit"
+    },
+    "options": {
+      "monthly": "Monthly",
+      "half_yearly": "Half-Yearly",
+      "yearly": "Yearly",
+      "gross_salary": "Gross Salary",
+      "basic_salary": "Basic Salary",
+      "new_regime": "New Regime",
+      "old_regime": "Old Regime",
+      "monthly_projection": "Monthly Projection",
+      "actual": "Actual"
+    },
+    "toggles": {
+      "round_off_tds": {
+        "label": "Round Off TDS",
+        "description": "Round TDS amount to the nearest rupee."
+      },
+      "consider_previous_employment": {
+        "label": "Consider Previous Employment",
+        "description": "Include previous employer income and TDS while calculating."
+      },
+      "auto_generate_form16": {
+        "label": "Auto Generate Form 16",
+        "description": "Generate Form 16 automatically after year-end processing."
+      },
+      "show_tds_on_payslip": {
+        "label": "Show TDS on Payslip",
+        "description": "Display TDS deduction details on the salary slip."
+      }
+    }
+  },
+  "payroll": {
+    "title": "Payroll Settings",
+    "loading": "Loading payroll settings…",
+    "loadError": "Failed to load payroll settings. Please try again.",
+    "saveError": "Failed to save payroll settings. Please try again.",
+    "validationMessage": "Please fill all mandatory payroll settings.",
+    "salaryCalcTitle": "Salary Calculation Settings",
+    "overtimeTitle": "Overtime Settings",
+    "slipTitle": "Salary Slip Settings",
+    "otApplicable": {
+      "label": "OT Applicable",
+      "description": "Enable overtime calculation in payroll processing."
+    },
+    "fields": {
+      "salary_basis": "Salary Basis",
+      "working_days_basis": "Working Days Basis",
+      "salary_calculation_based_on": "Salary Calculation Based On",
+      "ot_calculation_based_on": "OT Calculation Based On",
+      "normal_day_ot_rate": "Normal Day OT Rate (×)",
+      "weekly_off_ot_rate": "Weekly Off OT Rate (×)",
+      "holiday_ot_rate": "Holiday OT Rate (×)",
+      "minimum_ot_minutes": "Minimum OT (Minutes)",
+      "salary_slip_format": "Salary Slip Format"
+    },
+    "toggles": {
+      "generate_automatically": {
+        "label": "Generate Salary Slip Automatically",
+        "description": "Create salary slips automatically after payroll processing."
+      },
+      "generate_salary_slip_automatically": {
+        "label": "Generate Salary Slip Automatically",
+        "description": "Create salary slips automatically after payroll processing."
+      },
+      "show_attendance_details": {
+        "label": "Show Attendance Details",
+        "description": "Include attendance summary on the salary slip."
+      },
+      "show_leave_details": {
+        "label": "Show Leave Details",
+        "description": "Include leave summary on the salary slip."
+      },
+      "show_earnings": {
+        "label": "Show Earnings",
+        "description": "Display earnings breakup on the salary slip."
+      },
+      "show_deductions": {
+        "label": "Show Deductions",
+        "description": "Display deductions breakup on the salary slip."
+      },
+      "show_employer_contributions": {
+        "label": "Show Employer Contributions",
+        "description": "Include employer contribution details on the slip."
+      },
+      "show_bank_details": {
+        "label": "Show Bank Details",
+        "description": "Show employee bank account details on the slip."
+      },
+      "digital_signature": {
+        "label": "Digital Signature",
+        "description": "Print digital signature on generated salary slips."
+      }
+    }
+  },
+  "numbering": {
+    "title": "Configured Numbering Sequences",
+    "configureTitle": "Configure Series",
+    "configureSubtitle": "Configure numbering sequence for {module}",
+    "loadError": "Failed to load code series.",
+    "updateSuccess": "Code series updated.",
+    "updateError": "Failed to update code series.",
+    "columns": {
+      "module": "ENTITY / MODULE",
+      "customPrefix": "CUSTOM PREFIX",
+      "nextCounter": "NEXT COUNTER",
+      "paddingDigits": "PADDING DIGITS",
+      "suffix": "SUFFIX",
+      "sample": "LIVE FORMATTED SAMPLE",
+      "status": "STATUS",
+      "actions": "ACTIONS"
+    },
+    "fields": {
+      "customPrefix": "Custom Prefix",
+      "nextCounter": "Next Counter",
+      "paddingDigits": "Padding Digits",
+      "suffix": "Suffix",
+      "status": "Status"
+    }
+  }
+}

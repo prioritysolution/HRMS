@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/i18n";
 
 type StatusToggleProps = {
   id?: string;
@@ -18,9 +19,12 @@ export function StatusToggle({
   value,
   onChange,
   disabled = false,
-  activeLabel = "Active",
-  inactiveLabel = "Inactive",
+  activeLabel,
+  inactiveLabel,
 }: StatusToggleProps) {
+  const { t } = useI18n();
+  const resolvedActive = activeLabel ?? t("common.active");
+  const resolvedInactive = inactiveLabel ?? t("common.inactive");
   const isActive = String(value ?? "").trim() !== "0";
 
   return (
@@ -28,7 +32,7 @@ export function StatusToggle({
       id={id}
       className={cn("status-toggle", isActive ? "is-active" : "is-inactive", disabled && "is-disabled")}
       role="group"
-      aria-label={name ? `${name} status` : "Status"}
+      aria-label={name ? `${name} status` : t("common.status")}
     >
       <span className="status-toggle-thumb" aria-hidden="true" />
       <button
@@ -38,7 +42,7 @@ export function StatusToggle({
         disabled={disabled}
         onClick={() => onChange("1")}
       >
-        {activeLabel}
+        {resolvedActive}
       </button>
       <button
         type="button"
@@ -47,7 +51,7 @@ export function StatusToggle({
         disabled={disabled}
         onClick={() => onChange("0")}
       >
-        {inactiveLabel}
+        {resolvedInactive}
       </button>
     </div>
   );

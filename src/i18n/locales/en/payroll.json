@@ -1,0 +1,166 @@
+{
+  "pages": {
+    "salaryComponents": {
+      "subtitle": "Configure earnings and deductions. Statutory flags (PF, ESI, PT, TDS) drive payroll calculations.",
+      "empty": "Add salary components such as Basic, HRA, PF, ESI, and other configurable pay elements."
+    },
+    "salaryStructure": {
+      "subtitle": "Define salary structures with earnings, deductions, and applicable statutory rule sets.",
+      "empty": "Create salary structures mapping components to grades, designations, or departments."
+    },
+    "salaryRevision": {
+      "subtitle": "Record salary revisions, increments, promotions, and full & final settlements.",
+      "empty": "Track employee salary revisions with effective dates and approval workflow."
+    },
+    "processing": {
+      "subtitle": "Run monthly payroll with configurable PF, ESI, PT, and TDS calculations.",
+      "empty": "Process monthly payroll for all employees based on attendance, leave, and salary structure.",
+      "submit": "Run Payroll"
+    },
+    "finalization": {
+      "subtitle": "Finalize payroll, generate register, and prepare bank payment file.",
+      "empty": "Finalize processed payroll batches and lock statutory deductions for the period.",
+      "submit": "Finalize"
+    },
+    "payslipBank": {
+      "subtitle": "Generate payslips, bank payment files, and track salary disbursements.",
+      "empty": "View payslips and bank transfer status for each employee payroll cycle."
+    },
+    "expenses": {
+      "title": "Expenses",
+      "section": "Payroll",
+      "action": "Add Expense",
+      "columns": {
+        "category": "Category",
+        "submittedBy": "Submitted By",
+        "amount": "Amount"
+      }
+    },
+    "invoices": {
+      "title": "Invoices",
+      "section": "Payroll",
+      "action": "Create Invoice",
+      "columns": {
+        "client": "Client",
+        "amount": "Amount",
+        "due": "Due"
+      }
+    },
+    "salaries": {
+      "title": "Salaries",
+      "section": "Payroll",
+      "action": "Run Payroll",
+      "columns": {
+        "role": "Role",
+        "netPay": "Net Pay",
+        "cycle": "Cycle"
+      }
+    }
+  },
+  "stats": {
+    "Payroll Runs": {
+      "title": "Payroll Runs",
+      "hint": "completed",
+      "description": "Monthly payroll processing batches"
+    },
+    "Gross Pay": {
+      "title": "Gross Pay",
+      "change": "{count} employees",
+      "hint": "total",
+      "description": "Combined gross payroll amount"
+    },
+    "Net Pay": {
+      "title": "Net Pay",
+      "change": "{amount} deducted",
+      "hint": "payout",
+      "description": "Net amount after statutory deductions"
+    },
+    "Pending": {
+      "title": "Pending",
+      "hint": "finalized",
+      "description": "Batches awaiting finalization"
+    },
+    "Statutory Total": {
+      "title": "Statutory Total",
+      "hint": "compliance",
+      "description": "Configurable statutory deductions"
+    },
+    "Net Payout": {
+      "title": "Net Payout",
+      "hint": "bank files",
+      "description": "Finalized net payroll amount"
+    },
+    "Payslips": {
+      "title": "Payslips",
+      "hint": "generated",
+      "description": "Payslips ready for distribution"
+    },
+    "Bank Transfers": {
+      "title": "Bank Transfers",
+      "hint": "pending",
+      "description": "Salary credits via bank file"
+    },
+    "Net Disbursed": {
+      "title": "Net Disbursed",
+      "hint": "paid",
+      "description": "Total net salary disbursed"
+    },
+    "Revisions": {
+      "title": "Revisions",
+      "hint": "approved",
+      "description": "Salary revision records"
+    },
+    "Avg Increment": {
+      "title": "Avg Increment",
+      "change": "gross",
+      "hint": "increase",
+      "description": "Average gross salary increment"
+    },
+    "Pending Approval": {
+      "title": "Pending Approval",
+      "change": "review",
+      "hint": "queue",
+      "description": "Revisions awaiting approval"
+    },
+    "This Month": {
+      "title": "This Month",
+      "hint": "month",
+      "description": "Total expenses claimed"
+    },
+    "Approved": {
+      "title": "Approved",
+      "hint": "month",
+      "description": "Expenses cleared for payout"
+    },
+    "Awaiting": {
+      "title": "Awaiting",
+      "hint": "review",
+      "description": "Claims pending approval"
+    },
+    "Outstanding": {
+      "title": "Outstanding",
+      "hint": "month",
+      "description": "Unpaid invoice balance"
+    },
+    "Collected": {
+      "title": "Collected",
+      "hint": "month",
+      "description": "Payments received"
+    },
+    "Overdue": {
+      "title": "Overdue",
+      "hint": "week",
+      "description": "Invoices past due date"
+    },
+    "Payroll Total": {
+      "title": "Payroll Total",
+      "hint": "month",
+      "description": "Total salaries this cycle"
+    },
+    "Processed": {
+      "title": "Processed",
+      "hint": "cycle",
+      "description": "Employees paid this run"
+    }
+  }
+}

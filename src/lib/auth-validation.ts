@@ -15,41 +15,42 @@ export type SignUpValues = {
 
 export type FieldErrors<T extends string> = Partial<Record<T, string>>;
 
+/** Returns an i18n key under auth.errors.* (without the prefix). */
 export function validateEmail(value: string): string | undefined {
   const trimmed = value.trim();
-  if (!trimmed) return "Email is required.";
-  if (!EMAIL_PATTERN.test(trimmed)) return "Enter a valid email address.";
+  if (!trimmed) return "emailRequired";
+  if (!EMAIL_PATTERN.test(trimmed)) return "emailInvalid";
   return undefined;
 }
 
 export function validatePassword(value: string): string | undefined {
-  if (!value) return "Password is required.";
+  if (!value) return "passwordRequired";
   return undefined;
 }
 
 export function validateUsername(value: string): string | undefined {
   const trimmed = value.trim();
-  if (!trimmed) return "Username is required.";
-  if (trimmed.length < 2) return "Username must be at least 2 characters.";
+  if (!trimmed) return "usernameRequired";
+  if (trimmed.length < 2) return "usernameMin";
   if (!/^[a-zA-Z\s'.-]+$/.test(trimmed)) {
-    return "Username can only contain letters, spaces, and basic punctuation.";
+    return "usernameChars";
   }
   return undefined;
 }
 
 export function validateLoginUsername(value: string): string | undefined {
   const trimmed = value.trim();
-  if (!trimmed) return "Username is required.";
-  if (trimmed.length < 2) return "Username must be at least 2 characters.";
+  if (!trimmed) return "usernameRequired";
+  if (trimmed.length < 2) return "usernameMin";
   if (!LOGIN_USERNAME_PATTERN.test(trimmed)) {
-    return "Username can only contain letters, numbers, dots, hyphens, and underscores.";
+    return "loginUsernameChars";
   }
   return undefined;
 }
 
 export function validateConfirmPassword(password: string, confirm: string): string | undefined {
-  if (!confirm) return "Please confirm your password.";
-  if (confirm !== password) return "Passwords do not match.";
+  if (!confirm) return "confirmRequired";
+  if (confirm !== password) return "passwordMismatch";
   return undefined;
 }
 

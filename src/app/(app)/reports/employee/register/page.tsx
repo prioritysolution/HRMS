@@ -20,6 +20,7 @@ import {
 } from "@/lib/api";
 import { formatDateDisplay } from "@/lib/date-utils";
 import { getModuleEmptyIcon } from "@/lib/module-icons";
+import { useI18n, translateHrmsLookup } from "@/i18n";
 import type {
   ReportExportColumn,
   ReportFieldGroup,
@@ -126,7 +127,10 @@ function formatCell(value: HrmsRow[string]): string {
 }
 
 export default function EmployeeRegisterPage() {
+  const { language, t } = useI18n();
   const config = getHrmsModule(MODULE_ID);
+  const pageTitle = translateHrmsLookup(language, "titles", config.title);
+  const pageSection = translateHrmsLookup(language, "sections", config.section);
   const toast = useToast();
 
   const [rows, setRows] = useState<HrmsRow[]>([]);
@@ -146,6 +150,28 @@ export default function EmployeeRegisterPage() {
     Array<{ value: string; label: string }>
   >([]);
 
+  const exportColumns = useMemo(
+    () =>
+      EXPORT_COLUMNS.map((column) => ({
+        ...column,
+        header: translateHrmsLookup(language, "headers", column.header),
+      })),
+    [language],
+  );
+
+  const pdfFieldGroups = useMemo(
+    () =>
+      PDF_FIELD_GROUPS.map((group) => ({
+        ...group,
+        title: translateHrmsLookup(language, "labels", group.title),
+        fields: group.fields.map((field) => ({
+          ...field,
+          header: translateHrmsLookup(language, "headers", field.header),
+        })),
+      })),
+    [language],
+  );
+
   const loadRows = useCallback(async () => {
     setLoading(true);
     try {
@@ -156,16 +182,16 @@ export default function EmployeeRegisterPage() {
       setRows([]);
       setFilteredRows([]);
       toast.error({
-        title: "Unable to load employee register",
+        title: t("reports.employeeRegister.loadError"),
         message:
           error instanceof ApiError
             ? error.message
-            : "Please check your connection and try again.",
+            : t("reports.common.connectionError"),
       });
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [t, toast]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- initial/async data load
@@ -235,27 +261,51 @@ export default function EmployeeRegisterPage() {
 
   const filterFields = useMemo(
     () => [
-      { key: "Branch_Id", label: "Branch", options: branchOptions },
-      { key: "Dept_Id", label: "Department", options: deptOptions },
-      { key: "Desig_Id", label: "Designation", options: desigOptions },
-      { key: "Emp_type_id", label: "Category", options: categoryOptions },
+      {
+        key: "Branch_Id",
+        label: translateHrmsLookup(language, "labels", "Branch"),
+        options: branchOptions,
+      },
+      {
+        key: "Dept_Id",
+        label: translateHrmsLookup(language, "labels", "Department"),
+        options: deptOptions,
+      },
+      {
+        key: "Desig_Id",
+        label: translateHrmsLookup(language, "labels", "Designation"),
+        options: desigOptions,
+      },
+      {
+        key: "Emp_type_id",
+        label: translateHrmsLookup(language, "labels", "Category"),
+        options: categoryOptions,
+      },
       {
         key: "Status",
-        label: "Status",
+        label: translateHrmsLookup(language, "labels", "Status"),
         options: [
-          { value: "Active", label: "Active" },
-          { value: "Inactive", label: "Inactive" },
+          {
+            value: "Active",
+            label: translateHrmsLookup(language, "labels", "Active"),
+          },
+          {
+            value: "Inactive",
+            label: translateHrmsLookup(language, "labels", "Inactive"),
+          },
         ],
         defaultValue: "Active",
       },
     ],
-    [branchOptions, categoryOptions, deptOptions, desigOptions],
+    [branchOptions, categoryOptions, deptOptions, desigOptions, language],
   );
 
   const filterSummary = useMemo(() => {
     const count = filteredRows.length;
-    return `${count} employee${count === 1 ? "" : "s"} (as per current filters)`;
-  }, [filteredRows.length]);
+    return count === 1
+      ? t("reports.common.filterSummaryEmployee", { count })
+      : t("reports.common.filterSummaryEmployees", { count });
+  }, [filteredRows.length, t]);
 
   const exportRows = useMemo(
     () => toExportRows(filteredRows),
@@ -268,11 +318,11 @@ export default function EmployeeRegisterPage() {
 
   return (
     <>
-      <PageHeader title={config.title} section={config.section} hideTitle />
+      <PageHeader title={pageTitle} section={pageSection} hideTitle />
       <div className="container-fluid">
         <DataTable
-          title={config.title}
-          searchPlaceholder="Search employee register..."
+          title={pageTitle}
+          searchPlaceholder={t("reports.employeeRegister.searchPlaceholder")}
           rows={rows}
           loading={loading}
           searchKeys={config.searchKeys}
@@ -280,83 +330,84 @@ export default function EmployeeRegisterPage() {
           showRowActions={false}
           onFilteredRowsChange={handleFilteredRowsChange}
           emptyStateIcon={getModuleEmptyIcon(MODULE_ID)}
-          emptyStateTitle="No employees found"
-          emptyStateMessage="Try adjusting filters or search to find employees."
+          emptyStateTitle={t("reports.employeeRegister.emptyTitle")}
+          emptyStateMessage={t("reports.employeeRegister.empty")}
           extraActions={
             <ReportExportButtons
-              title="Employee Register Report"
+              title={t("reports.employeeRegister.exportTitle")}
               rows={exportRows}
-              columns={EXPORT_COLUMNS}
+              columns={exportColumns}
               filterSummary={filterSummary}
               pdfLayout="cards"
-              fieldGroups={PDF_FIELD_GROUPS}
+              fieldGroups={pdfFieldGroups}
               cardTitle={{
                 primaryKey: "Display_name",
                 secondaryKey: "Employee_code",
                 badgeKey: "Status",
               }}
-              sheetName="Employee Register"
+              sheetName={t("reports.employeeRegister.sheetName")}
               disabled={loading}
-              emptyMessage="No employee records match the current filters."
-              successMessage="Download started for the filtered employee register."
+              emptyMessage={t("reports.employeeRegister.emptyExport")}
+              successMessage={t("reports.employeeRegister.successExport")}
             />
           }
           columns={[
             {
               key: "Display_name",
-              header: "Employee",
+              header: translateHrmsLookup(language, "headers", "Employee"),
               render: (row) => (
                 <PersonCell
                   name={String(row.Display_name ?? "")}
                   subtitle={String(row.Employee_code ?? "")}
+                  avatar={row.Photo_path || (row as any).photo_path || (row as any).avatar}
                 />
               ),
             },
             {
               key: "Mobile",
-              header: "Mobile",
+              header: translateHrmsLookup(language, "headers", "Mobile"),
               render: (row) => formatCell(row.Mobile),
             },
             {
               key: "Email",
-              header: "Email",
+              header: translateHrmsLookup(language, "headers", "Email"),
               render: (row) => formatCell(row.Email || row.Work_Email),
             },
             {
               key: "Branch_Name",
-              header: "Branch",
+              header: translateHrmsLookup(language, "headers", "Branch"),
               render: (row) => formatCell(row.Branch_Name),
             },
             {
               key: "Dept_Name",
-              header: "Department",
+              header: translateHrmsLookup(language, "headers", "Department"),
               render: (row) => formatCell(row.Dept_Name),
             },
             {
               key: "Desig_Name",
-              header: "Designation",
+              header: translateHrmsLookup(language, "headers", "Designation"),
               render: (row) => formatCell(row.Desig_Name),
             },
             {
               key: "Category_name",
-              header: "Category",
+              header: translateHrmsLookup(language, "headers", "Category"),
               render: (row) => formatCell(row.Category_name),
             },
             {
               key: "Date_of_joining",
-              header: "Join Date",
+              header: translateHrmsLookup(language, "headers", "Join Date"),
               render: (row) =>
                 formatDateDisplay(String(row.Date_of_joining ?? "")) ||
                 formatCell(row.Date_of_joining),
             },
             {
               key: "Status",
-              header: "Status",
+              header: translateHrmsLookup(language, "headers", "Status"),
               render: (row) => <SoftStatus value={String(row.Status ?? "")} />,
             },
             {
               key: "Active_asset_codes",
-              header: "Assets",
+              header: translateHrmsLookup(language, "headers", "Assets"),
               render: (row) => formatCell(row.Active_asset_codes),
             },
           ]}

@@ -5,6 +5,7 @@ import { MasterDataModal } from "@/components/modals/MasterDataModal";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { DataTable, PersonCell, ClampedText } from "@/components/ui/DataTable";
 import { useToast } from "@/components/ui/ToastProvider";
+import { useI18n, translateHrmsLookup } from "@/i18n";
 import { getHrmsModule, getModuleFormFields } from "@/config/hrms-modules";
 import {
   ApiError,
@@ -76,7 +77,10 @@ function toFormRow(row: HrmsRow): HrmsRow {
 }
 
 export default function ServiceHistoryPage() {
+  const { language, t } = useI18n();
   const config = getHrmsModule(MODULE_ID);
+  const pageTitle = translateHrmsLookup(language, "titles", config.title);
+  const pageSection = translateHrmsLookup(language, "sections", config.section);
   const toast = useToast();
   const [rows, setRows] = useState<HrmsRow[]>([]);
   const [employees, setEmployees] = useState<HrmsRow[]>([]);
@@ -118,6 +122,17 @@ export default function ServiceHistoryPage() {
     void loadRows();
   }, [loadRows]);
 
+  const employeeMap = useMemo(() => {
+    const map = new Map<string, HrmsRow>();
+    employees.forEach((emp) => {
+      const id = String(emp.Employee_id ?? emp.id ?? "").trim();
+      const code = String(emp.Employee_code ?? "").trim();
+      if (id && id !== "0") map.set(id, emp);
+      if (code) map.set(code.toLowerCase(), emp);
+    });
+    return map;
+  }, [employees]);
+
   const formFields = useMemo(
     () => withSelectOptions(baseFormFields, employees, eventTypeOptions),
     [baseFormFields, employees, eventTypeOptions],
@@ -142,8 +157,11 @@ export default function ServiceHistoryPage() {
       await loadRows();
 
       toast.success({
-        title: mode === "edit" ? "Service event updated" : "Service event added",
-        message: `${saved.Event_type} for ${saved.Employee_name} was saved successfully.`,
+        title: mode === "edit" ? t("employees.serviceHistory.updatedToast") : t("employees.serviceHistory.addedToast"),
+        message: t("employees.serviceHistory.savedMessage", {
+          event: String(saved.Event_type ?? ""),
+          employee: String(saved.Employee_name ?? ""),
+        }),
       });
 
       if (mode === "edit") {
@@ -153,13 +171,13 @@ export default function ServiceHistoryPage() {
       }
     } catch (error) {
       toast.error({
-        title: mode === "edit" ? "Update failed" : "Save failed",
+        title: mode === "edit" ? t("employees.serviceHistory.updateFailed") : t("employees.serviceHistory.saveFailed"),
         message:
           error instanceof ApiError
             ? error.message
             : error instanceof Error
               ? error.message
-              : "Please review the form and try again.",
+              : t("employees.serviceHistory.formError"),
       });
     }
   };
@@ -177,7 +195,7 @@ export default function ServiceHistoryPage() {
       });
       await loadRows();
       toast.success({
-        title: "Service event removed",
+        title: t("employees.serviceHistory.removedToast"),
         message: `${row.Event_type} record for ${row.Employee_name} was deleted.`,
       });
     } catch (error) {
@@ -193,62 +211,87 @@ export default function ServiceHistoryPage() {
 
   return (
     <>
-      <PageHeader title={config.title} section={config.section} hideTitle />
+      <PageHeader title={pageTitle} section={pageSection} hideTitle />
       <div className="container-fluid">
         <DataTable
-          title={config.title}
-          searchPlaceholder="Search by employee, event type, or remarks..."
-          actionLabel={config.actionLabel}
+          title={pageTitle}
+          searchPlaceholder={t("employees.serviceHistory.search")}
+          actionLabel={
+            config.actionLabel
+              ? translateHrmsLookup(language, "actions", config.actionLabel)
+              : t("employees.serviceHistory.addTitle")
+          }
           onAction={() => setAddOpen(true)}
           rows={rows}
           loading={loading}
           searchKeys={config.searchKeys}
-          filterFields={[{ key: "Event_type", label: "Event Type" }]}
+          filterFields={[
+            {
+              key: "Event_type",
+              label: translateHrmsLookup(language, "labels", "Event Type"),
+            },
+          ]}
           onRowEdit={(row) => setEditRow(toFormRow(row))}
           showRowActions
-          deleteConfirmTitle="Delete service event?"
-          deleteConfirmMessage='Remove the "{name}" service event for this employee? This action cannot be undone.'
+          deleteConfirmTitle={t("employees.serviceHistory.deleteConfirm")}
+          deleteConfirmMessage={t("employees.serviceHistory.deleteConfirmMessage")}
           getDeleteLabel={(row) => String(row.Event_type ?? "this service event")}
           onRowDelete={(row) => {
             void handleDelete(row);
           }}
           emptyStateIcon={getModuleEmptyIcon(MODULE_ID)}
-          emptyStateTitle="No service history yet"
-          emptyStateMessage="Add a service event to track promotions, transfers, and other employee milestones."
+          emptyStateTitle={t("employees.serviceHistory.emptyTitle")}
+          emptyStateMessage={t("employees.serviceHistory.emptyMessage")}
           columns={[
             {
               key: "Employee_name",
-              header: "Employee",
-              render: (row) => (
-                <PersonCell
-                  name={String(row.Employee_name ?? "—")}
-                  subtitle={String(row.Employee_code ?? "")}
-                />
-              ),
+              header: translateHrmsLookup(language, "headers", "Employee"),
+              render: (row) => {
+                const empId = String(row.Employee_id ?? "").trim();
+                const empCode = String(row.Employee_code ?? "").trim().toLowerCase();
+                const emp = employeeMap.get(empId) || employeeMap.get(empCode);
+                const avatar =
+                  row.Photo_path ||
+                  (row as any).photo_path ||
+                  (row as any).avatar ||
+                  emp?.Photo_path ||
+                  (emp as any)?.photo_path ||
+                  (emp as any)?.avatar ||
+                  (emp as any)?.Photo ||
+                  (emp as any)?.Logo_Url;
+
+                return (
+                  <PersonCell
+                    name={String(row.Employee_name ?? emp?.Employee_name ?? emp?.Display_name ?? "—")}
+                    subtitle={String(row.Employee_code ?? emp?.Employee_code ?? "")}
+                    avatar={avatar}
+                  />
+                );
+              },
             },
             {
               key: "Event_type",
-              header: "Event Type",
+              header: translateHrmsLookup(language, "headers", "Event Type"),
               render: (row) => formatCell(row.Event_type),
             },
             {
               key: "Effective_date",
-              header: "Effective Date",
+              header: translateHrmsLookup(language, "headers", "Effective Date"),
               render: (row) => formatDateDisplay(String(row.Effective_date ?? "")) || "—",
             },
             {
               key: "Old_value",
-              header: "Previous",
+              header: translateHrmsLookup(language, "headers", "Previous"),
               render: (row) => formatCell(row.Old_value),
             },
             {
               key: "New_value",
-              header: "Updated To",
+              header: translateHrmsLookup(language, "headers", "Updated To"),
               render: (row) => formatCell(row.New_value),
             },
             {
               key: "Remarks",
-              header: "Remarks",
+              header: translateHrmsLookup(language, "headers", "Remarks"),
               render: (row) => (
                 <ClampedText text={String(row.Remarks ?? "")} />
               ),
@@ -260,9 +303,9 @@ export default function ServiceHistoryPage() {
       <MasterDataModal
         open={addOpen}
         onClose={() => setAddOpen(false)}
-        title="Add Service Event"
-        subtitle="Record a promotion, transfer, or other employee service milestone."
-        submitLabel="Add Event"
+        title={t("employees.serviceHistory.addTitle")}
+        subtitle={t("employees.serviceHistory.addSubtitle")}
+        submitLabel={t("employees.serviceHistory.addSubmit")}
         fields={formFields}
         size={config.modalSize}
         onSubmit={(values) => handleSave(values, "add")}
@@ -271,9 +314,9 @@ export default function ServiceHistoryPage() {
       <MasterDataModal
         open={Boolean(editRow)}
         onClose={() => setEditRow(null)}
-        title="Update Service Event"
-        subtitle="Edit the service event details."
-        submitLabel="Save Event"
+        title={t("employees.serviceHistory.editTitle")}
+        subtitle={t("employees.serviceHistory.editSubtitle")}
+        submitLabel={t("employees.serviceHistory.editSubmit")}
         fields={formFields}
         size={config.modalSize}
         initialValues={editRow ?? undefined}

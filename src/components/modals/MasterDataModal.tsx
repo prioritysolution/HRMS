@@ -14,6 +14,7 @@ import {
   type FormValue,
 } from "@/lib/form-validation";
 import { cn } from "@/lib/utils";
+import { useI18n, translateHrmsLookup } from "@/i18n";
 import type { FormField, FormSection, HrmsRow } from "@/types/hrms";
 
 type MasterDataModalProps = {
@@ -75,6 +76,7 @@ export function MasterDataModal({
   adaptFields,
   deriveValues,
 }: MasterDataModalProps) {
+  const { language, t } = useI18n();
   const resolvedFields = useMemo(() => resolveFields(fields, sections), [fields, sections]);
   const isEdit = !!initialValues;
   
@@ -281,6 +283,11 @@ export function MasterDataModal({
             )
           : section.fields;
 
+        const sectionTitle = translateHrmsLookup(language, "sections", section.title) || translateHrmsLookup(language, "labels", section.title);
+        const sectionDesc = section.description
+          ? (translateHrmsLookup(language, "sections", section.description) || translateHrmsLookup(language, "labels", section.description))
+          : undefined;
+
         return (
           <section key={section.id} className={cn("form-section", isOpen && "is-open")}>
             <button
@@ -292,9 +299,9 @@ export function MasterDataModal({
             >
               <div className="form-section-index">{String(index + 1).padStart(2, "0")}</div>
               <div className="form-section-heading">
-                <h3 className="form-section-title">{section.title}</h3>
-                {section.description ? (
-                  <p className="form-section-description">{section.description}</p>
+                <h3 className="form-section-title">{sectionTitle}</h3>
+                {sectionDesc ? (
+                  <p className="form-section-description">{sectionDesc}</p>
                 ) : null}
               </div>
               <ChevronDown
@@ -333,17 +340,61 @@ export function MasterDataModal({
     </div>
   );
 
+  const isEditTitle = title.toLowerCase().startsWith("edit ");
+  const isAddTitle = title.toLowerCase().startsWith("add ");
+  const isEditMode = isEdit || isEditTitle;
+
+  let rawEntityName = title;
+  if (isEditTitle) rawEntityName = title.replace(/^Edit\s+/i, "");
+  else if (isAddTitle) rawEntityName = title.replace(/^Add\s+/i, "");
+  rawEntityName = rawEntityName.replace(/\s*(সম্পাদনা|যোগ করুন|তৈরি করুন|संपादित करें|जोड़ें|ସମ୍ପାଦନା|ଯୋଡନ୍ତୁ)\s*/gi, "").trim();
+
+  const localizedEntityName = translateHrmsLookup(language, "titles", rawEntityName) || rawEntityName;
+
+  let displayTitle = translateHrmsLookup(language, "titles", title);
+  if (isEditTitle && displayTitle === title) {
+    displayTitle = `${localizedEntityName} ${t("common.edit")}`;
+  } else if (isAddTitle && displayTitle === title) {
+    displayTitle = `${t("common.addNew")} ${localizedEntityName}`;
+  }
+
+  let defaultSubtitle = "";
+  if (language === "bn") {
+    defaultSubtitle = isEditMode
+      ? `${localizedEntityName} বিবরণ আপডেট করুন।`
+      : `নতুন ${localizedEntityName} রেকর্ড তৈরি করুন।`;
+  } else if (language === "hi") {
+    defaultSubtitle = isEditMode
+      ? `${localizedEntityName} विवरण अपडेट करें।`
+      : `नया ${localizedEntityName} रिकॉर्ड बनाएँ।`;
+  } else if (language === "or") {
+    defaultSubtitle = isEditMode
+      ? `${localizedEntityName} ବିବରଣୀ ଅପଡେଟ୍ କରନ୍ତୁ।`
+      : `ନୂତନ ${localizedEntityName} ରେକର୍ଡ ତିଆରି କରନ୍ତୁ।`;
+  } else {
+    defaultSubtitle = isEditMode
+      ? `Update ${localizedEntityName.toLowerCase()} details.`
+      : `Create a new ${localizedEntityName.toLowerCase()} record.`;
+  }
+
+  const displaySubtitle = subtitle ?? defaultSubtitle;
+
+  const displaySubmitLabel =
+    submitLabel === "Save & Continue" || submitLabel === "Save"
+      ? t("common.save")
+      : translateHrmsLookup(language, "actions", submitLabel);
+
+  const displayCancelLabel =
+    cancelLabel === "Close" || cancelLabel === "Cancel"
+      ? t("common.close")
+      : translateHrmsLookup(language, "actions", cancelLabel);
+
   return (
     <Modal
       open={open}
       onClose={handleClose}
-      title={title}
-      subtitle={
-        subtitle ??
-        (title.toLowerCase().startsWith("edit")
-          ? `Update ${title.replace(/^Edit\s+/i, "").toLowerCase()} details.`
-          : `Create a new ${title.replace(/^Add\s+/i, "").toLowerCase()} record.`)
-      }
+      title={displayTitle}
+      subtitle={displaySubtitle}
       size={size}
       footer={
         <>
@@ -353,7 +404,7 @@ export function MasterDataModal({
             className="btn btn-primary"
             disabled={submitting || disableSubmit}
           >
-            {submitting ? "Saving..." : submitLabel}
+            {submitting ? t("common.loading") : displaySubmitLabel}
           </button>
           <button
             type="button"
@@ -361,7 +412,7 @@ export function MasterDataModal({
             onClick={handleClose}
             disabled={submitting}
           >
-            {cancelLabel}
+            {displayCancelLabel}
           </button>
         </>
       }

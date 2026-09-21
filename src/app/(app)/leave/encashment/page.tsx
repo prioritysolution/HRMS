@@ -1,13 +1,15 @@
 "use client";
 
 import { MasterDataPage } from "@/components/ui/MasterDataPage";
+import { useI18n } from "@/i18n";
 
 export default function LeaveEncashmentPage() {
+  const { t } = useI18n();
   return (
     <MasterDataPage
       moduleId="leave-encashment"
-      modalSubtitle="Request encashment of unused eligible leave balance."
-      emptyStateMessage="Submit encashment requests for leave types marked as encashable in Leave Master."
+      modalSubtitle={t("leave.pages.encashment.subtitle")}
+      emptyStateMessage={t("leave.pages.encashment.empty")}
     />
   );
 }

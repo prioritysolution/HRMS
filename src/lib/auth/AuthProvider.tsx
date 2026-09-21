@@ -18,10 +18,19 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [ready, setReady] = useState(false);
+  const [ready, setReady] = useState<boolean>(false);
 
   useEffect(() => {
     let cancelled = false;
+
+    if (isAuthenticated()) {
+      const cached = getStoredUser();
+      if (cached) {
+        const withOrg = enrichAuthUserWithOrgId(cached, getAccessToken());
+        setStoredUser(withOrg);
+        if (!cancelled) setUser(withOrg);
+      }
+    }
 
     async function hydrate() {
       if (!isAuthenticated()) {
@@ -32,18 +41,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      const cached = getStoredUser();
-      if (cached) {
-        const withOrg = enrichAuthUserWithOrgId(cached, getAccessToken());
-        if (withOrg.orgId !== cached.orgId) {
-          setStoredUser(withOrg);
-          if (!cancelled) setUser(withOrg);
+      try {
+        const stored = await authService.me();
+        if (!cancelled && stored) {
+          setUser(stored);
+          setStoredUser(stored);
         }
+      } catch (e) {
+        // keep cached user
+      } finally {
+        if (!cancelled) setReady(true);
       }
-
-      const stored = await authService.me();
-      if (!cancelled) setUser(stored);
-      if (!cancelled) setReady(true);
     }
 
     void hydrate();

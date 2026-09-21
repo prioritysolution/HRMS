@@ -1,0 +1,14 @@
+{
+  "searchPlaceholder": "कुछ भी खोजें...",
+  "noMenuFound": "कोई मेनू नहीं मिला",
+  "toggleTheme": "थीम बदलें",
+  "toggleFullscreen": "फुल स्क्रीन",
+  "settings": "सेटिंग्स",
+  "notifications": "सूचनाएं",
+  "notificationsTitle": "सूचनाएं",
+  "notificationsSubtitle": "आपके पास 12 नई सूचनाएं हैं",
+  "language": "भाषा",
+  "languageHint": "अपनी पसंदीदा भाषा चुनें",
+  "openSidebar": "साइडबार खोलें",
+  "closeSidebar": "साइडबार बंद करें"
+}

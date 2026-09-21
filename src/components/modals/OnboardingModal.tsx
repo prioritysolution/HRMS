@@ -1,5 +1,6 @@
 "use client";
 
+import { useI18n, translateHrmsLookup } from "@/i18n";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { OnboardingChecklist } from "@/components/onboarding/OnboardingChecklist";
@@ -188,10 +189,12 @@ export function OnboardingModal({
   onClose,
   title,
   subtitle,
-  submitLabel = "Save & Continue",
+  submitLabel,
   initialValues,
   onSubmit,
 }: OnboardingModalProps) {
+  const { t, language } = useI18n();
+  const effectiveSubmitLabel = submitLabel ?? t("employees.onboarding.saveContinue");
   const sections = ONBOARDING_FORM_SECTIONS;
   const resolvedFields = useMemo(() => resolveFields(sections), [sections]);
   const [values, setValues] = useState<Record<string, FormValue>>({});
@@ -229,9 +232,6 @@ export function OnboardingModal({
       return;
     }
 
-    // Create needs the active employee picker + uniqueness scans.
-    // Edit locks Employee_id, so skip employee list APIs and only refresh
-    // onboarding uniqueness + dropdown masters.
     if (!isEditMode) {
       void Promise.all([
         apiClient.get<unknown>(`${API_ENDPOINTS.employee.list}?status=1`).catch(() => []),
@@ -347,7 +347,6 @@ export function OnboardingModal({
 
     setValues(() => {
       const next = buildInitialFormValues(resolvedFields, initialValues);
-      // Never hydrate a stored password into the form.
       next.Password = "";
 
       const editing = Boolean(
@@ -355,7 +354,6 @@ export function OnboardingModal({
       );
 
       if (editing) {
-        // Default checked on edit unless API explicitly sent false.
         if (
           initialValues?.User_already_created === undefined ||
           initialValues?.User_already_created === null ||
@@ -575,7 +573,6 @@ export function OnboardingModal({
         : String(payload.Password).trim();
     payload.Password = password || null;
 
-    // Edit default: existing users should not force account recreation.
     if (isEditMode && payload.User_already_created === true) {
       payload.Create_user_account = false;
     }
@@ -677,7 +674,7 @@ export function OnboardingModal({
             className="btn btn-primary"
             disabled={submitting}
           >
-            {submitting ? "Saving..." : submitLabel}
+            {submitting ? t("employees.onboarding.saving") : effectiveSubmitLabel}
           </button>
           <button
             type="button"
@@ -685,7 +682,7 @@ export function OnboardingModal({
             onClick={handleClose}
             disabled={submitting}
           >
-            Close
+            {t("employees.onboarding.close")}
           </button>
         </>
       }
@@ -710,6 +707,7 @@ export function OnboardingModal({
             <div className="form-sections">
               {dynamicSections.map((section, index) => {
                 const isOpen = openSectionId === section.id;
+                const translatedTitle = translateHrmsLookup(language, "labels", section.title);
 
                 return (
                   <section key={section.id} className={cn("form-section", isOpen && "is-open")}>
@@ -722,7 +720,7 @@ export function OnboardingModal({
                     >
                       <div className="form-section-index">{String(index + 1).padStart(2, "0")}</div>
                       <div className="form-section-heading">
-                        <h3 className="form-section-title">{section.title}</h3>
+                        <h3 className="form-section-title">{translatedTitle}</h3>
                         {section.description ? (
                           <p className="form-section-description">{section.description}</p>
                         ) : null}

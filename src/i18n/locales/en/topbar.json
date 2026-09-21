@@ -1,0 +1,14 @@
+{
+  "searchPlaceholder": "Search anything...",
+  "noMenuFound": "No menu found",
+  "toggleTheme": "Toggle theme",
+  "toggleFullscreen": "Toggle fullscreen",
+  "settings": "Settings",
+  "notifications": "Notifications",
+  "notificationsTitle": "Notifications",
+  "notificationsSubtitle": "You have 12 new notifications",
+  "language": "Language",
+  "languageHint": "Choose your preferred language",
+  "openSidebar": "Open sidebar",
+  "closeSidebar": "Close sidebar"
+}

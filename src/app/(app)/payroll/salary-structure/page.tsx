@@ -1,13 +1,15 @@
 "use client";
 
 import { MasterDataPage } from "@/components/ui/MasterDataPage";
+import { useI18n } from "@/i18n";
 
 export default function SalaryStructurePage() {
+  const { t } = useI18n();
   return (
     <MasterDataPage
       moduleId="payroll-salary-structure"
-      modalSubtitle="Define salary structures with earnings, deductions, and applicable statutory rule sets."
-      emptyStateMessage="Create salary structures mapping components to grades, designations, or departments."
+      modalSubtitle={t("payroll.pages.salaryStructure.subtitle")}
+      emptyStateMessage={t("payroll.pages.salaryStructure.empty")}
     />
   );
 }

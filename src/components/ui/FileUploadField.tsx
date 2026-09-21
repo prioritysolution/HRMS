@@ -6,6 +6,7 @@ import { FormFieldLabel } from "@/components/ui/FormFieldLabel";
 import { formatFileSize, LOGO_ACCEPT, LOGO_MAX_SIZE_MB } from "@/lib/file-upload";
 import { resolvePublicFileUrl } from "@/lib/env";
 import { cn } from "@/lib/utils";
+import { useI18n, translateHrmsLookup } from "@/i18n";
 
 function fileLabelFromPath(value?: string): string {
   if (!value) return "";
@@ -54,6 +55,7 @@ export function FileUploadField({
   disabled,
   onChange,
 }: FileUploadFieldProps) {
+  const { t, language } = useI18n();
   const generatedId = useId();
   const inputId = id ?? generatedId;
   const inputRef = useRef<HTMLInputElement>(null);
@@ -120,7 +122,7 @@ export function FileUploadField({
         <div className="file-upload-meta">
           <div className="file-upload-actions">
             <label htmlFor={inputId} className="btn btn-outline-primary file-upload-choose">
-              {hasFile ? "Change file" : "Choose file"}
+              {hasFile ? t("common.fileUpload.changeFile") : t("common.fileUpload.chooseFile")}
             </label>
             {hasFile && previewUrl ? (
               <button
@@ -130,7 +132,7 @@ export function FileUploadField({
                 disabled={disabled}
               >
                 <Eye size={14} strokeWidth={2.25} />
-                {isPdf ? "View PDF" : "View"}
+                {isPdf ? t("common.fileUpload.viewPdf") : t("common.fileUpload.view")}
               </button>
             ) : null}
             {hasFile ? (
@@ -141,16 +143,24 @@ export function FileUploadField({
                 disabled={disabled}
               >
                 <X size={14} strokeWidth={2.25} />
-                Remove
+                {t("common.fileUpload.remove")}
               </button>
             ) : null}
           </div>
           <p className="file-upload-name">
-            {fileName || "No file chosen"}
+            {fileName || t("common.fileUpload.noFileChosen")}
             {file ? ` · ${formatFileSize(file.size)}` : ""}
           </p>
           <p className="file-upload-hint">
-            {hint ?? `JPG, JPEG, PNG, WEBP · max ${maxSizeMb} MB · optional`}
+            {hint
+              ? (translateHrmsLookup(language, "labels", hint) || hint)
+              : language === "bn"
+                ? `JPG, JPEG, PNG, WEBP · সর্বোচ্চ ${maxSizeMb} MB · ঐচ্ছিক`
+                : language === "hi"
+                  ? `JPG, JPEG, PNG, WEBP · अधिकतम ${maxSizeMb} MB · वैकल्पिक`
+                  : language === "or"
+                    ? `JPG, JPEG, PNG, WEBP · ସର୍ବାଧିକ ${maxSizeMb} MB · ଐଚ୍ଛିକ`
+                    : `JPG, JPEG, PNG, WEBP · max ${maxSizeMb} MB · optional`}
           </p>
           {error ? (
             <p className="form-field-error" role="alert">

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { FormFieldLabel } from "@/components/ui/FormFieldLabel";
 import { SearchableSelect } from "@/components/ui/SearchableSelect";
+import { useI18n, translateHrmsLookup } from "@/i18n";
 import { latestFinancialYear } from "@/lib/leave-module-utils";
 import type { HrmsRow } from "@/types/hrms";
 
@@ -59,15 +60,20 @@ export function LeaveEntitlementModal({
   onSubmit,
   financialYearOptions,
   leaveTypes,
-  title = "Add Entitlement",
-  subtitle = "Set allocated days by leave type for the selected financial year.",
-  submitLabel = "Save Entitlement",
+  title,
+  subtitle,
+  submitLabel,
 }: LeaveEntitlementModalProps) {
+  const { language, t } = useI18n();
   const [finYear, setFinYear] = useState("");
   const [lines, setLines] = useState<LeaveEntitlementLeaveLine[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitError, setSubmitError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  const resolvedTitle = title || t("leave.entitlementModal.title");
+  const resolvedSubtitle = subtitle || t("leave.entitlementModal.subtitle");
+  const resolvedSubmit = submitLabel || t("leave.entitlementModal.submit");
 
   useEffect(() => {
     if (!open) return;
@@ -95,13 +101,13 @@ export function LeaveEntitlementModal({
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     const nextErrors: Record<string, string> = {};
-    if (!finYear) nextErrors.Fin_year = "Financial year is required.";
-    if (lines.length === 0) nextErrors.Leaves = "No leave types available to allocate.";
+    if (!finYear) nextErrors.Fin_year = t("leave.entitlementModal.yearRequired");
+    if (lines.length === 0) nextErrors.Leaves = t("leave.entitlementModal.noTypes");
 
     for (const line of lines) {
       const allocated = Number(line.Allocated_days);
       if (!Number.isFinite(allocated) || allocated < 0) {
-        nextErrors[`Allocated_${line.Leave_id}`] = "Enter a valid allocated days value.";
+        nextErrors[`Allocated_${line.Leave_id}`] = t("leave.entitlementModal.invalidDays");
       }
     }
 
@@ -128,7 +134,7 @@ export function LeaveEntitlementModal({
       onClose();
     } catch (error) {
       setSubmitError(
-        error instanceof Error ? error.message : "Unable to save leave entitlement.",
+        error instanceof Error ? error.message : t("leave.entitlementModal.saveFailed"),
       );
     } finally {
       setSubmitting(false);
@@ -139,7 +145,7 @@ export function LeaveEntitlementModal({
     <Modal
       open={open}
       onClose={submitting ? () => undefined : onClose}
-      title={title}
+      title={resolvedTitle}
       size="lg"
       footer={
         <>
@@ -149,7 +155,7 @@ export function LeaveEntitlementModal({
             onClick={onClose}
             disabled={submitting}
           >
-            Close
+            {t("leave.entitlementModal.close")}
           </button>
           <button
             type="submit"
@@ -157,19 +163,19 @@ export function LeaveEntitlementModal({
             className="btn btn-primary"
             disabled={submitting || lines.length === 0}
           >
-            {submitting ? "Saving..." : submitLabel}
+            {submitting ? t("leave.entitlementModal.saving") : resolvedSubmit}
           </button>
         </>
       }
     >
       <form id="leave-entitlement-form" onSubmit={(event) => void handleSubmit(event)}>
-        {subtitle ? <p className="text-muted mb-3">{subtitle}</p> : null}
+        {resolvedSubtitle ? <p className="text-muted mb-3">{resolvedSubtitle}</p> : null}
 
         <div className="form-grid form-grid-2">
           <div className="form-field">
             <FormFieldLabel
               htmlFor="leave-entitlement-year"
-              label="Financial Year"
+              label={t("leave.entitlementModal.financialYear")}
               required
             />
             <SearchableSelect
@@ -178,8 +184,8 @@ export function LeaveEntitlementModal({
               value={finYear}
               onChange={setFinYear}
               options={financialYearOptions}
-              placeholder="Select Financial Year"
-              searchPlaceholder="Search financial year..."
+              placeholder={t("leave.entitlementModal.selectYear")}
+              searchPlaceholder={t("leave.entitlementModal.searchYear")}
             />
             {errors.Fin_year ? <p className="form-field-error">{errors.Fin_year}</p> : null}
           </div>
@@ -187,11 +193,9 @@ export function LeaveEntitlementModal({
 
         <div className="mt-3">
           <div className="table-filters-head mb-2">
-            <span className="table-filters-title">Leave Types</span>
+            <span className="table-filters-title">{t("leave.entitlementModal.leaveTypes")}</span>
           </div>
-          <p className="text-muted small mb-2">
-            Default days come from Leave Master. Adjust allocated days before saving.
-          </p>
+          <p className="text-muted small mb-2">{t("leave.entitlementModal.leaveTypesHint")}</p>
           {errors.Leaves ? <p className="form-field-error">{errors.Leaves}</p> : null}
 
           <div className="table-wrap">
@@ -199,16 +203,16 @@ export function LeaveEntitlementModal({
               <thead>
                 <tr>
                   <th className="si-col">SI</th>
-                  <th>Leave Type</th>
-                  <th>Short Name</th>
-                  <th>Allocated Days</th>
+                  <th>{translateHrmsLookup(language, "headers", "Leave Type")}</th>
+                  <th>{t("leave.entitlementModal.shortName")}</th>
+                  <th>{t("leave.entitlementModal.allocatedDays")}</th>
                 </tr>
               </thead>
               <tbody>
                 {lines.length === 0 ? (
                   <tr>
                     <td colSpan={4} className="text-center text-muted py-4">
-                      No active leave types found in Leave Master.
+                      {t("leave.entitlementModal.noLeaveTypes")}
                     </td>
                   </tr>
                 ) : (

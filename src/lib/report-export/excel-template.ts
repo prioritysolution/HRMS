@@ -96,12 +96,13 @@ function estimateRowHeight(lineCountValue: number): number {
 
 /** Common Excel template used by all reports (supports real line-break wrap). */
 export async function exportReportExcel(options: ReportExcelOptions) {
-  const ExcelJS = ((await import("exceljs")) as ExcelJsModule).default;
+  const excelModule = (await import("exceljs")) as unknown as { default?: typeof import("exceljs"); Workbook: typeof import("exceljs").Workbook };
+  const Workbook = excelModule.default?.Workbook ?? excelModule.Workbook;
   const brand = resolveBrand(options.brand);
   const includeSerial = options.includeSerial !== false;
   const generatedAt = formatGeneratedAt();
 
-  const workbook = new ExcelJS.Workbook();
+  const workbook = new Workbook();
   workbook.creator = "PrioHRM";
   workbook.created = new Date();
 
@@ -142,7 +143,7 @@ export async function exportReportExcel(options: ReportExcelOptions) {
     ...options.columns.map((column) => column.header),
   ];
   const headerRow = sheet.addRow(headerValues);
-  headerRow.eachCell((cell) => {
+  headerRow.eachCell((cell: import("exceljs").Cell) => {
     cell.fill = HEADER_FILL;
     cell.font = { bold: true, color: { argb: "FFFFFFFF" }, size: 10 };
     cell.alignment = { vertical: "middle", horizontal: "left", wrapText: true };
@@ -171,7 +172,7 @@ export async function exportReportExcel(options: ReportExcelOptions) {
     const dataRow = sheet.addRow(values);
     let maxLines = 1;
 
-    dataRow.eachCell((cell, colNumber) => {
+    dataRow.eachCell((cell: import("exceljs").Cell, colNumber: number) => {
       const raw = String(cell.value ?? "");
       maxLines = Math.max(maxLines, lineCount(raw));
       cell.alignment = {

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { FileDown, FileSpreadsheet } from "lucide-react";
 import { useToast } from "@/components/ui/ToastProvider";
 import { useReportBrand } from "@/hooks/useReportBrand";
+import { useI18n } from "@/i18n";
 import {
   exportReport,
   type ReportBrand,
@@ -42,12 +43,16 @@ export function ReportExportButtons({
   cardTitle,
   sheetName,
   disabled = false,
-  emptyMessage = "No records match the current filters.",
-  successMessage = "Download started for the filtered report.",
+  emptyMessage,
+  successMessage,
 }: ReportExportButtonsProps) {
+  const { t } = useI18n();
   const toast = useToast();
   const { brand: resolvedBrand } = useReportBrand();
   const [exporting, setExporting] = useState<"pdf" | "excel" | null>(null);
+
+  const resolvedEmpty = emptyMessage ?? t("common.export.empty");
+  const resolvedSuccess = successMessage ?? t("common.export.success");
 
   const brand = {
     ...resolvedBrand,
@@ -57,8 +62,8 @@ export function ReportExportButtons({
   const handleExport = async (format: "excel" | "pdf") => {
     if (rows.length === 0) {
       toast.error({
-        title: "Nothing to export",
-        message: emptyMessage,
+        title: t("common.export.nothingTitle"),
+        message: resolvedEmpty,
       });
       return;
     }
@@ -78,14 +83,19 @@ export function ReportExportButtons({
         sheetName,
       });
       toast.success({
-        title: format === "excel" ? "Excel exported" : "PDF exported",
-        message: successMessage,
+        title:
+          format === "excel"
+            ? t("common.export.excelTitle")
+            : t("common.export.pdfTitle"),
+        message: resolvedSuccess,
       });
     } catch (error) {
       toast.error({
-        title: "Export failed",
+        title: t("common.export.failedTitle"),
         message:
-          error instanceof Error ? error.message : "Unable to generate the file.",
+          error instanceof Error
+            ? error.message
+            : t("common.export.failedMessage"),
       });
     } finally {
       setExporting(null);
@@ -103,7 +113,9 @@ export function ReportExportButtons({
         onClick={() => void handleExport("excel")}
       >
         <FileSpreadsheet size={16} strokeWidth={2} />
-        {exporting === "excel" ? "Exporting…" : "Export Excel"}
+        {exporting === "excel"
+          ? t("common.export.exporting")
+          : t("common.export.excel")}
       </button>
       <button
         type="button"
@@ -112,7 +124,9 @@ export function ReportExportButtons({
         onClick={() => void handleExport("pdf")}
       >
         <FileDown size={16} strokeWidth={2} />
-        {exporting === "pdf" ? "Exporting…" : "Export PDF"}
+        {exporting === "pdf"
+          ? t("common.export.exporting")
+          : t("common.export.pdf")}
       </button>
     </div>
   );

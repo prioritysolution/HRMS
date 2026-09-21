@@ -9,6 +9,7 @@ import { resolvePublicFileUrl } from "@/lib/env";
 import { cn } from "@/lib/utils";
 import type { FormValue } from "@/lib/form-validation";
 import type { FormField, HrmsRow } from "@/types/hrms";
+import { useI18n, translateHrmsLookup } from "@/i18n";
 
 type FormFieldsRendererProps = {
   fields: FormField[];
@@ -78,6 +79,8 @@ export function FormFieldsRenderer({
   onBlur,
   isEdit = false,
 }: FormFieldsRendererProps) {
+  const { language } = useI18n();
+
   const visibleFields = fields.filter((field) => {
     if (!isEdit && field.hideOnCreate) return false;
     if (isEdit && field.hideOnEdit) return false;
@@ -89,6 +92,47 @@ export function FormFieldsRenderer({
       {visibleFields.map((field) => {
         const isDisabled = Boolean(field.readOnly) || (field.readOnlyOnEdit && isEdit);
         const floor = numberFloor(field);
+        const fieldLabel = translateHrmsLookup(language, "labels", field.label);
+
+        const localizedOptions = field.options?.map((opt) => {
+          if (typeof opt === "string") {
+            return {
+              value: opt,
+              label: translateHrmsLookup(language, "labels", opt),
+            };
+          }
+          return {
+            ...opt,
+            label: translateHrmsLookup(language, "labels", opt.label),
+          };
+        });
+
+        let selectPlaceholder = "";
+        let searchPlaceholder = "";
+        let textPlaceholder = "";
+
+        if (field.placeholder) {
+          textPlaceholder = translateHrmsLookup(language, "labels", field.placeholder);
+        }
+
+        if (language === "bn") {
+          selectPlaceholder = `${fieldLabel} নির্বাচন করুন`;
+          searchPlaceholder = `${fieldLabel} খুঁজুন...`;
+          if (!textPlaceholder) textPlaceholder = `${fieldLabel} লিখুন...`;
+        } else if (language === "hi") {
+          selectPlaceholder = `${fieldLabel} चुनें`;
+          searchPlaceholder = `${fieldLabel} खोजें...`;
+          if (!textPlaceholder) textPlaceholder = `${fieldLabel} दर्ज करें...`;
+        } else if (language === "or") {
+          selectPlaceholder = `${fieldLabel} ବାଛନ୍ତୁ`;
+          searchPlaceholder = `${fieldLabel} ଖୋଜନ୍ତୁ...`;
+          if (!textPlaceholder) textPlaceholder = `${fieldLabel} ଲେଖନ୍ତୁ...`;
+        } else {
+          selectPlaceholder = `Select ${fieldLabel}`;
+          searchPlaceholder = `Search ${fieldLabel.toLowerCase()}...`;
+          if (!textPlaceholder) textPlaceholder = `Enter ${fieldLabel.toLowerCase()}`;
+        }
+
         return (
           <div
           key={field.name}
@@ -100,11 +144,11 @@ export function FormFieldsRenderer({
         >
           {field.type === "radio" ? (
             <>
-              <FormFieldLabel htmlFor={field.name} label={field.label} required={field.required} />
-              <div className="radio-row" role="radiogroup" aria-label={field.label}>
-                {(field.options ?? []).map((option) => {
-                  const optionValue = typeof option === "string" ? option : option.value;
-                  const optionLabel = typeof option === "string" ? option : option.label;
+              <FormFieldLabel htmlFor={field.name} label={fieldLabel} required={field.required} />
+              <div className="radio-row" role="radiogroup" aria-label={fieldLabel}>
+                {(localizedOptions ?? []).map((option) => {
+                  const optionValue = option.value;
+                  const optionLabel = option.label;
                   return (
                     <label key={optionValue} className="check-label" htmlFor={`${field.name}-${optionValue}`}>
                       <input
@@ -137,7 +181,7 @@ export function FormFieldsRenderer({
                   onChange={(event) => onChange(field.name, event.target.checked)}
                   disabled={isDisabled}
                 />
-                {field.label}
+                {fieldLabel}
                 {field.required ? <span className="field-required">*</span> : null}
               </label>
               {errors[field.name] ? (
@@ -150,7 +194,7 @@ export function FormFieldsRenderer({
             <FileUploadField
               id={field.name}
               name={field.name}
-              label={field.label}
+              label={fieldLabel}
               required={field.required}
               accept={field.accept}
               maxSizeMb={field.maxSizeMb}
@@ -183,16 +227,16 @@ export function FormFieldsRenderer({
             />
           ) : (
             <>
-              <FormFieldLabel htmlFor={field.name} label={field.label} required={field.required} />
+              <FormFieldLabel htmlFor={field.name} label={fieldLabel} required={field.required} />
               {field.type === "select" ? (
                 <SearchableSelect
                   id={field.name}
                   name={field.name}
                   value={asText(values[field.name])}
                   onChange={(nextValue) => onChange(field.name, nextValue)}
-                  options={field.options ?? []}
-                  placeholder={`Select ${field.label}`}
-                  searchPlaceholder={`Search ${field.label.toLowerCase()}...`}
+                  options={localizedOptions ?? []}
+                  placeholder={selectPlaceholder}
+                  searchPlaceholder={searchPlaceholder}
                   disabled={isDisabled}
                 />
               ) : field.type === "date" ? (
@@ -211,7 +255,7 @@ export function FormFieldsRenderer({
                   className="form-control"
                   rows={3}
                   value={asText(values[field.name])}
-                  placeholder={field.placeholder ?? `Enter ${field.label.toLowerCase()}`}
+                  placeholder={textPlaceholder}
                   onChange={(event) => onChange(field.name, event.target.value)}
                   disabled={isDisabled}
                 />
@@ -221,9 +265,9 @@ export function FormFieldsRenderer({
                   name={field.name}
                   value={asText(values[field.name])}
                   onChange={(nextValue) => onChange(field.name, nextValue)}
-                  options={field.options ?? []}
-                  placeholder={`Select ${field.label}`}
-                  searchPlaceholder={`Search ${field.label.toLowerCase()}...`}
+                  options={localizedOptions ?? []}
+                  placeholder={selectPlaceholder}
+                  searchPlaceholder={searchPlaceholder}
                   disabled={isDisabled}
                 />
               ) : (
@@ -236,7 +280,7 @@ export function FormFieldsRenderer({
                     field.min !== undefined && field.min >= 0 && "no-number-spin",
                   )}
                   value={asText(values[field.name])}
-                  placeholder={field.placeholder ?? `Enter ${field.label.toLowerCase()}`}
+                  placeholder={textPlaceholder}
                   min={field.type === "number" ? (floor ?? field.min) : undefined}
                   max={field.type === "number" ? field.max : undefined}
                   step={field.type === "number" ? 1 : undefined}

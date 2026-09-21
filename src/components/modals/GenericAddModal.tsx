@@ -7,6 +7,7 @@ import {
   FormFieldsRenderer,
 } from "@/components/ui/FormFieldsRenderer";
 import { validateFormField, validateFormFields, type FormValue } from "@/lib/form-validation";
+import { useI18n, translateHrmsLookup } from "@/i18n";
 import type { FormField } from "@/types/hrms";
 
 type GenericAddModalProps = {
@@ -39,6 +40,7 @@ export function GenericAddModal({
   submitLabel = "Save & Continue",
   fields = defaultFields,
 }: GenericAddModalProps) {
+  const { language, t } = useI18n();
   const [values, setValues] = useState<Record<string, FormValue>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -75,25 +77,62 @@ export function GenericAddModal({
     onClose();
   };
 
+  const isEditTitle = title.toLowerCase().startsWith("edit ");
+  const isAddTitle = title.toLowerCase().startsWith("add ");
+
+  let rawEntityName = title;
+  if (isEditTitle) rawEntityName = title.replace(/^Edit\s+/i, "");
+  else if (isAddTitle) rawEntityName = title.replace(/^Add\s+/i, "");
+
+  const localizedEntityName = translateHrmsLookup(language, "titles", rawEntityName);
+
+  let displayTitle = translateHrmsLookup(language, "titles", title);
+  if (isEditTitle && displayTitle === title) {
+    displayTitle = `${localizedEntityName} ${t("common.edit")}`;
+  } else if (isAddTitle && displayTitle === title) {
+    displayTitle = `${t("common.addNew")} ${localizedEntityName}`;
+  }
+
+  let defaultSubtitle = "";
+  if (language === "bn") {
+    defaultSubtitle = isEditTitle
+      ? `${localizedEntityName} বিবরণ আপডেট করুন।`
+      : `নতুন ${localizedEntityName} রেকর্ড তৈরি করুন।`;
+  } else if (language === "hi") {
+    defaultSubtitle = isEditTitle
+      ? `${localizedEntityName} विवरण अपडेट करें।`
+      : `नया ${localizedEntityName} रिकॉर्ड बनाएँ।`;
+  } else if (language === "or") {
+    defaultSubtitle = isEditTitle
+      ? `${localizedEntityName} ବିବରଣୀ ଅପଡେଟ୍ କରନ୍ତୁ।`
+      : `ନୂତନ ${localizedEntityName} ରେକର୍ଡ ତିଆରି କରନ୍ତୁ।`;
+  } else {
+    defaultSubtitle = isEditTitle
+      ? `Update ${localizedEntityName.toLowerCase()} details.`
+      : `Create a new ${localizedEntityName.toLowerCase()} record.`;
+  }
+
+  const displaySubtitle = subtitle ?? defaultSubtitle;
+
+  const displaySubmitLabel =
+    submitLabel === "Save & Continue" || submitLabel === "Save"
+      ? t("common.save")
+      : translateHrmsLookup(language, "actions", submitLabel);
+
   return (
     <Modal
       open={open}
       onClose={onClose}
-      title={title}
-      subtitle={
-        subtitle ??
-        (title.toLowerCase().startsWith("edit")
-          ? `Update ${title.replace(/^Edit\s+/i, "").toLowerCase()} details.`
-          : `Create a new ${title.replace(/^Add\s+/i, "").toLowerCase()} record.`)
-      }
+      title={displayTitle}
+      subtitle={displaySubtitle}
       size="lg"
       footer={
         <>
           <button type="submit" form="generic-add-form" className="btn btn-primary">
-            {submitLabel}
+            {displaySubmitLabel}
           </button>
           <button type="button" className="btn btn-outline-danger" onClick={onClose}>
-            Close
+            {t("common.close")}
           </button>
         </>
       }

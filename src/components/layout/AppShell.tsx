@@ -12,7 +12,10 @@ function Shell({ children }: { children: React.ReactNode }) {
   return (
     <>
       <Topbar />
-      <Sidebar />
+      <div className="page-wrapper">
+        <div className="page-content">{children}</div>
+        <AppFooter />
+      </div>
       {mobileOpen && (
         <button
           type="button"
@@ -21,10 +24,7 @@ function Shell({ children }: { children: React.ReactNode }) {
           onClick={closeMobile}
         />
       )}
-      <div className="page-wrapper">
-        <div className="page-content">{children}</div>
-        <AppFooter />
-      </div>
+      <Sidebar />
     </>
   );
 }

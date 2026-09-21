@@ -16,36 +16,27 @@ import { useToast } from "@/components/ui/ToastProvider";
 import type { DocumentSettings } from "@/lib/api/services/document-settings.service";
 import { documentSettingsService } from "@/lib/api/services/document-settings.service";
 import type { FormValue } from "@/lib/form-validation";
+import { useI18n } from "@/i18n";
 
 const OPTIONS = [
   {
     name: "approval_required" as const,
-    label: "Approval Required",
-    description: "Require approval before a document can be finalized.",
     icon: CheckCircle2,
   },
   {
     name: "allow_edit_after_approval" as const,
-    label: "Allow Edit After Approval",
-    description: "Allow users to edit a document after it has been approved.",
     icon: FilePenLine,
   },
   {
     name: "allow_cancel_after_approval" as const,
-    label: "Allow Cancel After Approval",
-    description: "Allow users to cancel a document after it has been approved.",
     icon: Ban,
   },
   {
     name: "allow_reprint" as const,
-    label: "Allow Reprint",
-    description: "Allow reprinting of already printed documents.",
     icon: Printer,
   },
   {
     name: "show_duplicate_on_reprint" as const,
-    label: 'Show "Duplicate" on Reprint',
-    description: 'Mark reprinted documents with a "Duplicate" watermark or label.',
     icon: Copy,
   },
 ] as const;
@@ -65,6 +56,7 @@ function toFormValues(data: DocumentSettings): Record<string, FormValue> {
 }
 
 export default function DocumentSettingsPage() {
+  const { t } = useI18n();
   const toast = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -86,15 +78,15 @@ export default function DocumentSettingsPage() {
         if (result.data) setValues(toFormValues(result.data));
         if (!result.ok) {
           toast.error({
-            title: "Unable to load settings",
+            title: t("settings.common.loadFailed"),
             message: result.message,
           });
         }
       } catch {
         if (cancelled) return;
         toast.error({
-          title: "Unable to load settings",
-          message: "Failed to load document settings. Please try again.",
+          title: t("settings.common.loadFailed"),
+          message: t("settings.document.loadError"),
         });
       } finally {
         if (!cancelled) setLoading(false);
@@ -105,7 +97,7 @@ export default function DocumentSettingsPage() {
     return () => {
       cancelled = true;
     };
-  }, [toast]);
+  }, [toast, t]);
 
   const handleSave = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -120,17 +112,17 @@ export default function DocumentSettingsPage() {
       });
       if (!result.ok || !result.data) {
         toast.error({
-          title: "Save failed",
+          title: t("settings.common.saveFailed"),
           message: result.message,
         });
         return;
       }
       setValues(toFormValues(result.data));
-      toast.success({ title: "Saved", message: result.message });
+      toast.success({ title: t("settings.common.saved"), message: result.message });
     } catch {
       toast.error({
-        title: "Save failed",
-        message: "Failed to save document settings. Please try again.",
+        title: t("settings.common.saveFailed"),
+        message: t("settings.document.saveError"),
       });
     } finally {
       setSaving(false);
@@ -139,15 +131,19 @@ export default function DocumentSettingsPage() {
 
   return (
     <>
-      <PageHeader title="Document Settings" section="Settings" hideTitle />
+      <PageHeader
+        title={t("settings.document.title")}
+        section={t("settings.common.section")}
+        hideTitle
+      />
       {loading ? (
         <div className="container-fluid">
           <div className="card">
             <div className="card-body">
-              <TableSectionHeader title="Document Settings" />
+              <TableSectionHeader title={t("settings.document.title")} />
               <div className="employee-profile-loading">
                 <RoundLoader />
-                <p>Loading document settings…</p>
+                <p>{t("settings.document.loading")}</p>
               </div>
             </div>
           </div>
@@ -156,7 +152,7 @@ export default function DocumentSettingsPage() {
         <div className="container-fluid">
           <div className="card">
             <div className="card-body">
-              <TableSectionHeader title="Document Settings" />
+              <TableSectionHeader title={t("settings.document.title")} />
 
               <form id="document-settings-form" onSubmit={(event) => void handleSave(event)}>
                 <div className="notification-option-list">
@@ -169,15 +165,15 @@ export default function DocumentSettingsPage() {
                             <Icon size={18} />
                           </div>
                           <div className="notification-option-copy">
-                            <h6>{option.label}</h6>
-                            <p>{option.description}</p>
+                            <h6>{t(`settings.document.options.${option.name}.label`)}</h6>
+                            <p>{t(`settings.document.options.${option.name}.description`)}</p>
                           </div>
                         </div>
                         <StatusToggle
                           name={option.name}
                           value={String(values[option.name] ?? "0")}
-                          activeLabel="Yes"
-                          inactiveLabel="No"
+                          activeLabel={t("common.yes")}
+                          inactiveLabel={t("common.no")}
                           onChange={(nextValue) =>
                             setValues((prev) => ({ ...prev, [option.name]: nextValue }))
                           }
@@ -190,7 +186,7 @@ export default function DocumentSettingsPage() {
 
                 <div className="flex justify-end pt-4">
                   <button type="submit" className="btn btn-primary" disabled={saving}>
-                    {saving ? "Saving..." : "Save Settings"}
+                    {saving ? t("settings.common.saving") : t("settings.common.saveSettings")}
                   </button>
                 </div>
               </form>

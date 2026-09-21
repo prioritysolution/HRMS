@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { Circle, Star, ThumbsUp } from "lucide-react";
+import { PersonCell } from "@/components/ui/DataTable";
 import type { PerformanceRow } from "@/data/dashboard";
 
 function RatingIcon({ type }: { type: PerformanceRow["ratingIcon"] }) {
@@ -49,10 +49,7 @@ export function PerformanceTable({
                   <td className="si-col">{index + 1}</td>
                   <td>{row.id}</td>
                   <td>
-                    <div className="user-cell">
-                      <Image src={row.avatar} alt={row.name} width={32} height={32} />
-                      <span>{row.name}</span>
-                    </div>
+                    <PersonCell name={row.name} avatar={row.avatar} />
                   </td>
                   <td>{row.jobTitle}</td>
                   <td className="text-center">

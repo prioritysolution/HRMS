@@ -2,6 +2,7 @@
 
 import { CircleAlert } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
+import { useI18n } from "@/i18n";
 
 type ConfirmDialogProps = {
   open: boolean;
@@ -21,11 +22,15 @@ export function ConfirmDialog({
   onConfirm,
   title,
   message,
-  confirmLabel = "Confirm",
-  cancelLabel = "Cancel",
+  confirmLabel,
+  cancelLabel,
   loading = false,
   variant = "default",
 }: ConfirmDialogProps) {
+  const { t } = useI18n();
+  const resolvedConfirm = confirmLabel ?? t("common.confirm");
+  const resolvedCancel = cancelLabel ?? t("common.cancel");
+
   const handleConfirm = async () => {
     await onConfirm();
   };
@@ -60,7 +65,7 @@ export function ConfirmDialog({
             onClick={onClose}
             disabled={loading}
           >
-            {cancelLabel}
+            {resolvedCancel}
           </button>
           <button
             type="button"
@@ -68,7 +73,7 @@ export function ConfirmDialog({
             onClick={handleConfirm}
             disabled={loading}
           >
-            {loading ? "Please wait..." : confirmLabel}
+            {loading ? t("common.pleaseWait") : resolvedConfirm}
           </button>
         </>
       }

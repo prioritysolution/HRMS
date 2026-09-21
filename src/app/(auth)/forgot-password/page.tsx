@@ -1,8 +1,13 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { Headphones, Mail } from "lucide-react";
+import { useI18n } from "@/i18n";
 
 export default function ForgotPasswordPage() {
+  const { t } = useI18n();
+
   return (
     <section className="auth-page">
       <div className="auth-overlay" />
@@ -11,14 +16,14 @@ export default function ForgotPasswordPage() {
           <div className="auth-center-body">
             <Image
               src="/images/pswforgot.png"
-              alt="Forgot password"
+              alt={t("auth.forgotTitle")}
               width={220}
               height={160}
               className="auth-illus"
               priority
             />
-            <h1 className="auth-heading">Forget Password?</h1>
-            <p className="auth-subheading">Enter your email to reset your password.</p>
+            <h1 className="auth-heading">{t("auth.forgotTitle")}</h1>
+            <p className="auth-subheading">{t("auth.forgotSubtitle")}</p>
 
             <form className="auth-form" action="/verification">
               <div className="auth-floating">
@@ -31,34 +36,32 @@ export default function ForgotPasswordPage() {
                   type="email"
                   className="auth-control auth-control-floating"
                   placeholder=" "
-                  defaultValue="joyce.neal@example.com"
                   required
                 />
-                <label htmlFor="emailVerify">Email Address</label>
+                <label htmlFor="emailVerify">{t("auth.emailAddress")}</label>
               </div>
-              <div className="auth-help text-left">
-                We&apos;ll send you OTP to reset your password.
-              </div>
+              <div className="auth-help text-left">{t("auth.otpHint")}</div>
 
-              <button type="submit" className="btn btn-primary w-full mt-4">
-                Confirm E-mail
+              <button type="submit" className="btn btn-primary u-width-full mt-4">
+                {t("auth.confirmEmail")}
               </button>
 
               <hr className="auth-divider mt-6" />
               <div className="auth-help-row">
                 <small>
-                  Remember your password ? <Link href="/login">Login</Link>
+                  {t("auth.rememberPassword")}{" "}
+                  <Link href="/login">{t("auth.login")}</Link>
                 </small>
                 <a href="#" className="auth-help-link">
-                  <Headphones size={14} /> Help
+                  <Headphones size={14} /> {t("auth.help")}
                 </a>
               </div>
             </form>
           </div>
         </div>
         <p className="auth-legal">
-          By continuing, you agree to our <a href="#">Terms of Service</a> and{" "}
-          <a href="#">Privacy Policy</a>
+          {t("auth.termsAgree")} <a href="#">{t("auth.termsOfService")}</a> {t("auth.and")}{" "}
+          <a href="#">{t("auth.privacyPolicy")}</a>
         </p>
       </div>
     </section>

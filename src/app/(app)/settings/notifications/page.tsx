@@ -10,36 +10,27 @@ import { useToast } from "@/components/ui/ToastProvider";
 import { notificationSettingsService } from "@/lib/api/services/notification-settings.service";
 import type { NotificationSettingsRecord } from "@/lib/api/types";
 import type { FormValue } from "@/lib/form-validation";
+import { useI18n } from "@/i18n";
 
 const CHANNELS = [
   {
     name: "inapp_notification" as const,
-    label: "In-App",
-    description: "Show alerts inside PrioHRM.",
     icon: Smartphone,
   },
   {
     name: "email_notification" as const,
-    label: "Email",
-    description: "Send alerts and updates by email.",
     icon: Mail,
   },
   {
     name: "sms_notification" as const,
-    label: "SMS",
-    description: "Send text message notifications to employees.",
     icon: MessageSquare,
   },
   {
     name: "push_notification" as const,
-    label: "Push",
-    description: "Send mobile push notifications.",
     icon: Bell,
   },
   {
     name: "whatsapp_notification" as const,
-    label: "WhatsApp",
-    description: "Send WhatsApp alerts when configured.",
     icon: MessageCircle,
     optional: true,
   },
@@ -60,6 +51,7 @@ function toFormValues(data: NotificationSettingsRecord): Record<string, FormValu
 }
 
 export default function NotificationSettingsPage() {
+  const { t } = useI18n();
   const toast = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -81,15 +73,15 @@ export default function NotificationSettingsPage() {
         if (result.data) setValues(toFormValues(result.data));
         if (!result.ok) {
           toast.error({
-            title: "Unable to load settings",
+            title: t("settings.common.loadFailed"),
             message: result.message,
           });
         }
       } catch {
         if (cancelled) return;
         toast.error({
-          title: "Unable to load settings",
-          message: "Failed to load notification settings. Please try again.",
+          title: t("settings.common.loadFailed"),
+          message: t("settings.notifications.loadError"),
         });
       } finally {
         if (!cancelled) setLoading(false);
@@ -100,7 +92,7 @@ export default function NotificationSettingsPage() {
     return () => {
       cancelled = true;
     };
-  }, [toast]);
+  }, [toast, t]);
 
   const handleSave = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -115,17 +107,17 @@ export default function NotificationSettingsPage() {
       });
       if (!result.ok || !result.data) {
         toast.error({
-          title: "Save failed",
+          title: t("settings.common.saveFailed"),
           message: result.message,
         });
         return;
       }
       setValues(toFormValues(result.data));
-      toast.success({ title: "Saved", message: result.message });
+      toast.success({ title: t("settings.common.saved"), message: result.message });
     } catch {
       toast.error({
-        title: "Save failed",
-        message: "Failed to save notification settings. Please try again.",
+        title: t("settings.common.saveFailed"),
+        message: t("settings.notifications.saveError"),
       });
     } finally {
       setSaving(false);
@@ -134,15 +126,19 @@ export default function NotificationSettingsPage() {
 
   return (
     <>
-      <PageHeader title="Notification Settings" section="Settings" hideTitle />
+      <PageHeader
+        title={t("settings.notifications.title")}
+        section={t("settings.common.section")}
+        hideTitle
+      />
       {loading ? (
         <div className="container-fluid">
           <div className="card">
             <div className="card-body">
-              <TableSectionHeader title="Notification Settings" />
+              <TableSectionHeader title={t("settings.notifications.title")} />
               <div className="employee-profile-loading">
                 <RoundLoader />
-                <p>Loading notification settings…</p>
+                <p>{t("settings.notifications.loading")}</p>
               </div>
             </div>
           </div>
@@ -151,7 +147,7 @@ export default function NotificationSettingsPage() {
         <div className="container-fluid">
           <div className="card">
             <div className="card-body">
-              <TableSectionHeader title="Notification Settings" />
+              <TableSectionHeader title={t("settings.notifications.title")} />
 
               <form id="notification-settings-form" onSubmit={(event) => void handleSave(event)}>
                 <div className="notification-option-list">
@@ -166,21 +162,21 @@ export default function NotificationSettingsPage() {
                           </div>
                           <div className="notification-option-copy">
                             <h6 className="inline-flex items-center gap-2">
-                              {channel.label}
+                              {t(`settings.notifications.channels.${channel.name}.label`)}
                               {optional ? (
                                 <span className="badge bg-soft-secondary text-secondary text-xs font-medium">
-                                  Optional
+                                  {t("settings.common.optional")}
                                 </span>
                               ) : null}
                             </h6>
-                            <p>{channel.description}</p>
+                            <p>{t(`settings.notifications.channels.${channel.name}.description`)}</p>
                           </div>
                         </div>
                         <StatusToggle
                           name={channel.name}
                           value={String(values[channel.name] ?? "0")}
-                          activeLabel="Yes"
-                          inactiveLabel="No"
+                          activeLabel={t("common.yes")}
+                          inactiveLabel={t("common.no")}
                           onChange={(nextValue) =>
                             setValues((prev) => ({ ...prev, [channel.name]: nextValue }))
                           }
@@ -193,7 +189,7 @@ export default function NotificationSettingsPage() {
 
                 <div className="flex justify-end pt-4">
                   <button type="submit" className="btn btn-primary" disabled={saving}>
-                    {saving ? "Saving..." : "Save Settings"}
+                    {saving ? t("settings.common.saving") : t("settings.common.saveSettings")}
                   </button>
                 </div>
               </form>

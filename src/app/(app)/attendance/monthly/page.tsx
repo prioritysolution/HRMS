@@ -10,6 +10,7 @@ import { getHrmsModule } from "@/config/hrms-modules";
 import { ApiError, attendanceService } from "@/lib/api";
 import type { MonthlyAttendanceSummary } from "@/lib/api/types";
 import { getModuleEmptyIcon } from "@/lib/module-icons";
+import { useI18n, translateHrmsLookup, translateModuleStat } from "@/i18n";
 import type { HrmsRow } from "@/types/hrms";
 
 const MODULE_ID = "monthly-attendance";
@@ -73,7 +74,10 @@ function emptySummary(): MonthlyAttendanceSummary {
 }
 
 export default function MonthlyAttendancePage() {
+  const { language, t } = useI18n();
   const config = getHrmsModule(MODULE_ID);
+  const pageTitle = translateHrmsLookup(language, "titles", config.title);
+  const pageSection = translateHrmsLookup(language, "sections", config.section);
   const toast = useToast();
   const periodOptions = useMemo(() => buildPeriodOptions(), []);
   const [period, setPeriod] = useState(() => {
@@ -101,16 +105,16 @@ export default function MonthlyAttendancePage() {
       setRows([]);
       setSummary(emptySummary());
       toast.error({
-        title: "Unable to load monthly attendance",
+        title: t("attendance.pages.monthly.loadFailed"),
         message:
           error instanceof ApiError
             ? error.message
-            : "Please check your connection and try again.",
+            : t("attendance.pages.monthly.loadFailedMessage"),
       });
     } finally {
       setLoading(false);
     }
-  }, [selectedPeriod, toast]);
+  }, [selectedPeriod, toast, t]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- initial/async data load
@@ -119,21 +123,21 @@ export default function MonthlyAttendancePage() {
 
   return (
     <>
-      <PageHeader title={config.title} section={config.section} hideTitle />
+      <PageHeader title={pageTitle} section={pageSection} hideTitle />
       <div className="container-fluid">
         <div className="card mb-4">
           <div className="card-body">
             <div className="flex flex-wrap items-end gap-3">
               <div className="w-full max-w-xs">
                 <label className="mb-1 block text-sm font-medium text-[var(--text-secondary)]">
-                  Month &amp; Year
+                  {t("attendance.pages.monthly.periodLabel")}
                 </label>
                 <SearchableSelect
                   value={period}
                   onChange={(value) => setPeriod(String(value))}
                   options={periodOptions}
                   clearable={false}
-                  searchPlaceholder="Search month or year..."
+                  searchPlaceholder={t("attendance.pages.monthly.searchPeriod")}
                 />
               </div>
             </div>
@@ -142,29 +146,44 @@ export default function MonthlyAttendancePage() {
 
         <div className="stat-grid mb-4">
           <StatCard
-            title="Summaries"
+            title={translateModuleStat(language, "Summaries", "title", "Summaries")}
             value={String(summary.Total_summaries ?? 0)}
             change={`${summary.Complete_count ?? 0} complete`}
-            hint="complete"
-            description="Monthly attendance summaries"
+            hint={translateModuleStat(language, "Summaries", "hint", "complete")}
+            description={translateModuleStat(
+              language,
+              "Summaries",
+              "description",
+              "Monthly attendance summaries",
+            )}
             tone="info"
             icon="calendar"
           />
           <StatCard
-            title="Avg Present"
+            title={translateModuleStat(language, "Avg Present", "title", "Avg Present")}
             value={String(summary.Avg_present_days ?? 0)}
             change="days"
-            hint="per emp"
-            description="Average present days"
+            hint={translateModuleStat(language, "Avg Present", "hint", "per emp")}
+            description={translateModuleStat(
+              language,
+              "Avg Present",
+              "description",
+              "Average present days",
+            )}
             tone="success"
             icon="users"
           />
           <StatCard
-            title="Pending Review"
+            title={translateModuleStat(language, "Pending Review", "title", "Pending Review")}
             value={String(summary.Pending_review ?? 0)}
             change="awaiting"
-            hint="close"
-            description="Summaries not yet closed"
+            hint={translateModuleStat(language, "Pending Review", "hint", "close")}
+            description={translateModuleStat(
+              language,
+              "Pending Review",
+              "description",
+              "Summaries not yet closed",
+            )}
             tone="warning"
             icon="clock"
             positive={false}
@@ -172,19 +191,24 @@ export default function MonthlyAttendancePage() {
         </div>
 
         <DataTable
-          title={config.title}
-          searchPlaceholder="Search monthly attendance..."
+          title={pageTitle}
+          searchPlaceholder={t("attendance.pages.monthly.searchPlaceholder")}
           rows={rows}
           loading={loading}
           searchKeys={config.searchKeys}
-          filterFields={[{ key: "Attendance_status", label: "Summary" }]}
+          filterFields={[
+            {
+              key: "Attendance_status",
+              label: translateHrmsLookup(language, "labels", "Summary"),
+            },
+          ]}
           emptyStateIcon={getModuleEmptyIcon(MODULE_ID)}
-          emptyStateTitle="No monthly attendance yet"
-          emptyStateMessage="No attendance summaries found for the selected month."
+          emptyStateTitle={t("attendance.pages.monthly.emptyTitle")}
+          emptyStateMessage={t("attendance.pages.monthly.empty")}
           columns={[
             {
               key: "Employee_name",
-              header: "Employee",
+              header: translateHrmsLookup(language, "headers", "Employee"),
               render: (row) => (
                 <PersonCell
                   name={String(row.Employee_name ?? "—")}
@@ -195,37 +219,37 @@ export default function MonthlyAttendancePage() {
             },
             {
               key: "Month_year",
-              header: "Month",
+              header: translateHrmsLookup(language, "headers", "Month"),
               render: (row) => formatCell(row.Month_year),
             },
             {
               key: "Present_days",
-              header: "Present",
+              header: translateHrmsLookup(language, "headers", "Present"),
               render: (row) => formatCell(row.Present_days),
             },
             {
               key: "Absent_days",
-              header: "Absent",
+              header: translateHrmsLookup(language, "headers", "Absent"),
               render: (row) => formatCell(row.Absent_days),
             },
             {
               key: "Half_day_days",
-              header: "Half Day",
+              header: translateHrmsLookup(language, "headers", "Half Day"),
               render: (row) => formatCell(row.Half_day_days),
             },
             {
               key: "Late_days",
-              header: "Late",
+              header: translateHrmsLookup(language, "headers", "Late"),
               render: (row) => formatCell(row.Late_days),
             },
             {
               key: "Overtime_hours",
-              header: "OT (hrs)",
+              header: translateHrmsLookup(language, "headers", "OT (hrs)"),
               render: (row) => formatCell(row.Overtime_hours),
             },
             {
               key: "Attendance_status",
-              header: "Summary",
+              header: translateHrmsLookup(language, "headers", "Summary"),
               render: (row) => (
                 <SoftStatus value={String(row.Attendance_status ?? "—")} />
               ),

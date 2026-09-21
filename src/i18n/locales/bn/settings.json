@@ -1,0 +1,385 @@
+{
+  "common": {
+    "section": "সেটিংস",
+    "saving": "সংরক্ষণ হচ্ছে...",
+    "saveSettings": "সেটিংস সংরক্ষণ করুন",
+    "saved": "সংরক্ষিত",
+    "saveFailed": "সংরক্ষণ ব্যর্থ",
+    "loadFailed": "সেটিংস লোড করা যায়নি",
+    "validationError": "যাচাইকরণ ত্রুটি",
+    "deleted": "মুছে ফেলা হয়েছে",
+    "deleteFailed": "মুছে ফেলা ব্যর্থ",
+    "success": "সফল",
+    "error": "ত্রুটি",
+    "optional": "ঐচ্ছিক",
+    "notConfigured": "কনফিগার করা হয়নি",
+    "configureSeries": "সিরিজ কনফিগার করুন",
+    "saveConfiguration": "কনফিগারেশন সংরক্ষণ করুন",
+    "filterRecords": "রেকর্ড ফিল্টার করুন...",
+    "yes": "হ্যাঁ",
+    "no": "না",
+    "cancel": "বাতিল"
+  },
+  "leave": {
+    "title": "ছুটির সেটিংস",
+    "loading": "ছুটির সেটিংস লোড হচ্ছে…",
+    "loadError": "ছুটির সেটিংস লোড করতে ব্যর্থ। আবার চেষ্টা করুন।",
+    "saveError": "ছুটির সেটিংস সংরক্ষণ করতে ব্যর্থ। আবার চেষ্টা করুন।",
+    "options": {
+      "apply_future_leave": {
+        "label": "ভবিষ্যৎ ছুটির আবেদন",
+        "description": "কর্মচারীদের ভবিষ্যৎ তারিখের জন্য ছুটি আবেদন করার অনুমতি দিন।"
+      },
+      "apply_previous_leave": {
+        "label": "পূর্ববর্তী তারিখের ছুটির আবেদন",
+        "description": "কর্মচারীদের অতীত তারিখের জন্য ছুটি আবেদন করার অনুমতি দিন।"
+      },
+      "half_day_allowed": {
+        "label": "অর্ধদিবস ছুটি অনুমোদিত",
+        "description": "কর্মচারীদের অর্ধদিবস ছুটি আবেদন করার অনুমতি দিন।"
+      },
+      "apply_during_probation": {
+        "label": "প্রবেশনকালে আবেদন",
+        "description": "কর্মচারী প্রবেশনে থাকাকালীন ছুটির আবেদন অনুমতি দিন।"
+      },
+      "reason_mandatory": {
+        "label": "কারণ বাধ্যতামূলক",
+        "description": "ছুটির আবেদন জমা দেওয়ার সময় কারণ আবশ্যক করুন।"
+      },
+      "prevent_overlapping_leave": {
+        "label": "ওভারল্যাপিং ছুটি প্রতিরোধ",
+        "description": "বিদ্যমান ছুটির সাথে ওভারল্যাপ হওয়া আবেদন ব্লক করুন।"
+      }
+    }
+  },
+  "document": {
+    "title": "নথি সেটিংস",
+    "loading": "নথি সেটিংস লোড হচ্ছে…",
+    "loadError": "নথি সেটিংস লোড করতে ব্যর্থ। আবার চেষ্টা করুন।",
+    "saveError": "নথি সেটিংস সংরক্ষণ করতে ব্যর্থ। আবার চেষ্টা করুন।",
+    "options": {
+      "approval_required": {
+        "label": "অনুমোদন প্রয়োজন",
+        "description": "নথি চূড়ান্ত করার আগে অনুমোদন আবশ্যক করুন।"
+      },
+      "allow_edit_after_approval": {
+        "label": "অনুমোদনের পর সম্পাদনা অনুমতি",
+        "description": "অনুমোদনের পর নথি সম্পাদনা করার অনুমতি দিন।"
+      },
+      "allow_cancel_after_approval": {
+        "label": "অনুমোদনের পর বাতিল অনুমতি",
+        "description": "অনুমোদনের পর নথি বাতিল করার অনুমতি দিন।"
+      },
+      "allow_reprint": {
+        "label": "পুনর্মুদ্রণ অনুমতি",
+        "description": "ইতিমধ্যে মুদ্রিত নথির পুনর্মুদ্রণ অনুমতি দিন।"
+      },
+      "show_duplicate_on_reprint": {
+        "label": "পুনর্মুদ্রণে \"Duplicate\" দেখান",
+        "description": "পুনর্মুদ্রিত নথিতে \"Duplicate\" ওয়াটারমার্ক বা লেবেল দিন।"
+      }
+    }
+  },
+  "notifications": {
+    "title": "নোটিফিকেশন সেটিংস",
+    "loading": "নোটিফিকেশন সেটিংস লোড হচ্ছে…",
+    "loadError": "নোটিফিকেশন সেটিংস লোড করতে ব্যর্থ। আবার চেষ্টা করুন।",
+    "saveError": "নোটিফিকেশন সেটিংস সংরক্ষণ করতে ব্যর্থ। আবার চেষ্টা করুন।",
+    "channels": {
+      "inapp_notification": {
+        "label": "ইন-অ্যাপ",
+        "description": "PrioHRM-এর ভিতরে সতর্কতা দেখান।"
+      },
+      "email_notification": {
+        "label": "ইমেইল",
+        "description": "ইমেইলের মাধ্যমে সতর্কতা ও আপডেট পাঠান।"
+      },
+      "sms_notification": {
+        "label": "এসএমএস",
+        "description": "কর্মচারীদের টেক্সট মেসেজ নোটিফিকেশন পাঠান।"
+      },
+      "push_notification": {
+        "label": "পুশ",
+        "description": "মোবাইল পুশ নোটিফিকেশন পাঠান।"
+      },
+      "whatsapp_notification": {
+        "label": "হোয়াটসঅ্যাপ",
+        "description": "কনফিগার করা থাকলে হোয়াটসঅ্যাপ সতর্কতা পাঠান।"
+      }
+    }
+  },
+  "financialYear": {
+    "subtitle": "ছুটি, পে-রোল এবং রিপোর্টে ব্যবহৃত আর্থিক বছরের সময়কাল নির্ধারণ করুন।",
+    "empty": "এখনও কোনো আর্থিক বছর নেই। সময়কাল কনফিগার শুরু করতে একটি বছর যোগ করুন।"
+  },
+  "attendance": {
+    "title": "উপস্থিতি সেটিংস",
+    "loading": "উপস্থিতি সেটিংস লোড হচ্ছে…",
+    "loadError": "উপস্থিতি সেটিংস লোড করতে ব্যর্থ। আবার চেষ্টা করুন।",
+    "saveError": "উপস্থিতি সেটিংস সংরক্ষণ করতে ব্যর্থ। আবার চেষ্টা করুন।",
+    "validationMessage": "সব বাধ্যতামূলক উপস্থিতি সেটিংস পূরণ করুন।",
+    "lateEarlyTitle": "দেরি ও তাড়াতাড়ি যাওয়ার নিয়ম",
+    "overtimeTitle": "ওভারটাইম সেটিংস",
+    "fields": {
+      "late_grace_period_minutes": "দেরির গ্রেস পিরিয়ড (মিনিট)",
+      "early_leaving_grace_minutes": "তাড়াতাড়ি যাওয়ার গ্রেস (মিনিট)",
+      "late_mark_after_minutes": "দেরি মার্ক করার পর (মিনিট)",
+      "half_day_after_minutes": "অর্ধদিবস পর (মিনিট)",
+      "absent_after_minutes": "অনুপস্থিত পর (মিনিট)",
+      "ot_calculation": "ওটি হিসাব",
+      "minimum_ot_minutes": "সর্বনিম্ন ওটি (মিনিট)",
+      "ot_round_off_minutes": "ওটি রাউন্ড অফ (মিনিট)",
+      "maximum_ot_per_day_hours": "প্রতিদিন সর্বোচ্চ ওটি (ঘণ্টা)"
+    },
+    "toggles": {
+      "overtime_applicable": {
+        "label": "ওভারটাইম প্রযোজ্য",
+        "description": "কর্মচারীদের জন্য ওভারটাইম ট্র্যাকিং ও হিসাব সক্ষম করুন।"
+      },
+      "ot_requires_approval": {
+        "label": "ওটিতে অনুমোদন প্রয়োজন",
+        "description": "ওভারটাইম জমার আগে ম্যানেজার অনুমোদন আবশ্যক করুন।"
+      },
+      "holiday_ot": {
+        "label": "ছুটির দিনের ওটি",
+        "description": "ছুটির দিনে ওভারটাইম অনুমতি দিন।"
+      },
+      "weekly_off_ot": {
+        "label": "সাপ্তাহিক ছুটির ওটি",
+        "description": "সাপ্তাহিক ছুটিতে ওভারটাইম অনুমতি দিন।"
+      }
+    }
+  },
+  "email": {
+    "title": "ইমেইল কনফিগারেশন",
+    "loading": "ইমেইল কনফিগারেশন লোড হচ্ছে…",
+    "loadError": "ইমেইল কনফিগারেশন লোড করতে ব্যর্থ। আবার চেষ্টা করুন।",
+    "saveError": "ইমেইল কনফিগারেশন সংরক্ষণ করতে ব্যর্থ। আবার চেষ্টা করুন।",
+    "validationMessage": "সব বাধ্যতামূলক ইমেইল সেটিংস পূরণ করুন।",
+    "smtpTitle": "SMTP সেটিংস",
+    "testTitle": "টেস্ট ইমেইল পাঠান",
+    "testSend": "টেস্ট ইমেইল পাঠান",
+    "sending": "পাঠানো হচ্ছে...",
+    "testSuccess": "টেস্ট ইমেইল পাঠানো হয়েছে",
+    "testFailed": "টেস্ট ইমেইল ব্যর্থ",
+    "testError": "টেস্ট ইমেইল পাঠাতে ব্যর্থ। আবার চেষ্টা করুন।",
+    "showPassword": "পাসওয়ার্ড দেখান",
+    "hidePassword": "পাসওয়ার্ড লুকান",
+    "fields": {
+      "mailer": "মেইলার",
+      "host": "হোস্ট",
+      "port": "পোর্ট",
+      "username": "ইউজারনেম",
+      "password": "পাসওয়ার্ড",
+      "encryption": "এনক্রিপশন",
+      "from_address": "প্রেরক ঠিকানা",
+      "from_name": "প্রেরক নাম",
+      "to_email": "প্রাপক ইমেইল",
+      "subject": "বিষয়",
+      "message": "বার্তা"
+    },
+    "placeholders": {
+      "password": "SMTP পাসওয়ার্ড লিখুন",
+      "to_email": "প্রাপক ইমেইল লিখুন",
+      "hostPattern": "সঠিক হোস্ট নাম লিখুন (যেমন smtp.example.com)।"
+    },
+    "encryption": {
+      "tls": "TLS",
+      "ssl": "SSL",
+      "none": "কোনোটি নয়"
+    }
+  },
+  "sms": {
+    "title": "এসএমএস কনফিগারেশন",
+    "loading": "এসএমএস কনফিগারেশন লোড হচ্ছে…",
+    "loadError": "এসএমএস কনফিগারেশন লোড করতে ব্যর্থ। আবার চেষ্টা করুন।",
+    "saveError": "এসএমএস কনফিগারেশন সংরক্ষণ করতে ব্যর্থ। আবার চেষ্টা করুন।",
+    "validationMessage": "সব বাধ্যতামূলক এসএমএস সেটিংস পূরণ করুন।",
+    "gatewayTitle": "এসএমএস গেটওয়ে",
+    "eventsTitle": "ইভেন্ট নোটিফিকেশন",
+    "templatesTitle": "মেসেজ টেমপ্লেট",
+    "addTemplate": "টেমপ্লেট যোগ করুন",
+    "editTemplate": "টেমপ্লেট সম্পাদনা",
+    "saveGateway": "গেটওয়ে সংরক্ষণ",
+    "saveEvents": "ইভেন্ট সংরক্ষণ",
+    "showApiKey": "API কী দেখান",
+    "hideApiKey": "API কী লুকান",
+    "fields": {
+      "api_url": "API URL",
+      "api_key": "API কী",
+      "status": "স্ট্যাটাস",
+      "sender_id": "প্রেরক আইডি",
+      "message_type": "মেসেজ ধরন",
+      "template_name": "টেমপ্লেট নাম",
+      "message_template": "মেসেজ টেমপ্লেট",
+      "event": "ইভেন্ট"
+    },
+    "placeholders": {
+      "api_key": "এসএমএস API কী লিখুন (বর্তমান রাখতে খালি রাখুন)"
+    }
+  },
+  "tax": {
+    "title": "কর সেটিংস",
+    "loading": "কর সেটিংস লোড হচ্ছে…",
+    "loadError": "কর সেটিংস লোড করতে ব্যর্থ। আবার চেষ্টা করুন।",
+    "saveError": "কর সেটিংস সংরক্ষণ করতে ব্যর্থ। আবার চেষ্টা করুন।",
+    "validationMessage": "সব বাধ্যতামূলক কর সেটিংস পূরণ করুন।",
+    "slabValidation": "সব বাধ্যতামূলক স্ল্যাব ক্ষেত্র পূরণ করুন।",
+    "slabSaveError": "পেশাদার কর স্ল্যাব সংরক্ষণ করতে ব্যর্থ।",
+    "slabDeleteError": "পেশাদার কর স্ল্যাব মুছতে ব্যর্থ।",
+    "ptTitle": "পেশাদার কর কনফিগারেশন",
+    "slabsTitle": "পেশাদার কর স্ল্যাব",
+    "addSlab": "স্ল্যাব যোগ করুন",
+    "editSlab": "স্ল্যাব সম্পাদনা",
+    "modalSubtitle": "বেতন সীমা এবং পেশাদার করের পরিমাণ কনফিগার করুন।",
+    "tdsTitle": "টিডিএস সেটিংস",
+    "searchSlabsPlaceholder": "পিটি স্ল্যাব খুঁজুন...",
+    "noLimit": "সীমা নেই",
+    "toAmountMinError": "শেষ পরিমাণ অবশ্যই শুরুর পরিমাণের সমান বা তার বেশি হতে হবে।",
+    "ptApplicable": {
+      "label": "পেশাদার কর প্রযোজ্য",
+      "description": "পে-রোলে পেশাদার কর কাটতি সক্রিয় করুন।"
+    },
+    "tdsApplicable": {
+      "label": "টিডিএস প্রযোজ্য",
+      "description": "বেতন প্রক্রিয়াকরণের সময় টিডিএস কাটতি সক্রিয় করুন।"
+    },
+    "columns": {
+      "from_amount": "শুরুর পরিমাণ",
+      "to_amount": "শেষ পরিমাণ",
+      "tax_amount": "কর পরিমাণ"
+    },
+    "fields": {
+      "state": "রাজ্য",
+      "deduction_frequency": "কাটতির ফ্রিকোয়েন্সি",
+      "pt_based_on": "পিটি ভিত্তি",
+      "tax_regime": "কর ব্যবস্থা",
+      "financial_year": "আর্থিক বছর",
+      "tds_method": "টিডিএস হিসাব পদ্ধতি",
+      "standard_deduction": "স্ট্যান্ডার্ড ডিডাকশন (₹)",
+      "from_amount": "শুরুর পরিমাণ (₹)",
+      "to_amount": "শেষ পরিমাণ (₹)",
+      "tax_amount": "কর পরিমাণ (₹)"
+    },
+    "placeholders": {
+      "to_amount": "ঊর্ধ্বসীমা না থাকলে খালি রাখুন"
+    },
+    "options": {
+      "monthly": "মাসিক",
+      "half_yearly": "ষাণ্মাসিক",
+      "yearly": "বার্ষিক",
+      "gross_salary": "মোট বেতন",
+      "basic_salary": "মূল বেতন",
+      "new_regime": "নতুন ব্যবস্থা",
+      "old_regime": "পুরোনো ব্যবস্থা",
+      "monthly_projection": "মাসিক প্রজেকশন",
+      "actual": "প্রকৃত"
+    },
+    "toggles": {
+      "round_off_tds": {
+        "label": "টিডিএস রাউন্ড অফ",
+        "description": "টিডিএস পরিমাণ নিকটতম টাকায় রাউন্ড করুন।"
+      },
+      "consider_previous_employment": {
+        "label": "পূর্ববর্তী চাকরি বিবেচনা",
+        "description": "হিসাবে পূর্ববর্তী নিয়োগকর্তার আয় ও টিডিএস অন্তর্ভুক্ত করুন।"
+      },
+      "auto_generate_form16": {
+        "label": "ফর্ম ১৬ স্বয়ংক্রিয় তৈরি",
+        "description": "বছর শেষ প্রক্রিয়াকরণের পর স্বয়ংক্রিয়ভাবে ফর্ম ১৬ তৈরি করুন।"
+      },
+      "show_tds_on_payslip": {
+        "label": "পেস্লিপে টিডিএস দেখান",
+        "description": "স্যালারি স্লিপে টিডিএস কাটতির বিবরণ দেখান।"
+      }
+    }
+  },
+  "payroll": {
+    "title": "পে-রোল সেটিংস",
+    "loading": "পে-রোল সেটিংস লোড হচ্ছে…",
+    "loadError": "পে-রোল সেটিংস লোড করতে ব্যর্থ। আবার চেষ্টা করুন।",
+    "saveError": "পে-রোল সেটিংস সংরক্ষণ করতে ব্যর্থ। আবার চেষ্টা করুন।",
+    "validationMessage": "সব বাধ্যতামূলক পে-রোল সেটিংস পূরণ করুন।",
+    "salaryCalcTitle": "বেতন হিসাব সেটিংস",
+    "overtimeTitle": "ওভারটাইম সেটিংস",
+    "slipTitle": "স্যালারি স্লিপ সেটিংস",
+    "otApplicable": {
+      "label": "ওটি প্রযোজ্য",
+      "description": "পে-রোল প্রক্রিয়াকরণে ওভারটাইম হিসাব সক্ষম করুন।"
+    },
+    "fields": {
+      "salary_basis": "বেতনের ভিত্তি",
+      "working_days_basis": "কর্মদিবসের ভিত্তি",
+      "salary_calculation_based_on": "বেতন হিসাবের ভিত্তি",
+      "ot_calculation_based_on": "ওটি হিসাবের ভিত্তি",
+      "normal_day_ot_rate": "সাধারণ দিনের ওটি হার (×)",
+      "weekly_off_ot_rate": "সাপ্তাহিক ছুটির ওটি হার (×)",
+      "holiday_ot_rate": "ছুটির দিনের ওটি হার (×)",
+      "minimum_ot_minutes": "সর্বনিম্ন ওটি (মিনিট)",
+      "salary_slip_format": "স্যালারি স্লিপ ফরম্যাট"
+    },
+    "toggles": {
+      "generate_automatically": {
+        "label": "স্বয়ংক্রিয় স্যালারি স্লিপ তৈরি",
+        "description": "পে-রোল প্রক্রিয়াকরণের পর স্বয়ংক্রিয়ভাবে স্যালারি স্লিপ তৈরি করুন।"
+      },
+      "generate_salary_slip_automatically": {
+        "label": "স্বয়ংক্রিয় স্যালারি স্লিপ তৈরি",
+        "description": "পে-রোল প্রক্রিয়াকরণের পর স্বয়ংক্রিয়ভাবে স্যালারি স্লিপ তৈরি করুন।"
+      },
+      "show_attendance_details": {
+        "label": "উপস্থিতির বিবরণ দেখান",
+        "description": "স্যালারি স্লিপে উপস্থিতির সারাংশ অন্তর্ভুক্ত করুন।"
+      },
+      "show_leave_details": {
+        "label": "ছুটির বিবরণ দেখান",
+        "description": "স্যালারি স্লিপে ছুটির সারাংশ অন্তর্ভুক্ত করুন।"
+      },
+      "show_earnings": {
+        "label": "আয় দেখান",
+        "description": "স্যালারি স্লিপে আয়ের বিভাজন দেখান।"
+      },
+      "show_deductions": {
+        "label": "কাটতি দেখান",
+        "description": "স্যালারি স্লিপে কাটতির বিভাজন দেখান।"
+      },
+      "show_employer_contributions": {
+        "label": "নিয়োগকর্তার অবদান দেখান",
+        "description": "স্লিপে নিয়োগকর্তার অবদানের বিবরণ অন্তর্ভুক্ত করুন।"
+      },
+      "show_bank_details": {
+        "label": "ব্যাংক বিবরণ দেখান",
+        "description": "স্লিপে কর্মচারীর ব্যাংক অ্যাকাউন্টের বিবরণ দেখান।"
+      },
+      "digital_signature": {
+        "label": "ডিজিটাল স্বাক্ষর",
+        "description": "তৈরি স্যালারি স্লিপে ডিজিটাল স্বাক্ষর মুদ্রণ করুন।"
+      }
+    }
+  },
+  "numbering": {
+    "title": "কনফিগারকৃত নাম্বারিং সিকোয়েন্স",
+    "configureTitle": "সিরিজ কনফিগার করুন",
+    "configureSubtitle": "{module}-এর জন্য নাম্বারিং সিকোয়েন্স কনফিগার করুন",
+    "loadError": "কোড সিরিজ লোড করতে ব্যর্থ।",
+    "updateSuccess": "কোড সিরিজ আপডেট হয়েছে।",
+    "updateError": "কোড সিরিজ আপডেট করতে ব্যর্থ।",
+    "columns": {
+      "module": "এনটিটি / মডিউল",
+      "customPrefix": "কাস্টম প্রিফিক্স",
+      "nextCounter": "পরবর্তী কাউন্টার",
+      "paddingDigits": "প্যাডিং ডিজিট",
+      "suffix": "সাফিক্স",
+      "sample": "লাইভ ফরম্যাটেড নমুনা",
+      "status": "স্ট্যাটাস",
+      "actions": "অ্যাকশন"
+    },
+    "fields": {
+      "customPrefix": "কাস্টম প্রিফিক্স",
+      "nextCounter": "পরবর্তী কাউন্টার",
+      "paddingDigits": "প্যাডিং ডিজিট",
+      "suffix": "সাফিক্স",
+      "status": "স্ট্যাটাস"
+    }
+  }
+}

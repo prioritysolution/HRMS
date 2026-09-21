@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/FormFieldsRenderer";
 import { validateFormField, validateFormFields, type FormValue } from "@/lib/form-validation";
 import type { FormField } from "@/types/hrms";
+import { useI18n, translateHrmsLookup } from "@/i18n";
 
 type LeaveRequestModalProps = {
   open: boolean;
@@ -32,6 +33,7 @@ const leaveFields: FormField[] = [
 ];
 
 export function LeaveRequestModal({ open, onClose }: LeaveRequestModalProps) {
+  const { t, language } = useI18n();
   const [values, setValues] = useState<Record<string, FormValue>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [leaveDuration, setLeaveDuration] = useState("Full Day");
@@ -70,20 +72,26 @@ export function LeaveRequestModal({ open, onClose }: LeaveRequestModalProps) {
     onClose();
   };
 
+  const durationOptions = [
+    { value: "Full Day", label: translateHrmsLookup(language, "labels", "Full Day") },
+    { value: "First Half", label: translateHrmsLookup(language, "labels", "First Half") },
+    { value: "Second Half", label: translateHrmsLookup(language, "labels", "Second Half") },
+  ];
+
   return (
     <Modal
       open={open}
       onClose={onClose}
-      title="Leave Request"
-      subtitle="Fill out the form to submit leave request"
+      title={translateHrmsLookup(language, "titles", "Leave Requisition")}
+      subtitle={translateHrmsLookup(language, "labels", "Fill out the form to submit leave request")}
       size="lg"
       footer={
         <>
           <button type="submit" form="leave-request-form" className="btn btn-primary">
-            Apply Leave
+            {translateHrmsLookup(language, "actions", "Apply Leave")}
           </button>
           <button type="button" className="btn btn-outline-danger" onClick={onClose}>
-            Cancel
+            {t("common.cancel")}
           </button>
         </>
       }
@@ -97,27 +105,31 @@ export function LeaveRequestModal({ open, onClose }: LeaveRequestModalProps) {
         />
         <div className="form-span-full rounded-xl border border-[var(--border)] p-4">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-            <h6 className="m-0 font-semibold">Leave Duration</h6>
+            <h6 className="m-0 font-semibold">
+              {translateHrmsLookup(language, "labels", "Leave Duration")}
+            </h6>
             <SearchableSelect
               value={leaveDuration}
               onChange={setLeaveDuration}
-              placeholder="Select duration"
-              searchPlaceholder="Search duration..."
+              placeholder={translateHrmsLookup(language, "labels", "Select duration")}
+              searchPlaceholder={translateHrmsLookup(language, "labels", "Search duration...")}
               className="max-w-[180px]"
-              options={["Full Day", "First Half", "Second Half"]}
+              options={durationOptions}
             />
           </div>
           <div className="flex justify-between font-semibold">
-            <span>Total</span>
-            <span>1 Day(s)</span>
+            <span>{translateHrmsLookup(language, "labels", "Total")}</span>
+            <span>1 {translateHrmsLookup(language, "labels", "Day(s)")}</span>
           </div>
         </div>
         <div className="form-span-full">
           <label className="check-label">
-            <input type="checkbox" defaultChecked /> Notify Reporting Manager
+            <input type="checkbox" defaultChecked />{" "}
+            {translateHrmsLookup(language, "labels", "Notify Reporting Manager")}
           </label>
         </div>
       </form>
     </Modal>
   );
 }
+

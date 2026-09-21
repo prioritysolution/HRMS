@@ -17,6 +17,14 @@ import {
 import { PageHeader } from "@/components/ui/PageHeader";
 import { RoundLoader } from "@/components/ui/RoundLoader";
 import { useToast } from "@/components/ui/ToastProvider";
+import {
+  useI18n,
+  translateHrmsLookup,
+  translateGreeting,
+  translateMonthName,
+  formatLocalizedDateString,
+  translateAttendanceStatus,
+} from "@/i18n";
 import { ApiError } from "@/lib/api/client";
 import {
   dashboardService,
@@ -30,11 +38,11 @@ import type { AuthMeProfile, EmpDashboard } from "@/lib/api/types";
 
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
-const quickLinks = [
-  { label: "Apply Leave", href: "/leave/leave-requisition", icon: CalendarDays },
-  { label: "Download Payslip", href: "/ess/payslips", icon: Wallet },
-  { label: "Update Profile", href: "/ess/profile", icon: TrendingUp },
-  { label: "Submit Request", href: "/ess/requests", icon: ListTodo },
+const QUICK_LINK_DEFS = [
+  { key: "quickApplyLeave" as const, href: "/leave/leave-requisition", icon: CalendarDays },
+  { key: "quickDownloadPayslip" as const, href: "/ess/payslips", icon: Wallet },
+  { key: "quickUpdateProfile" as const, href: "/ess/profile", icon: TrendingUp },
+  { key: "quickSubmitRequest" as const, href: "/ess/requests", icon: ListTodo },
 ];
 
 function formatDayNumber(value: number): string {
@@ -62,7 +70,76 @@ function getPresenceTone(
   return "muted";
 }
 
+function EssDashboardSkeleton() {
+  return (
+    <div className="ess-dashboard-skeleton select-none" suppressHydrationWarning aria-busy="true">
+      <div className="ess-welcome-banner mb-4 border border-[var(--border)] rounded-2xl p-6 bg-[var(--card)] flex items-center justify-between">
+        <div className="space-y-2">
+          <div className="ui-skeleton h-7 w-48 rounded-lg" />
+          <div className="ui-skeleton h-4 w-72 rounded-md" />
+        </div>
+        <div className="ui-skeleton h-9 w-36 rounded-xl hidden sm:block" />
+      </div>
+
+      <div className="ess-stat-grid ess-stat-grid--three mb-4">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div
+            key={`ess-stat-skel-${i}`}
+            className="border border-[var(--border)] rounded-2xl p-5 bg-[var(--card)] flex items-center gap-4"
+            style={{ minHeight: "92px" }}
+          >
+            <div className="ui-skeleton w-12 h-12 rounded-2xl flex-shrink-0" />
+            <div className="space-y-2 flex-1">
+              <div className="ui-skeleton h-6 w-24 rounded-md" />
+              <div className="ui-skeleton h-3.5 w-32 rounded" />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="ess-dashboard-grid ess-dashboard-grid--two mb-4">
+        <div className="card border border-[var(--border)] rounded-2xl p-5 bg-[var(--card)]">
+          <div className="flex items-center justify-between mb-5">
+            <div className="ui-skeleton h-5 w-36 rounded-md" />
+            <div className="ui-skeleton h-7 w-24 rounded-lg" />
+          </div>
+          <div className="flex items-center justify-center py-6">
+            <div className="ui-skeleton w-44 h-44 rounded-full" />
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-[var(--border)]">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={`att-stat-skel-${i}`} className="space-y-1.5 text-center">
+                <div className="ui-skeleton h-5 w-12 mx-auto rounded" />
+                <div className="ui-skeleton h-3 w-16 mx-auto rounded" />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="card border border-[var(--border)] rounded-2xl p-5 bg-[var(--card)]">
+          <div className="flex items-center justify-between mb-5">
+            <div className="ui-skeleton h-5 w-32 rounded-md" />
+            <div className="ui-skeleton h-7 w-20 rounded-lg" />
+          </div>
+          <div className="space-y-4 pt-2">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={`leave-skel-${i}`} className="p-3.5 rounded-xl border border-[var(--border)] bg-[var(--card-soft)] flex items-center justify-between">
+                <div className="space-y-1.5">
+                  <div className="ui-skeleton h-4 w-28 rounded" />
+                  <div className="ui-skeleton h-3 w-20 rounded" />
+                </div>
+                <div className="ui-skeleton h-7 w-12 rounded-lg" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function EssDashboard() {
+  const { language, t } = useI18n();
   const { error: toastError } = useToast();
   const [profile, setProfile] = useState<AuthMeProfile | null>(null);
   const [dashboard, setDashboard] = useState<EmpDashboard | null>(null);
@@ -74,12 +151,11 @@ export function EssDashboard() {
     setError(null);
     try {
       const me = await authService.getMeProfile();
-      console.log("me", me);
       setProfile(me);
 
       if (!me?.employeeId) {
         setDashboard(null);
-        setError("Employee profile is not linked to this login.");
+        setError(t("ess.employeeNotLinked"));
         return;
       }
 
@@ -93,14 +169,14 @@ export function EssDashboard() {
           ? err.message
           : err instanceof Error
             ? err.message
-            : "Failed to load employee dashboard.";
+            : t("ess.loadError");
       setDashboard(null);
       setError(message);
       toastError(message);
     } finally {
       setLoading(false);
     }
-  }, [toastError]);
+  }, [t, toastError]);
 
   useEffect(() => {
     void loadDashboard();
@@ -111,16 +187,26 @@ export function EssDashboard() {
   const firstName =
     header?.employee_name ||
     getEssEmployeeName(profile).split(" ")[0] ||
-    "there";
-  const greeting = header?.greeting || "Hello";
-  const dateLabel = header?.display_date || "";
-  const subtitle =
-    header?.subtitle || "Your attendance, leave, and payslip snapshot for today.";
+    t("ess.nameFallback");
+  const greeting = translateGreeting(language, header?.greeting || t("ess.greetingFallback"));
+  const dateLabel = formatLocalizedDateString(language, header?.display_date || "");
+  const subtitle = header?.subtitle
+    ? translateHrmsLookup(language, "labels", header.subtitle)
+    : t("ess.subtitleFallback");
 
-  const attendanceItems = useMemo(
-    () => empMonthlyAttendanceChartItems(dashboard?.monthly_attendance ?? null),
-    [dashboard?.monthly_attendance],
-  );
+  const attendanceItems = useMemo(() => {
+    const items = empMonthlyAttendanceChartItems(dashboard?.monthly_attendance ?? null);
+    const labelMap: Record<string, string> = {
+      Present: t("ess.present"),
+      Absent: t("ess.absent"),
+      Leave: t("ess.leave"),
+      Holiday: t("ess.holiday"),
+    };
+    return items.map((item) => ({
+      ...item,
+      label: labelMap[item.label] ?? item.label,
+    }));
+  }, [dashboard?.monthly_attendance, t]);
 
   const salaryHistory = dashboard?.salary_history ?? [];
   const leaveBalances = dashboard?.leave_balances ?? [];
@@ -221,20 +307,19 @@ export function EssDashboard() {
       legend: { show: false },
       colors: attendanceItems.map((i) => i.color),
       tooltip: {
-        y: { formatter: (val: number) => `${val} days` },
+        y: {
+          formatter: (val: number) => t("ess.daysUnit", { count: val }),
+        },
       },
     };
-  }, [attendanceItems]);
+  }, [attendanceItems, t]);
 
   if (loading) {
     return (
       <>
-        <PageHeader title="My Dashboard" section="Employee Self Service" />
+        <PageHeader title={t("ess.dashboardTitle")} section={t("ess.section")} />
         <div className="container-fluid">
-          <div className="employee-profile-loading">
-            <RoundLoader />
-            <p>Loading dashboard…</p>
-          </div>
+          <EssDashboardSkeleton />
         </div>
       </>
     );
@@ -243,13 +328,13 @@ export function EssDashboard() {
   if (error || !dashboard || !summary) {
     return (
       <>
-        <PageHeader title="My Dashboard" section="Employee Self Service" />
+        <PageHeader title={t("ess.dashboardTitle")} section={t("ess.section")} />
         <div className="container-fluid">
           <div className="card">
             <div className="card-body ess-dashboard-empty">
-              <p className="mb-3">{error || "No dashboard data available."}</p>
+              <p className="mb-3">{error || t("ess.noData")}</p>
               <button type="button" className="btn btn-primary" onClick={() => void loadDashboard()}>
-                Retry
+                {t("common.retry")}
               </button>
             </div>
           </div>
@@ -258,7 +343,8 @@ export function EssDashboard() {
     );
   }
 
-  const monthLabel = dashboard.monthly_attendance?.Month_name || "This month";
+  const rawMonthLabel = dashboard.monthly_attendance?.Month_name || t("ess.thisMonth");
+  const monthLabel = translateMonthName(language, rawMonthLabel);
   const presenceTone = getPresenceTone(
     summary.attendance_status_label,
     summary.attendance_status_name,
@@ -267,7 +353,7 @@ export function EssDashboard() {
 
   return (
     <>
-      <PageHeader title="My Dashboard" section="Employee Self Service" />
+      <PageHeader title={t("ess.dashboardTitle")} section={t("ess.section")} />
       <div className="container-fluid">
         <div className="ess-welcome-banner mb-4">
           <div>
@@ -287,14 +373,20 @@ export function EssDashboard() {
 
         <div className="ess-stat-grid ess-stat-grid--three mb-4">
           <div className={`ess-stat-card ess-stat-card--${presenceTone}`}>
-            <div className={`ess-stat-card-icon ess-presence-dot-wrap ess-presence-dot-wrap--${presenceTone}`}>
+            <div
+              className={`ess-stat-card-icon ess-presence-dot-wrap ess-presence-dot-wrap--${presenceTone}`}
+            >
               <span className={`ess-presence-dot ess-presence-dot--${presenceTone}`} />
             </div>
             <div className="ess-stat-card-body">
-              <strong className={`ess-stat-card-value ess-presence-status ess-presence-status--${presenceTone}`}>
-                {summary.attendance_status_label}
+              <strong
+                className={`ess-stat-card-value ess-presence-status ess-presence-status--${presenceTone}`}
+              >
+                {translateAttendanceStatus(language, summary.attendance_status_label)}
               </strong>
-              <small>Check-out · {summary.scheduled_check_out}</small>
+              <small>
+                {t("ess.checkOut")} · {summary.scheduled_check_out}
+              </small>
             </div>
           </div>
 
@@ -303,8 +395,13 @@ export function EssDashboard() {
               <Clock3 size={24} />
             </div>
             <div className="ess-stat-card-body">
-              <strong className="ess-stat-card-value">{summary.working_hours_label}</strong>
-              <span className="ess-stat-card-label">Working Today</span>
+              <strong className="ess-stat-card-value">
+                {summary.working_hours_label.replace(
+                  "Hrs",
+                  language === "bn" ? "ঘণ্টা" : language === "hi" ? "घंटे" : language === "or" ? "ଘଣ୍ଟା" : "Hrs",
+                )}
+              </strong>
+              <span className="ess-stat-card-label">{t("ess.workingToday")}</span>
             </div>
           </div>
 
@@ -313,8 +410,10 @@ export function EssDashboard() {
               <Briefcase size={24} />
             </div>
             <div className="ess-stat-card-body">
-              <strong className="ess-stat-card-value">{summary.total_leaves_left_label}</strong>
-              <span className="ess-stat-card-label">Leave Left</span>
+              <strong className="ess-stat-card-value">
+                {t("ess.daysUnit", { count: summary.total_leaves_left })}
+              </strong>
+              <span className="ess-stat-card-label">{t("ess.leaveLeft")}</span>
             </div>
           </Link>
         </div>
@@ -323,9 +422,9 @@ export function EssDashboard() {
           <div className="card ess-dashboard-card">
             <div className="card-body">
               <div className="ess-card-header">
-                <h5 className="card-title mb-0">Attendance</h5>
+                <h5 className="card-title mb-0">{t("ess.attendance")}</h5>
                 <Link href="/ess/attendance" className="ess-link-sm">
-                  View all <ArrowRight size={14} />
+                  {t("ess.viewAll")} <ArrowRight size={14} />
                 </Link>
               </div>
 
@@ -339,13 +438,13 @@ export function EssDashboard() {
                       <span className="ess-timeline-marker" />
                       <div className="ess-timeline-content">
                         <strong>{item.Event_time_display}</strong>
-                        <span>{item.Event_label}</span>
+                        <span>{translateHrmsLookup(language, "labels", item.Event_label)}</span>
                       </div>
                     </li>
                   ))}
                 </ul>
               ) : (
-                <p className="text-muted mb-0">No attendance punches for today.</p>
+                <p className="text-muted mb-0">{t("ess.noPunches")}</p>
               )}
             </div>
           </div>
@@ -353,9 +452,9 @@ export function EssDashboard() {
           <div className="card ess-dashboard-card">
             <div className="card-body">
               <div className="ess-card-header">
-                <h5 className="card-title mb-0">My Leave Balance</h5>
+                <h5 className="card-title mb-0">{t("ess.leaveBalance")}</h5>
                 <Link href="/ess/leave" className="ess-link-sm">
-                  Details <ArrowRight size={14} />
+                  {t("ess.details")} <ArrowRight size={14} />
                 </Link>
               </div>
 
@@ -371,7 +470,7 @@ export function EssDashboard() {
                     return (
                       <div key={leave.Leave_Id} className="ess-leave-bar-row">
                         <div className="ess-leave-bar-meta">
-                          <span>{leave.Leave_Name}</span>
+                          <span>{translateHrmsLookup(language, "labels", leave.Leave_Name)}</span>
                           <strong>
                             {formatDayNumber(leave.Used_Days)} / {formatDayNumber(leave.Total_Days)}
                           </strong>
@@ -387,24 +486,27 @@ export function EssDashboard() {
                   })}
                 </div>
               ) : (
-                <p className="text-muted mb-3">No leave balance available.</p>
+                <p className="text-muted mb-3">{t("ess.noLeaveBalance")}</p>
               )}
 
-              <Link href="/leave/leave-requisition" className="btn btn-primary ess-card-action u-width-full">
+              <Link
+                href="/leave/leave-requisition"
+                className="btn btn-primary ess-card-action u-width-full"
+              >
                 <CalendarDays size={16} />
-                Apply Leave
+                {t("ess.applyLeave")}
               </Link>
             </div>
-          </div>
-        </div>
+          </div >
+        </div >
 
         <div className="ess-dashboard-grid ess-dashboard-grid--two mb-4">
           <div className="card ess-dashboard-card">
             <div className="card-body">
               <div className="ess-card-header">
-                <h5 className="card-title mb-0">Last Payslip</h5>
+                <h5 className="card-title mb-0">{t("ess.lastPayslip")}</h5>
                 <Link href="/ess/payslips" className="ess-link-sm">
-                  All payslips <ArrowRight size={14} />
+                  {t("ess.allPayslips")} <ArrowRight size={14} />
                 </Link>
               </div>
 
@@ -413,13 +515,15 @@ export function EssDashboard() {
                   <div className="ess-payslip-hero">
                     <div>
                       <span className="ess-payslip-period">{lastPayslip.period}</span>
-                      <p className="ess-payslip-label">Net Salary</p>
+                      <p className="ess-payslip-label">{t("ess.netSalary")}</p>
                       <strong className="ess-payslip-amount">
                         ₹ {lastPayslip.net_salary.toLocaleString("en-IN")}
                       </strong>
-                      <small className="ess-payslip-paid">Paid on: {lastPayslip.paid_on}</small>
+                      <small className="ess-payslip-paid">
+                        {t("ess.paidOn")} {lastPayslip.paid_on}
+                      </small>
                     </div>
-                    <span className="ess-payslip-badge">{lastPayslip.status}</span>
+                    <span className="ess-payslip-badge">{translateHrmsLookup(language, "labels", lastPayslip.status)}</span>
                   </div>
 
                   {salaryHistory.length > 0 ? (
@@ -431,7 +535,7 @@ export function EssDashboard() {
                         options={salaryChartOptions}
                         series={[
                           {
-                            name: "Net Pay",
+                            name: t("ess.netPay"),
                             data: salaryHistory.map((p) => p.net_pay),
                           },
                         ]}
@@ -442,16 +546,16 @@ export function EssDashboard() {
                   <div className="ess-payslip-actions">
                     <Link href="/ess/payslips" className="btn btn-outline-primary ess-card-action">
                       <FileText size={16} />
-                      View Payslip
+                      {t("ess.viewPayslip")}
                     </Link>
                     <Link href="/ess/payslips" className="btn btn-primary ess-card-action">
                       <Download size={16} />
-                      Download
+                      {t("ess.download")}
                     </Link>
                   </div>
                 </>
               ) : (
-                <p className="text-muted mb-0">No payslip available yet.</p>
+                <p className="text-muted mb-0">{t("ess.noPayslip")}</p>
               )}
             </div>
           </div>
@@ -459,9 +563,11 @@ export function EssDashboard() {
           <div className="card ess-dashboard-card">
             <div className="card-body">
               <div className="ess-card-header">
-                <h5 className="card-title mb-0">Attendance — {monthLabel}</h5>
+                <h5 className="card-title mb-0">
+                  {t("ess.attendanceMonth", { month: monthLabel })}
+                </h5>
                 <Link href="/ess/attendance" className="ess-link-sm">
-                  Details <ArrowRight size={14} />
+                  {t("ess.details")} <ArrowRight size={14} />
                 </Link>
               </div>
 
@@ -475,7 +581,7 @@ export function EssDashboard() {
                       options={attendanceChartOptions}
                       series={[
                         {
-                          name: "Days",
+                          name: t("ess.days"),
                           data: attendanceItems.map((i) => i.value),
                         },
                       ]}
@@ -493,7 +599,7 @@ export function EssDashboard() {
                   </div>
                 </>
               ) : (
-                <p className="text-muted mb-0">No monthly attendance data available.</p>
+                <p className="text-muted mb-0">{t("ess.noMonthlyAttendance")}</p>
               )}
             </div>
           </div>
@@ -501,14 +607,14 @@ export function EssDashboard() {
 
         <div className="card">
           <div className="card-body">
-            <h5 className="card-title mb-3">Employee Services</h5>
+            <h5 className="card-title mb-3">{t("ess.employeeServices")}</h5>
             <div className="ess-quick-links">
-              {quickLinks.map((link) => {
+              {QUICK_LINK_DEFS.map((link) => {
                 const Icon = link.icon;
                 return (
                   <Link key={link.href} href={link.href} className="ess-quick-link">
                     <Icon size={20} />
-                    <span>{link.label}</span>
+                    <span>{t(`ess.${link.key}`)}</span>
                     <ArrowRight size={16} className="ess-quick-link-arrow" />
                   </Link>
                 );

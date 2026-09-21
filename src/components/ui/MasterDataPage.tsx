@@ -16,6 +16,8 @@ import {
   gradeService,
   organizationService,
   workShiftService,
+  getEmployeePhotoMap,
+  enrichRowsWithEmployeePhotos,
 } from "@/lib/api";
 import { applOptionsToSelectOptions } from "@/lib/api/services/appl-options.service";
 import {
@@ -44,7 +46,7 @@ import {
   getEmployeeDetails,
 } from "@/lib/api/master-data-services";
 import { assetTypeService } from "@/lib/api/services/asset-type.service";
-import { DEACTIVATE_CONFIRM_MESSAGE, ACTIVATE_CONFIRM_MESSAGE } from "@/lib/confirm-messages";
+import { DEACTIVATE_CONFIRM_MESSAGE } from "@/lib/confirm-messages";
 import { formatDateDisplay, formatTimeDisplay } from "@/lib/date-utils";
 import { formatRowStatus, getRowStatusKey } from "@/lib/row-status";
 import { MasterDataModal } from "@/components/modals/MasterDataModal";
@@ -53,6 +55,8 @@ import { StatCard } from "@/components/ui/StatCard";
 import { DataTable, PersonCell, SoftStatus, ClampedText, JsonClampedText, type Column } from "@/components/ui/DataTable";
 import { ReportExportButtons } from "@/components/reports/ReportExportButtons";
 import { useToast } from "@/components/ui/ToastProvider";
+import { useI18n, translateHrmsLookup, translateModuleStat } from "@/i18n";
+import type { AppLanguage } from "@/i18n/types";
 import { queueAuditLog, resolveAuditRecordId } from "@/lib/audit-log";
 import { getModuleEmptyIcon } from "@/lib/module-icons";
 import { getRowLabel } from "@/lib/row-label";
@@ -97,9 +101,18 @@ type MasterDataPageProps = {
   submitLabel?: string;
 };
 
-function formatCellValue(value: HrmsRow[string], type?: TableColumn["type"]): string {
+function formatCellValue(
+  value: HrmsRow[string],
+  type: TableColumn["type"] | undefined,
+  yesLabel = "Yes",
+  noLabel = "No",
+  language?: AppLanguage,
+): string {
   if (value === undefined || value === null || value === "") return "—";
-  if (type === "boolean") return value === true || value === "true" || value === 1 ? "Yes" : "No";
+  if (type === "boolean") return value === true || value === "true" || value === 1 || value === "Yes" ? yesLabel : noLabel;
+  if (typeof value === "string" && (value === "Yes" || value === "No")) {
+    return value === "Yes" ? yesLabel : noLabel;
+  }
   if (type === "currency") return `₹${Number(value).toLocaleString("en-IN")}`;
   if (type === "date") return formatDateDisplay(String(value));
   if (type === "time") return formatTimeDisplay(String(value)) || "—";
@@ -113,33 +126,70 @@ function formatCellValue(value: HrmsRow[string], type?: TableColumn["type"]): st
     if (h > 0) return `${h}h`;
     return `${m}m`;
   }
-  return String(value);
+  const str = String(value);
+  if (language) {
+    return translateHrmsLookup(language, "labels", str);
+  }
+  return str;
 }
 
 function formatStatus(value: HrmsRow[string]): string {
   return formatRowStatus(value);
 }
 
-function buildColumns(configColumns: TableColumn[]): Column<HrmsRow>[] {
+function buildColumns(
+  configColumns: TableColumn[],
+  language: AppLanguage,
+  yesLabel: string,
+  noLabel: string,
+  employeePhotoMap?: Map<string, string>,
+): Column<HrmsRow>[] {
   return configColumns.map((column) => {
+    const header = translateHrmsLookup(language, "headers", column.header);
     if (column.type === "person") {
       return {
         key: column.key,
-        header: column.header,
-        render: (row) => (
-          <PersonCell
-            name={String(row[column.key] ?? "—")}
-            subtitle={column.subtitleKey ? String(row[column.subtitleKey] ?? "") : undefined}
-            avatar={column.avatarKey ? String(row[column.avatarKey] ?? "") : undefined}
-          />
-        ),
+        header,
+        render: (row) => {
+          const directAvatar =
+            (column.avatarKey ? row[column.avatarKey] : undefined) ??
+            row.Photo_path ??
+            row.photo_path ??
+            row.Photo ??
+            row.photo ??
+            row.avatar ??
+            row.image ??
+            row.Logo_Url ??
+            row.Logo_Path;
+
+          const empId = row.Employee_id ?? row.Employee_Id;
+          const empCode = row.Employee_code ?? row.Employee_Code;
+          const empName = row.Employee_name ?? row.Employee_Name ?? row.Display_name ?? row[column.key];
+
+          const avatarVal =
+            directAvatar ||
+            (empId ? employeePhotoMap?.get(String(empId)) : undefined) ||
+            (empCode
+              ? employeePhotoMap?.get(String(empCode).trim().toLowerCase()) ??
+                employeePhotoMap?.get(String(empCode).trim())
+              : undefined) ||
+            (empName ? employeePhotoMap?.get(String(empName).trim().toLowerCase()) : undefined);
+
+          return (
+            <PersonCell
+              name={String(row[column.key] ?? "—")}
+              subtitle={column.subtitleKey ? String(row[column.subtitleKey] ?? "") : undefined}
+              avatar={avatarVal ? String(avatarVal) : undefined}
+            />
+          );
+        },
       };
     }
 
     if (column.type === "status") {
       return {
         key: column.key,
-        header: column.header,
+        header,
         render: (row) => <SoftStatus value={formatStatus(row[column.key])} />,
       };
     }
@@ -147,7 +197,7 @@ function buildColumns(configColumns: TableColumn[]): Column<HrmsRow>[] {
     if (column.type === "json") {
       return {
         key: column.key,
-        header: column.header,
+        header,
         render: (row) => <JsonClampedText value={row[column.key]} />,
       };
     }
@@ -155,17 +205,17 @@ function buildColumns(configColumns: TableColumn[]): Column<HrmsRow>[] {
     if (column.type === "clamp" || column.wrap) {
       return {
         key: column.key,
-        header: column.header,
+        header,
         render: (row) => (
-          <ClampedText text={formatCellValue(row[column.key], column.type)} />
+          <ClampedText text={formatCellValue(row[column.key], column.type, yesLabel, noLabel, language)} />
         ),
       };
     }
 
     return {
       key: column.key,
-      header: column.header,
-      render: (row) => formatCellValue(row[column.key], column.type),
+      header,
+      render: (row) => formatCellValue(row[column.key], column.type, yesLabel, noLabel, language),
     };
   });
 }
@@ -250,7 +300,13 @@ export function MasterDataPage({
   emptyStateMessage,
   submitLabel,
 }: MasterDataPageProps) {
+  const { language, t } = useI18n();
   const config = useMemo(() => getHrmsModule(moduleId), [moduleId]);
+  const pageTitle = translateHrmsLookup(language, "titles", config.title);
+  const pageSection = translateHrmsLookup(language, "sections", config.section);
+  const pageActionLabel = config.actionLabel
+    ? translateHrmsLookup(language, "actions", config.actionLabel)
+    : undefined;
   const toast = useToast();
   const usesApi = Boolean(config.usesApi);
   const [rows, setRows] = useState<HrmsRow[]>([]);
@@ -349,9 +405,37 @@ export function MasterDataPage({
     row: HrmsRow;
     status: "Approved" | "Rejected";
   } | null>(null);
+  const [employeePhotoMap, setEmployeePhotoMap] = useState<Map<string, string>>(new Map());
+
+  useEffect(() => {
+    let cancelled = false;
+    const hasPersonCol = config.columns.some(
+      (col) =>
+        col.type === "person" ||
+        col.key === "Employee_name" ||
+        col.key === "Display_name" ||
+        col.subtitleKey === "Employee_code",
+    );
+    if (hasPersonCol) {
+      void getEmployeePhotoMap().then((map) => {
+        if (!cancelled && map && map.size > 0) {
+          setEmployeePhotoMap(map);
+        }
+      });
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, [config.columns]);
 
   const columns = useMemo(() => {
-    const base = buildColumns(config.columns);
+    const base = buildColumns(
+      config.columns,
+      language,
+      t("common.yes"),
+      t("common.no"),
+      employeePhotoMap,
+    );
     if (!isLeaveRequisitionModule && !isLeaveApprovalModule) return base;
 
     return base
@@ -378,11 +462,29 @@ export function MasterDataPage({
             const post = String(row.Designation ?? "").trim();
             const branch = String(row.Branch_Name ?? "").trim();
             const subtitle = [code, post || branch].filter(Boolean).join(" · ");
+            const directAvatar =
+              row.Photo_path ??
+              row.photo_path ??
+              row.Photo ??
+              row.photo ??
+              row.avatar ??
+              row.image;
+            const empId = row.Employee_id ?? row.Employee_Id;
+            const empCode = row.Employee_code ?? row.Employee_Code;
+            const empName = row.Employee_name ?? row.Employee_Name;
+            const avatar =
+              directAvatar ||
+              (empId ? employeePhotoMap.get(String(empId)) : undefined) ||
+              (empCode
+                ? employeePhotoMap.get(String(empCode).trim().toLowerCase()) ??
+                  employeePhotoMap.get(String(empCode).trim())
+                : undefined) ||
+              (empName ? employeePhotoMap.get(String(empName).trim().toLowerCase()) : undefined);
             return (
               <PersonCell
                 name={name || code || "—"}
                 subtitle={subtitle || undefined}
-                avatar={String(row.Photo_path ?? "")}
+                avatar={avatar ? String(avatar) : undefined}
               />
             );
           },
@@ -408,16 +510,24 @@ export function MasterDataPage({
               type="button"
               className="btn btn-link btn-sm p-0 text-decoration-none d-inline-flex align-items-center gap-1"
               onClick={() => window.open(url, "_blank", "noopener,noreferrer")}
-              title={name || "View attachment"}
+              title={name || t("hrms.ui.viewAttachment")}
             >
               <Eye size={14} strokeWidth={2.25} />
-              View
+              {t("hrms.ui.view")}
             </button>
           );
         },
       };
     });
-  }, [config.columns, isLeaveApprovalModule, isLeaveRequisitionAdmin, isLeaveRequisitionModule]);
+  }, [
+    config.columns,
+    employeePhotoMap,
+    isLeaveApprovalModule,
+    isLeaveRequisitionAdmin,
+    isLeaveRequisitionModule,
+    language,
+    t,
+  ]);
   const filterFields = useMemo(() => {
     const fields = isEmployeeModule || isDailyAttendanceModule
       ? [...getModuleFilterFields(config), { key: "Branch_Id", label: "Branch" }]
@@ -429,7 +539,7 @@ export function MasterDataPage({
         if (field.key === "Branch_Id") return { ...field, options: branchOptions };
         if (field.key === "Branch") return { ...field, options: branchOptions.map(o => ({ value: o.label, label: o.label })) };
         if (field.key === "Employment_status_name") return { ...field, options: employmentStatusOptions.map(o => ({ value: o.label, label: o.label })) };
-        if (field.key === "Status") return { ...field, options: [{ value: "1", label: "Active" }, { value: "0", label: "Inactive" }] };
+        if (field.key === "Status") return { ...field, options: [{ value: "1", label: translateHrmsLookup(language, "labels", "Active") }, { value: "0", label: translateHrmsLookup(language, "labels", "Inactive") }] };
       }
       if (isDailyAttendanceModule) {
         if (field.key === "Shift_name") return { ...field, options: shiftOptions };
@@ -495,7 +605,11 @@ export function MasterDataPage({
       }
       return field;
     });
-    return withLeaveEntitlementFilters(moduleId, mapped, financialYearOptions);
+    const withFilters = withLeaveEntitlementFilters(moduleId, mapped, financialYearOptions);
+    return withFilters.map((field) => ({
+      ...field,
+      label: translateHrmsLookup(language, "labels", field.label),
+    }));
   }, [
     attendanceStatusOptions,
     branchOptions,
@@ -506,6 +620,7 @@ export function MasterDataPage({
     financialYearOptions,
     isDailyAttendanceModule,
     isEmployeeModule,
+    language,
     isLeaveApprovalModule,
     isLeaveEntitlementModule,
     isLeaveRequisitionModule,
@@ -693,6 +808,10 @@ export function MasterDataPage({
     }));
     return sections.map((section) => ({
       ...section,
+      title: translateHrmsLookup(language, "titles", section.title),
+      description: section.description
+        ? translateHrmsLookup(language, "titles", section.description)
+        : section.description,
       fields: applyConfigFormOptions(
         moduleId,
         section.fields,
@@ -706,6 +825,7 @@ export function MasterDataPage({
     config.formSections,
     configLookups,
     financialYearOptions,
+    language,
     moduleId,
     rows,
   ]);
@@ -1348,16 +1468,20 @@ export function MasterDataPage({
     }
 
     const result = await apiService.list(resolvedFetchParams);
+    const rawRows = Array.isArray(result) ? result : result.rows;
+    const photoMap = employeePhotoMap.size > 0 ? employeePhotoMap : await getEmployeePhotoMap();
+    const rows = enrichRowsWithEmployeePhotos(rawRows, photoMap);
+
     if (Array.isArray(result)) {
       if (isServerPagedModule) setListTotal(result.length);
-      return sortConfigRows(moduleId, result);
+      return sortConfigRows(moduleId, rows);
     }
 
     if (isServerPagedModule) {
       setListTotal(Number(result.total ?? result.rows.length));
     }
-    return sortConfigRows(moduleId, result.rows);
-  }, [apiService, isServerPagedModule, moduleId, resolvedFetchParams, usesApi]);
+    return sortConfigRows(moduleId, rows);
+  }, [apiService, employeePhotoMap, isServerPagedModule, moduleId, resolvedFetchParams, usesApi]);
 
   const loadRows = useCallback(
     async (options?: { showLoader?: boolean }) => {
@@ -1566,7 +1690,9 @@ export function MasterDataPage({
             return {
               ...field,
               options: employeeOptionsForBranch,
-              placeholder: branchId ? "Select Employee" : "Select branch first",
+              placeholder: branchId
+                ? t("common.selectEmployee")
+                : t("common.selectBranchFirst"),
             };
           }
           if (field.name === "Leave_id") {
@@ -1576,10 +1702,10 @@ export function MasterDataPage({
               placeholder: isLeaveRequisitionAdmin
                 ? branchId
                   ? String(values.Employee_id ?? "").trim()
-                    ? "Select Leave Type"
-                    : "Select employee first"
-                  : "Select branch first"
-                : "Select Leave Type",
+                    ? t("common.selectLeaveType")
+                    : t("common.selectEmployeeFirst")
+                  : t("common.selectBranchFirst")
+                : t("common.selectLeaveType"),
             };
           }
           if (field.name === "Half_day") {
@@ -1960,28 +2086,25 @@ export function MasterDataPage({
       toast.success({
         title:
           mode === "edit"
-            ? "Updated successfully"
-            : "Saved successfully",
-
+            ? t("common.toast.updatedTitle")
+            : t("common.toast.savedTitle"),
         message:
-          `"${label}" has been ${mode === "edit"
-            ? "updated"
-            : "added"
-          }.`,
+          mode === "edit"
+            ? t("common.toast.updatedMessage", { name: label })
+            : t("common.toast.savedMessage", { name: label }),
       });
     } catch (error) {
       toast.error({
         title:
           mode === "edit"
-            ? "Update failed"
-            : "Save failed",
-
+            ? t("common.toast.updateFailed")
+            : t("common.toast.saveFailed"),
         message:
           error instanceof ApiError
             ? error.message
             : error instanceof Error
               ? error.message
-              : "Unable to save record.",
+              : t("common.toast.saveError"),
       });
     }
   };
@@ -2090,23 +2213,33 @@ export function MasterDataPage({
   const resolvedExtraActions = useMemo(() => {
     const exportRows = filteredRows.length ? filteredRows : tableRows;
     const reportExport = config.reportExport;
+    const translatedExportColumns = (reportExport?.columns ?? []).map((column) => ({
+      ...column,
+      header: translateHrmsLookup(language, "headers", column.header),
+    }));
+    const translatedFieldGroups = (reportExport?.fieldGroups ?? []).map((group) => ({
+      ...group,
+      title: translateHrmsLookup(language, "labels", group.title),
+      fields: group.fields.map((field) => ({
+        ...field,
+        header: translateHrmsLookup(language, "headers", field.header),
+      })),
+    }));
     const moduleExport = reportExport ? (
       <ReportExportButtons
-        title={`${config.title} Report`}
+        title={t("hrms.ui.reportTitle", { title: pageTitle })}
         rows={exportRows}
-        columns={reportExport.columns}
-        filterSummary={`${exportRows.length} record${exportRows.length === 1 ? "" : "s"} (as per current filters)`}
+        columns={translatedExportColumns}
+        filterSummary={t("common.export.filterSummary", {
+          count: exportRows.length,
+        })}
         pdfLayout={reportExport.pdfLayout}
-        fieldGroups={reportExport.fieldGroups}
+        fieldGroups={translatedFieldGroups}
         cardTitle={reportExport.cardTitle}
-        sheetName={reportExport.sheetName ?? config.title}
+        sheetName={reportExport.sheetName ?? pageTitle}
         disabled={loading || editLoading}
-        emptyMessage={
-          reportExport.emptyMessage ?? "No records match the current filters."
-        }
-        successMessage={
-          reportExport.successMessage ?? "Download started for the filtered report."
-        }
+        emptyMessage={t("common.export.empty")}
+        successMessage={t("common.export.success")}
       />
     ) : null;
 
@@ -2140,7 +2273,7 @@ export function MasterDataPage({
             disabled={syncing || loading}
           >
             <RefreshCw size={16} strokeWidth={2} className={syncing ? "animate-spin" : ""} />
-            Sync Device
+            {translateHrmsLookup(language, "actions", "Sync Device")}
           </button>
         </div>
       );
@@ -2155,12 +2288,21 @@ export function MasterDataPage({
     tableRows,
     filteredRows,
     config.reportExport,
-    config.title,
+    pageTitle,
+    language,
+    t,
   ]);
+
+  const statNamespace = useMemo(() => {
+    if (moduleId.startsWith("payroll-")) return "payroll";
+    if (moduleId.startsWith("attendance-")) return "attendance";
+    if (moduleId.startsWith("leave-")) return "leave";
+    return undefined;
+  }, [moduleId]);
 
   return (
     <>
-      <PageHeader title={config.title} section={config.section} hideTitle />
+      <PageHeader title={pageTitle} section={pageSection} hideTitle />
       <div className="container-fluid">
         {topContent}
         {activeStats && activeStats.length > 0 ? (
@@ -2168,22 +2310,31 @@ export function MasterDataPage({
             {activeStats.map((stat) => (
               <StatCard
                 key={stat.title}
-                title={stat.title}
+                title={translateModuleStat(language, stat.title, "title", stat.title, statNamespace)}
                 value={stat.value(rows)}
-                change={stat.change(rows)}
-                hint={stat.hint}
-                description={stat.description}
+                change={translateModuleStat(language, stat.title, "change", stat.change(rows), statNamespace)}
+                hint={translateModuleStat(language, stat.title, "hint", stat.hint, statNamespace)}
+                description={translateModuleStat(
+                  language,
+                  stat.title,
+                  "description",
+                  stat.description,
+                  statNamespace,
+                )}
                 tone={stat.tone}
                 icon={stat.icon}
                 positive={stat.positive}
+                loading={loading || editLoading}
               />
             ))}
           </div>
         ) : null}
         <DataTable
-          title={titleRender ?? config.title}
-          searchPlaceholder={`Search ${config.title.toLowerCase()}...`}
-          actionLabel={isReadOnlyModule ? undefined : config.actionLabel}
+          title={titleRender ?? pageTitle}
+          searchPlaceholder={t("common.table.searchModule", {
+            title: pageTitle.toLowerCase(),
+          })}
+          actionLabel={isReadOnlyModule ? undefined : pageActionLabel}
           onAction={isReadOnlyModule ? undefined : () => setAddOpen(true)}
           showRowActions={showRowActions}
           statusToggle={allowStatusToggle}
@@ -2209,14 +2360,14 @@ export function MasterDataPage({
                         className="btn btn-success btn-sm"
                         onClick={() => requestApprovalChange(row, "Approved")}
                       >
-                        Approve
+                        {t("hrms.ui.approve")}
                       </button>
                       <button
                         type="button"
                         className="btn btn-outline-danger btn-sm"
                         onClick={() => requestApprovalChange(row, "Rejected")}
                       >
-                        Reject
+                        {t("hrms.ui.reject")}
                       </button>
                     </div>
                   );
@@ -2225,20 +2376,21 @@ export function MasterDataPage({
           }
           deleteConfirmTitle={
             isLeaveRequisitionModule
-              ? "Cancel leave requisition?"
+              ? t("hrms.ui.cancelLeave")
               : allowStatusToggle
-                ? `Deactivate ${config.title.toLowerCase()}?`
-                : `Delete ${config.title.toLowerCase()}?`
+                ? t("hrms.ui.deactivateTitle", { title: pageTitle.toLowerCase() })
+                : t("hrms.ui.deleteTitle", { title: pageTitle.toLowerCase() })
           }
           deleteConfirmMessage={
             isLeaveRequisitionModule
-              ? "This will cancel the pending application. Only pending requisitions can be cancelled."
+              ? t("hrms.ui.cancelLeaveMessage")
               : allowStatusToggle
                 ? DEACTIVATE_CONFIRM_MESSAGE
                 : undefined
           }
-          activateConfirmTitle={`Activate ${config.title.toLowerCase()}?`}
-          activateConfirmMessage={ACTIVATE_CONFIRM_MESSAGE}
+          activateConfirmTitle={t("hrms.ui.activateTitle", {
+            title: pageTitle.toLowerCase(),
+          })}
           rows={tableRows}
           columns={columns}
           searchKeys={config.searchKeys}
@@ -2246,7 +2398,9 @@ export function MasterDataPage({
           filterExtra={filterExtra}
           getDeleteLabel={deleteName}
           emptyStateIcon={getModuleEmptyIcon(moduleId)}
-          emptyStateTitle={`No ${config.title.toLowerCase()} records yet`}
+          emptyStateTitle={t("hrms.ui.emptyTitle", {
+            title: pageTitle.toLowerCase(),
+          })}
           emptyStateMessage={emptyStateMessage}
           loading={loading || editLoading}
           onFilteredRowsChange={setFilteredRows}
@@ -2275,12 +2429,12 @@ export function MasterDataPage({
           setAddOpen(false);
           if (isLeaveRequisitionModule) setLeaveBalanceRows([]);
         }}
-        title={config.actionLabel || `Add ${config.title}`}
+        title={pageActionLabel || t("hrms.ui.addTitle", { title: pageTitle })}
         subtitle={
           isLeaveRequisitionModule
             ? isLeaveRequisitionAdmin
-              ? "Select branch and employee, then apply leave. New applications are saved as Pending."
-              : "Apply for leave. Your employee profile is used automatically. New applications are saved as Pending."
+              ? t("leave.pages.requisition.subtitleAdmin")
+              : t("leave.pages.requisition.subtitleUser")
             : modalSubtitle
         }
         submitLabel={submitLabel}
@@ -2306,12 +2460,9 @@ export function MasterDataPage({
       <LeaveEntitlementModal
         open={addOpen && isLeaveEntitlementModule}
         onClose={() => setAddOpen(false)}
-        title={config.actionLabel || `Add ${config.title}`}
-        subtitle={
-          modalSubtitle ||
-          "Set allocated days by leave type for the selected financial year."
-        }
-        submitLabel={submitLabel ?? "Save Entitlement"}
+        title={pageActionLabel || t("hrms.ui.addTitle", { title: pageTitle })}
+        subtitle={modalSubtitle || t("leave.entitlementModal.subtitle")}
+        submitLabel={submitLabel ?? t("leave.entitlementModal.submit")}
         financialYearOptions={financialYearOptions}
         leaveTypes={leaveTypeRows}
         onSubmit={(values) => handleSave(values, "add")}
@@ -2323,15 +2474,15 @@ export function MasterDataPage({
           setEditRow(null);
           if (isLeaveRequisitionModule) setLeaveBalanceRows([]);
         }}
-        title={`Edit ${config.title}`}
+        title={t("hrms.ui.editTitle", { title: pageTitle })}
         subtitle={
           isLeaveRequisitionModule
             ? isLeaveRequisitionAdmin
-              ? "Update a pending leave requisition for the selected employee."
-              : "Update your pending leave requisition."
+              ? t("leave.pages.requisition.editAdmin")
+              : t("leave.pages.requisition.editSelf")
             : modalSubtitle
         }
-        submitLabel={submitLabel ?? "Save Changes"}
+        submitLabel={submitLabel ?? t("hrms.ui.saveChanges")}
         fields={modalFields}
         sections={modalSections}
         size={config.modalSize}
@@ -2349,7 +2500,7 @@ export function MasterDataPage({
         applicationLabel={String(
           approvalConfirm?.row.Application_no ||
             approvalConfirm?.row.Employee_name ||
-            "this leave request",
+            t("leave.approvalDialog.thisRequest"),
         )}
         onClose={() => setApprovalConfirm(null)}
         onConfirm={async (remarks) => {

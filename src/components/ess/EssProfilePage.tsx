@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   AlertCircle,
   Building2,
@@ -17,6 +17,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { RoundLoader } from "@/components/ui/RoundLoader";
 import { SoftStatus } from "@/components/ui/DataTable";
 import { useToast } from "@/components/ui/ToastProvider";
+import { useI18n } from "@/i18n";
 import { authService } from "@/lib/api/services/auth.service";
 import { requiresHrApproval } from "@/lib/ess-utils";
 import type { AuthMeProfile } from "@/lib/api/types";
@@ -47,27 +48,49 @@ function RemoteImage({
   return <Image src={src} alt={alt} width={width} height={height} className={className} />;
 }
 
-type EditableField = {
-  key: keyof AuthMeProfile | "emergency_contact" | "permanent_address";
-  label: string;
-  type?: "text" | "email" | "tel";
-  critical?: boolean;
-};
-
-const EDITABLE_FIELDS: EditableField[] = [
-  { key: "mobile", label: "Mobile", type: "tel" },
-  { key: "email", label: "Email", type: "email", critical: true },
-  { key: "emergency_contact", label: "Emergency Contact", type: "tel", critical: true },
-  { key: "permanent_address", label: "Permanent Address", critical: true },
-];
+type EditableFieldKey =
+  | keyof AuthMeProfile
+  | "emergency_contact"
+  | "permanent_address";
 
 export function EssProfilePage() {
+  const { t } = useI18n();
   const toast = useToast();
   const [profile, setProfile] = useState<AuthMeProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [form, setForm] = useState<Record<string, string>>({});
+
+  const editableFields = useMemo(
+    () =>
+      [
+        { key: "mobile" as const, label: t("ess.profilePage.mobile"), type: "tel" as const },
+        {
+          key: "email" as const,
+          label: t("ess.profilePage.email"),
+          type: "email" as const,
+          critical: true,
+        },
+        {
+          key: "emergency_contact" as const,
+          label: t("ess.profilePage.emergencyContact"),
+          type: "tel" as const,
+          critical: true,
+        },
+        {
+          key: "permanent_address" as const,
+          label: t("ess.profilePage.permanentAddress"),
+          critical: true,
+        },
+      ] satisfies Array<{
+        key: EditableFieldKey;
+        label: string;
+        type?: "text" | "email" | "tel";
+        critical?: boolean;
+      }>,
+    [t],
+  );
 
   const loadProfile = useCallback(async () => {
     setLoading(true);
@@ -95,14 +118,14 @@ export function EssProfilePage() {
     setSaving(true);
     await new Promise((r) => setTimeout(r, 600));
 
-    const criticalChanges = EDITABLE_FIELDS.filter(
+    const criticalChanges = editableFields.filter(
       (f) => f.critical && form[f.key] && requiresHrApproval(String(f.key)),
     );
 
     if (criticalChanges.length > 0) {
-      toast.success("Profile update submitted for HR approval.");
+      toast.success(t("ess.profilePage.submittedHr"));
     } else {
-      toast.success("Profile updated successfully.");
+      toast.success(t("ess.profilePage.updated"));
     }
 
     setSaving(false);
@@ -116,8 +139,8 @@ export function EssProfilePage() {
   return (
     <>
       <PageHeader
-        title="My Profile"
-        section="Employee Self Service"
+        title={t("ess.profilePage.title")}
+        section={t("ess.profilePage.section")}
         action={
           profile ? (
             <button
@@ -129,10 +152,10 @@ export function EssProfilePage() {
               {editMode ? (
                 <>
                   <Save size={16} className="me-1" />
-                  {saving ? "Saving…" : "Save Changes"}
+                  {saving ? t("ess.profilePage.saving") : t("ess.profilePage.saveChanges")}
                 </>
               ) : (
-                "Edit Profile"
+                t("ess.profilePage.editProfile")
               )}
             </button>
           ) : null
@@ -142,15 +165,16 @@ export function EssProfilePage() {
         <div className="ess-hr-notice mb-4">
           <AlertCircle size={18} aria-hidden="true" />
           <p>
-            You can update contact details directly. Changes to critical information require{" "}
-            <strong>HR approval</strong> before they take effect.
+            {t("ess.profilePage.hrNoticeBefore")}{" "}
+            <strong>{t("ess.profilePage.hrApproval")}</strong>{" "}
+            {t("ess.profilePage.hrNoticeAfter")}
           </p>
         </div>
 
         {loading ? (
           <div className="employee-profile-loading">
             <RoundLoader />
-            <p>Loading profile…</p>
+            <p>{t("ess.profilePage.loading")}</p>
           </div>
         ) : profile ? (
           <>
@@ -173,7 +197,7 @@ export function EssProfilePage() {
                   <div>
                     <div className="employee-profile-hero-title">
                       <h2>{profile.displayName}</h2>
-                      <SoftStatus value={profile.loginStatus || "Active"} />
+                      <SoftStatus value={profile.loginStatus || t("common.active")} />
                     </div>
                     <div className="employee-profile-hero-meta">
                       <span className="badge bg-soft-primary">{profile.roleName}</span>
@@ -191,13 +215,17 @@ export function EssProfilePage() {
             <div className="profile-modal-grid">
               <div className="card h-full">
                 <div className="card-body">
-                  <h4 className="employee-profile-card-title">Personal Information</h4>
-                  {EDITABLE_FIELDS.map((field) => (
+                  <h4 className="employee-profile-card-title">
+                    {t("ess.profilePage.personalInfo")}
+                  </h4>
+                  {editableFields.map((field) => (
                     <div key={field.key} className="employee-profile-field">
                       <div className="employee-profile-field-label">
                         <span>{field.label}</span>
                         {field.critical ? (
-                          <span className="badge bg-soft-warning ms-2">HR approval</span>
+                          <span className="badge bg-soft-warning ms-2">
+                            {t("ess.profilePage.hrApprovalBadge")}
+                          </span>
                         ) : null}
                       </div>
                       {editMode ? (
@@ -236,25 +264,27 @@ export function EssProfilePage() {
 
               <div className="card h-full">
                 <div className="card-body">
-                  <h4 className="employee-profile-card-title">Account & Access</h4>
+                  <h4 className="employee-profile-card-title">
+                    {t("ess.profilePage.accountAccess")}
+                  </h4>
                   <div className="employee-profile-field">
                     <div className="employee-profile-field-label">
                       <ShieldCheck size={15} />
-                      <span>Primary Role</span>
+                      <span>{t("ess.profilePage.primaryRole")}</span>
                     </div>
                     <div className="employee-profile-field-value">{profile.roleName}</div>
                   </div>
                   <div className="employee-profile-field">
                     <div className="employee-profile-field-label">
                       <UserRound size={15} />
-                      <span>Username</span>
+                      <span>{t("ess.profilePage.username")}</span>
                     </div>
                     <div className="employee-profile-field-value">{profile.userName}</div>
                   </div>
                   <div className="employee-profile-roles">
                     <div className="employee-profile-field-label">
                       <Users size={15} />
-                      <span>Assigned Roles</span>
+                      <span>{t("ess.profilePage.assignedRoles")}</span>
                     </div>
                     <div className="employee-profile-role-list">
                       {profile.roles.map((role) => (
@@ -269,34 +299,42 @@ export function EssProfilePage() {
 
               <div className="card h-full">
                 <div className="card-body">
-                  <h4 className="employee-profile-card-title">Organization</h4>
+                  <h4 className="employee-profile-card-title">
+                    {t("ess.profilePage.organization")}
+                  </h4>
                   <div className="employee-profile-field">
                     <div className="employee-profile-field-label">
                       <Building2 size={15} />
-                      <span>Organization</span>
+                      <span>{t("ess.profilePage.organization")}</span>
                     </div>
                     <div className="employee-profile-field-value">{profile.orgName}</div>
                   </div>
                   <div className="employee-profile-field">
                     <div className="employee-profile-field-label">
                       <GitBranch size={15} />
-                      <span>Branch</span>
+                      <span>{t("ess.profilePage.branch")}</span>
                     </div>
-                    <div className="employee-profile-field-value">{profile.branchName ?? "—"}</div>
+                    <div className="employee-profile-field-value">
+                      {profile.branchName ?? "—"}
+                    </div>
                   </div>
                   <div className="employee-profile-field">
                     <div className="employee-profile-field-label">
                       <Mail size={15} />
-                      <span>Work Email</span>
+                      <span>{t("ess.profilePage.workEmail")}</span>
                     </div>
-                    <div className="employee-profile-field-value">{profile.email ?? "—"}</div>
+                    <div className="employee-profile-field-value">
+                      {profile.email ?? "—"}
+                    </div>
                   </div>
                   <div className="employee-profile-field">
                     <div className="employee-profile-field-label">
                       <Phone size={15} />
-                      <span>Mobile</span>
+                      <span>{t("ess.profilePage.mobile")}</span>
                     </div>
-                    <div className="employee-profile-field-value">{profile.mobile ?? "—"}</div>
+                    <div className="employee-profile-field-value">
+                      {profile.mobile ?? "—"}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -310,7 +348,7 @@ export function EssProfilePage() {
                   onClick={() => void handleSave()}
                   disabled={saving}
                 >
-                  {saving ? "Saving…" : "Save Changes"}
+                  {saving ? t("ess.profilePage.saving") : t("ess.profilePage.saveChanges")}
                 </button>
                 <button
                   type="button"
@@ -318,7 +356,7 @@ export function EssProfilePage() {
                   onClick={() => setEditMode(false)}
                   disabled={saving}
                 >
-                  Cancel
+                  {t("common.cancel")}
                 </button>
               </div>
             ) : null}
@@ -326,9 +364,9 @@ export function EssProfilePage() {
         ) : (
           <div className="card">
             <div className="card-body employee-profile-error">
-              <p>Unable to load profile.</p>
+              <p>{t("ess.profilePage.loadError")}</p>
               <button type="button" className="btn btn-primary" onClick={() => void loadProfile()}>
-                Retry
+                {t("common.retry")}
               </button>
             </div>
           </div>

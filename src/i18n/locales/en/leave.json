@@ -1,0 +1,129 @@
+{
+  "pages": {
+    "master": {
+      "subtitle": "Configure leave types available for your organization.",
+      "empty": "Add leave types such as Casual Leave, Sick Leave, or Earned Leave."
+    },
+    "policy": {
+      "subtitle": "Define rules for each leave type — notice period, limits, and eligibility.",
+      "empty": "Create policies to control how employees can apply for each leave type."
+    },
+    "allocation": {
+      "subtitle": "Allocate annual leave balance to employees by leave type.",
+      "empty": "Allocate leave balances for employees at the start of the year or on joining."
+    },
+    "entitlement": {
+      "subtitle": "Set allocated days by leave type for a financial year.",
+      "empty": "Add entitlement to set leave allocation for a financial year."
+    },
+    "requisition": {
+      "subtitle": "Apply for leave. New applications are saved as Pending.",
+      "empty": "No leave requisitions yet. Apply with leave type, dates, and reason.",
+      "editAdmin": "Update a pending leave requisition for the selected employee.",
+      "editSelf": "Update your pending leave requisition.",
+      "subtitleAdmin": "Select branch and employee, then apply leave. New applications are saved as Pending.",
+      "subtitleUser": "Apply for leave. Your employee profile is used automatically. New applications are saved as Pending."
+    },
+    "application": {
+      "subtitle": "Employees can apply for leave via web or mobile with supporting documents.",
+      "empty": "Submit a leave application with leave type, dates, reason, and optional document."
+    },
+    "approval": {
+      "subtitle": "Review pending leave requests. Approve or reject from the Action column.",
+      "empty": "No pending leave applications in the approval queue."
+    },
+    "calendar": {
+      "subtitle": "View approved and planned leave across the organization by month.",
+      "empty": "Leave calendar entries will show who is on leave and when."
+    },
+    "encashment": {
+      "subtitle": "Request encashment of unused eligible leave balance.",
+      "empty": "Submit encashment requests for leave types marked as encashable in Leave Master."
+    }
+  },
+  "approvalDialog": {
+    "approveTitle": "Approve leave request",
+    "rejectTitle": "Reject leave request",
+    "approveHeading": "Approve this leave request?",
+    "rejectHeading": "Reject this leave request?",
+    "approveMessage": "Approve {name}? You can add an optional note.",
+    "rejectMessage": "Reject {name}? A rejection reason is mandatory.",
+    "remarks": "Remarks",
+    "rejectionReason": "Rejection Reason",
+    "approvePlaceholder": "Optional approver note",
+    "rejectPlaceholder": "Enter rejection reason (required)",
+    "maxChars": "Max 500 characters",
+    "rejectRequired": "Rejection reason is required.",
+    "updateFailed": "Unable to update leave application.",
+    "thisRequest": "this leave request"
+  },
+  "entitlementModal": {
+    "title": "Add Entitlement",
+    "subtitle": "Set allocated days by leave type for the selected financial year.",
+    "submit": "Save Entitlement",
+    "close": "Close",
+    "saving": "Saving...",
+    "financialYear": "Financial Year",
+    "selectYear": "Select Financial Year",
+    "searchYear": "Search financial year...",
+    "leaveTypes": "Leave Types",
+    "leaveTypesHint": "Default days come from Leave Master. Adjust allocated days before saving.",
+    "shortName": "Short Name",
+    "allocatedDays": "Allocated Days",
+    "noLeaveTypes": "No active leave types found in Leave Master.",
+    "yearRequired": "Financial year is required.",
+    "noTypes": "No leave types available to allocate.",
+    "invalidDays": "Enter a valid allocated days value.",
+    "saveFailed": "Unable to save leave entitlement."
+  },
+  "stats": {
+    "Pending": {
+      "title": "Pending",
+      "hint": "requests",
+      "description": "Awaiting manager approval",
+      "change": "{count} approved"
+    },
+    "Approved": {
+      "title": "Approved",
+      "hint": "processed",
+      "description": "Approved leave requests",
+      "change": "{count} rejected"
+    },
+    "Total Days": {
+      "title": "Total Days",
+      "hint": "days",
+      "description": "Leave days in all applications",
+      "change": "applied"
+    },
+    "Pending Approval": {
+      "title": "Pending Approval",
+      "hint": "queue",
+      "description": "Requests waiting for action",
+      "change": "{count} approved"
+    },
+    "Days to Review": {
+      "title": "Days to Review",
+      "hint": "days",
+      "description": "Leave days in pending queue",
+      "change": "pending"
+    },
+    "Employees": {
+      "title": "Employees",
+      "hint": "covered",
+      "description": "Employees with leave balance",
+      "change": "{count} allocations"
+    },
+    "Total Balance": {
+      "title": "Total Balance",
+      "hint": "remaining",
+      "description": "Combined leave balance",
+      "change": "days"
+    },
+    "Used Days": {
+      "title": "Used Days",
+      "hint": "YTD",
+      "description": "Leave days used this year",
+      "change": "consumed"
+    }
+  }
+}

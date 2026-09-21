@@ -1,13 +1,15 @@
 "use client";
 
 import { MasterDataPage } from "@/components/ui/MasterDataPage";
+import { useI18n } from "@/i18n";
 
 export default function LeaveMasterPage() {
+  const { t } = useI18n();
   return (
     <MasterDataPage
       moduleId="leave-master"
-      modalSubtitle="Configure leave types available for your organization."
-      emptyStateMessage="Add leave types such as Casual Leave, Sick Leave, or Earned Leave."
+      modalSubtitle={t("leave.pages.master.subtitle")}
+      emptyStateMessage={t("leave.pages.master.empty")}
     />
   );
 }

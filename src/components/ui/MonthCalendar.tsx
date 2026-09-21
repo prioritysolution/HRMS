@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Calendar as CalendarIcon, ChevronDown, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { RoundLoader } from "@/components/ui/RoundLoader";
+import { useI18n, translateHrmsLookup, type AppLanguage } from "@/i18n";
 
 export const MONTH_CALENDAR_WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
 export const MONTH_CALENDAR_WEEKDAYS_SHORT = ["S", "M", "T", "W", "T", "F", "S"] as const;
@@ -97,16 +98,51 @@ function getFirstWeekdaySunday(year: number, monthIndex0: number): number {
   return new Date(year, monthIndex0, 1).getDay();
 }
 
-function formatDisplayDate(iso: string): string {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
-  if (!match) return iso;
+function getLocaleCode(language: AppLanguage): string {
+  switch (language) {
+    case "bn":
+      return "bn-BD";
+    case "hi":
+      return "hi-IN";
+    case "or":
+      return "or-IN";
+    default:
+      return "en-IN";
+  }
+}
+
+export function formatLocalizedDate(dateIso: string, language: AppLanguage): string {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateIso);
+  if (!match) return dateIso;
   const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
-  return date.toLocaleDateString("en-IN", {
+  return date.toLocaleDateString(getLocaleCode(language), {
     weekday: "long",
     day: "numeric",
     month: "short",
     year: "numeric",
   });
+}
+
+export function getLocalizedMonthName(
+  month1to12: number,
+  language: AppLanguage,
+  format: "long" | "short" = "long",
+): string {
+  const d = new Date(2026, month1to12 - 1, 1);
+  return d.toLocaleDateString(getLocaleCode(language), { month: format });
+}
+
+function getLocalizedWeekdays(language: AppLanguage): { full: string; short: string }[] {
+  const locale = getLocaleCode(language);
+  const result: { full: string; short: string }[] = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(2026, 2, 1 + i);
+    result.push({
+      full: d.toLocaleDateString(locale, { weekday: "short" }).toUpperCase(),
+      short: d.toLocaleDateString(locale, { weekday: "narrow" }).toUpperCase(),
+    });
+  }
+  return result;
 }
 
 function hasDetailContent(item?: MonthCalendarDayItem): boolean {
@@ -134,8 +170,13 @@ function DayDetailsPanel({
   onClose?: () => void;
   compact?: boolean;
 }) {
-  const detailTitle = item.detailTitle?.trim() || item.label?.trim() || "Day details";
-  const detailBadge = item.detailBadge?.trim() || tone.replace("-", " ");
+  const { language, t } = useI18n();
+  const rawTitle = item.detailTitle?.trim() || item.label?.trim();
+  const detailTitle = rawTitle
+    ? translateHrmsLookup(language, "headers", rawTitle)
+    : t("attendance.holidays.dayDetails");
+  const rawBadge = item.detailBadge?.trim() || tone.replace("-", " ");
+  const detailBadge = translateHrmsLookup(language, "headers", rawBadge);
   const detailDescription = item.detailDescription?.trim();
   const detailRows = item.details ?? [];
 
@@ -151,7 +192,7 @@ function DayDetailsPanel({
             type="button"
             className="month-calendar-detail-close"
             onClick={onClose}
-            aria-label="Close day details"
+            aria-label={t("attendance.holidays.closeDayDetails")}
           >
             <X size={16} />
           </button>
@@ -162,7 +203,7 @@ function DayDetailsPanel({
         {detailBadge}
       </span>
 
-      <p className="month-calendar-tooltip-date">{formatDisplayDate(date)}</p>
+      <p className="month-calendar-tooltip-date">{formatLocalizedDate(date, language)}</p>
 
       {detailDescription ? (
         <p className="month-calendar-tooltip-desc">{detailDescription}</p>
@@ -172,8 +213,8 @@ function DayDetailsPanel({
         <dl className="month-calendar-tooltip-rows">
           {detailRows.map((row) => (
             <div key={`${row.label}-${row.value}`} className="month-calendar-tooltip-row">
-              <dt>{row.label}</dt>
-              <dd>{row.value}</dd>
+              <dt>{translateHrmsLookup(language, "headers", row.label)}</dt>
+              <dd>{translateHrmsLookup(language, "headers", row.value)}</dd>
             </div>
           ))}
         </dl>
@@ -201,6 +242,8 @@ function DayCellContent({
   onDayClick?: (date: string, item?: MonthCalendarDayItem) => void;
   compact?: boolean;
 }) {
+  const { language } = useI18n();
+
   if (cell.empty) {
     return (
       <div
@@ -216,7 +259,8 @@ function DayCellContent({
   const item = cell.item;
   const tone = item?.tone ?? "default";
   const isToday = Boolean(item?.isToday);
-  const label = item?.label?.trim();
+  const rawLabel = item?.label?.trim();
+  const label = rawLabel ? translateHrmsLookup(language, "headers", rawLabel) : undefined;
   const subtitle = item?.subtitle?.trim();
   const canShowDetails = hasDetailContent(item);
   const isSelected = selectedKey === cell.key;
@@ -310,6 +354,7 @@ export function MonthCalendar({
   headerExtra,
   yearRange,
 }: MonthCalendarProps) {
+  const { language, t } = useI18n();
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const pickerRef = useRef<HTMLDivElement>(null);
@@ -317,6 +362,8 @@ export function MonthCalendar({
   const daysInMonth = getDaysInMonth(year, monthIndex0);
   const firstDay = getFirstWeekdaySunday(year, monthIndex0);
   const canPickPeriod = Boolean(onYearChange || onMonthChange);
+
+  const weekdays = useMemo(() => getLocalizedWeekdays(language), [language]);
 
   const resolvedYearRange = useMemo(() => {
     const current = new Date().getFullYear();
@@ -432,7 +479,9 @@ export function MonthCalendar({
     <div className={cn("card month-calendar shadow-sm", className)}>
       <div className="card-header month-calendar-header bg-card border-b border-[var(--border)] p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex flex-col gap-1 min-w-0">
-          <h5 className="card-title mb-0 text-lg font-bold text-title truncate">{title}</h5>
+          <h5 className="card-title mb-0 text-lg font-bold text-title truncate">
+            {translateHrmsLookup(language, "titles", title)}
+          </h5>
           {headerExtra}
         </div>
         <div
@@ -443,7 +492,7 @@ export function MonthCalendar({
             type="button"
             onClick={onPrevMonth}
             className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-card hover:shadow-sm text-secondary transition-all"
-            aria-label="Previous month"
+            aria-label={t("attendance.holidays.prevMonth")}
           >
             <ChevronLeft size={18} />
           </button>
@@ -457,7 +506,7 @@ export function MonthCalendar({
               onClick={() => setPickerOpen((open) => !open)}
             >
               <span>
-                {MONTH_CALENDAR_MONTHS[monthIndex0]} {year}
+                {getLocalizedMonthName(month, language)} {year}
               </span>
               <ChevronDown
                 size={14}
@@ -469,7 +518,7 @@ export function MonthCalendar({
             </button>
           ) : (
             <span className="font-bold text-sm min-w-[120px] text-center text-title">
-              {MONTH_CALENDAR_MONTHS[monthIndex0]} {year}
+              {getLocalizedMonthName(month, language)} {year}
             </span>
           )}
 
@@ -477,7 +526,7 @@ export function MonthCalendar({
             type="button"
             onClick={onNextMonth}
             className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-card hover:shadow-sm text-secondary transition-all"
-            aria-label="Next month"
+            aria-label={t("attendance.holidays.nextMonth")}
           >
             <ChevronRight size={18} />
           </button>
@@ -486,7 +535,7 @@ export function MonthCalendar({
             <div className="month-calendar-period-popover" role="dialog" aria-label="Select month and year">
               {onYearChange ? (
                 <div className="month-calendar-period-section">
-                  <p className="month-calendar-period-label">Year</p>
+                  <p className="month-calendar-period-label">{translateHrmsLookup(language, "headers", "Year")}</p>
                   <div className="month-calendar-year-grid">
                     {yearOptions.map((optionYear) => (
                       <button
@@ -507,7 +556,7 @@ export function MonthCalendar({
 
               {onMonthChange ? (
                 <div className="month-calendar-period-section">
-                  <p className="month-calendar-period-label">Month</p>
+                  <p className="month-calendar-period-label">{translateHrmsLookup(language, "headers", "Month")}</p>
                   <div className="month-calendar-month-grid">
                     {MONTH_CALENDAR_MONTHS.map((monthName, index) => {
                       const monthValue = index + 1;
@@ -521,7 +570,7 @@ export function MonthCalendar({
                           )}
                           onClick={() => handleSelectMonth(monthValue)}
                         >
-                          {monthName.slice(0, 3)}
+                          {getLocalizedMonthName(monthValue, language, "short")}
                         </button>
                       );
                     })}
@@ -537,7 +586,7 @@ export function MonthCalendar({
         {loading ? (
           <div className="month-calendar-loading">
             <RoundLoader />
-            <p>Loading calendar…</p>
+            <p>{t("attendance.holidays.loadingCalendar")}</p>
           </div>
         ) : null}
 
@@ -545,12 +594,10 @@ export function MonthCalendar({
         <div className="month-calendar-scroll month-calendar-scroll--grid">
           <div className="month-calendar-board month-calendar-board--grid">
             <div className="month-calendar-weekdays">
-              {MONTH_CALENDAR_WEEKDAYS.map((day, index) => (
-                <div key={day} className="month-calendar-weekday">
-                  <span className="month-calendar-weekday-full">{day}</span>
-                  <span className="month-calendar-weekday-short">
-                    {MONTH_CALENDAR_WEEKDAYS_SHORT[index]}
-                  </span>
+              {weekdays.map((day, index) => (
+                <div key={`weekday-${index}`} className="month-calendar-weekday">
+                  <span className="month-calendar-weekday-full">{day.full}</span>
+                  <span className="month-calendar-weekday-short">{day.short}</span>
                 </div>
               ))}
             </div>
@@ -585,7 +632,7 @@ export function MonthCalendar({
             }}
           >
             <div className="month-calendar-mobile-head">
-              <div className="month-calendar-mobile-corner">Day</div>
+              <div className="month-calendar-mobile-corner">{translateHrmsLookup(language, "headers", "Day")}</div>
               {weeks.map((_, weekIndex) => (
                 <div key={`week-head-${weekIndex}`} className="month-calendar-mobile-week-head">
                   W{weekIndex + 1}
@@ -593,13 +640,11 @@ export function MonthCalendar({
               ))}
             </div>
 
-            {MONTH_CALENDAR_WEEKDAYS.map((dayName, weekdayIndex) => (
-              <div key={dayName} className="month-calendar-mobile-row">
+            {weekdays.map((dayObj, weekdayIndex) => (
+              <div key={`mob-row-${weekdayIndex}`} className="month-calendar-mobile-row">
                 <div className="month-calendar-day-col">
-                  <span className="month-calendar-day-col-full">{dayName}</span>
-                  <span className="month-calendar-day-col-short">
-                    {MONTH_CALENDAR_WEEKDAYS_SHORT[weekdayIndex]}
-                  </span>
+                  <span className="month-calendar-day-col-full">{dayObj.full}</span>
+                  <span className="month-calendar-day-col-short">{dayObj.short}</span>
                 </div>
                 {weeks.map((week, weekIndex) => {
                   const cell = week[weekdayIndex];
@@ -637,7 +682,9 @@ export function MonthCalendar({
           </div>
         ) : null}
 
-        <p className="month-calendar-mobile-hint">Tap a day to view details</p>
+        <p className="month-calendar-mobile-hint">
+          {t("attendance.holidays.mobileHint")}
+        </p>
 
         {legend && legend.length > 0 ? (
           <div className="month-calendar-legend">
@@ -649,7 +696,7 @@ export function MonthCalendar({
                     `month-calendar-legend-swatch--${item.tone}`,
                   )}
                 />
-                <em>{item.label}</em>
+                <em>{translateHrmsLookup(language, "headers", item.label)}</em>
               </div>
             ))}
           </div>
@@ -658,3 +705,4 @@ export function MonthCalendar({
     </div>
   );
 }
+

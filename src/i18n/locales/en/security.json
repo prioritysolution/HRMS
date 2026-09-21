@@ -1,0 +1,55 @@
+{
+  "pages": {
+    "roles": {
+      "subtitle": "Create and manage security roles for system access.",
+      "empty": "No roles yet. Add a role to assign permissions and access levels."
+    },
+    "users": {
+      "empty": "No user accounts are available for this organization yet."
+    },
+    "loginHistory": {
+      "empty": "Try adjusting the date range or filters.",
+      "from": "From",
+      "to": "To"
+    },
+    "auditTrail": {
+      "empty": "Try adjusting the date range or action filter.",
+      "from": "From",
+      "to": "To"
+    }
+  },
+  "permission": {
+    "title": "Role Menu Permission",
+    "section": "Security",
+    "save": "Save Permissions",
+    "saving": "Saving...",
+    "loadingRoles": "Loading roles…",
+    "loadingMatrix": "Loading permission matrix…",
+    "role": "Role",
+    "selectRole": "Select role",
+    "searchMenus": "Search menus",
+    "searchPlaceholder": "Filter by menu name or route",
+    "selectedCount": "{selected} of {total} selected",
+    "selectAll": "Select all",
+    "clear": "Clear",
+    "adminNote": "This is an administrator role. All menus are granted automatically and cannot be edited here.",
+    "selectRoleHint": "Select a role to manage menu permissions.",
+    "noMenus": "No menus found for this role.",
+    "confirmTitle": "Save menu permissions?",
+    "confirmMessage": "This will replace the current menu access for \"{role}\" with {count} selected menu(s).\nDo you want to continue?",
+    "thisRole": "this role",
+    "loadRolesFailed": "Unable to load roles",
+    "loadRolesHint": "Check the API connection and try again.",
+    "loadPermissionsFailed": "Unable to load permissions",
+    "loadPermissionsHint": "Failed to load role menu permission matrix.",
+    "selectRoleTitle": "Select a role",
+    "selectRoleMessage": "Choose a role before saving menu permissions.",
+    "adminRoleTitle": "Admin role",
+    "adminRoleMessage": "Administrator roles already have access to all menus.",
+    "savedTitle": "Permissions saved",
+    "savedMessage": "Updated menu access for {role}.",
+    "selectedRole": "selected role",
+    "saveFailedTitle": "Save failed",
+    "saveFailedMessage": "Failed to sync role menu permissions."
+  }
+}

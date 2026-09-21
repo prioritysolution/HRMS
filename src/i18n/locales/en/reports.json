@@ -1,0 +1,149 @@
+{
+  "section": "Reports",
+  "common": {
+    "allBranches": "All Branches",
+    "searchBranch": "Search branch...",
+    "activeYear": "Active Year",
+    "searchFinYear": "Search financial year...",
+    "connectionError": "Please check your connection and try again.",
+    "filterSummaryRecords": "{count} records (as per current filters)",
+    "filterSummaryRecord": "{count} record (as per current filters)",
+    "filterSummaryEmployees": "{count} employees (as per current filters)",
+    "filterSummaryEmployee": "{count} employee (as per current filters)",
+    "dateRange": " · {from} to {to}",
+    "minLate": " · min late ≥ {mins} mins",
+    "minEarly": " · min early ≥ {mins} mins",
+    "exampleMins": "e.g. {n}",
+    "exampleDays": "e.g. {n}"
+  },
+  "leavePending": {
+    "minPendingDays": "Min Pending Days",
+    "empty": "Try adjusting the branch, min pending days, or leave type filter."
+  },
+  "leaveEmployee": {
+    "empty": "Try adjusting the financial year, branch, or leave type filter."
+  },
+  "leaveRegister": {
+    "empty": "Try adjusting the date range, leave type, or status filter."
+  },
+  "employeeRegister": {
+    "searchPlaceholder": "Search employee register...",
+    "emptyTitle": "No employees found",
+    "empty": "Try adjusting filters or search to find employees.",
+    "loadError": "Unable to load employee register",
+    "exportTitle": "Employee Register Report",
+    "sheetName": "Employee Register",
+    "emptyExport": "No employee records match the current filters.",
+    "successExport": "Download started for the filtered employee register."
+  },
+  "employeeHistory": {
+    "searchPlaceholder": "Search service history...",
+    "emptyTitle": "No service history found",
+    "empty": "Try adjusting filters or date range to find records.",
+    "loadError": "Unable to load service history",
+    "exportTitle": "Employee Service History Report",
+    "sheetName": "Service History",
+    "emptyExport": "No service history records match the current filters.",
+    "successExport": "Download started for the filtered service history report."
+  },
+  "attendanceLate": {
+    "searchPlaceholder": "Search late coming report...",
+    "loadError": "Unable to load late coming report",
+    "minLate": "Min Late (Mins)",
+    "exportTitle": "Late Coming Report",
+    "sheetName": "Late Coming",
+    "emptyExport": "No late coming records match the current filters.",
+    "successExport": "Download started for the filtered late coming report."
+  },
+  "attendanceEarly": {
+    "searchPlaceholder": "Search early leaving report...",
+    "loadError": "Unable to load early leaving report",
+    "minEarly": "Min Early (Mins)",
+    "exportTitle": "Early Leaving Report",
+    "sheetName": "Early Leaving",
+    "emptyExport": "No early leaving records match the current filters.",
+    "successExport": "Download started for the filtered early leaving report."
+  },
+  "attendanceSummary": {
+    "searchPlaceholder": "Search attendance summary...",
+    "loadError": "Unable to load attendance summary",
+    "exportTitle": "Attendance Summary Report",
+    "sheetName": "Attendance Summary",
+    "emptyExport": "No attendance summary records match the current filters.",
+    "successExport": "Download started for the filtered attendance summary."
+  },
+  "attendanceEmployee": {
+    "searchPlaceholder": "Search employee attendance...",
+    "loadError": "Unable to load employee attendance",
+    "exportTitle": "Employee Attendance Report",
+    "sheetName": "Employee Attendance",
+    "emptyExport": "No attendance records match the current filters.",
+    "successExport": "Download started for the filtered employee attendance report."
+  },
+  "kpi": {
+    "title": "KPI Dashboards",
+    "action": "Configure KPI",
+    "colTarget": "Target",
+    "colActual": "Actual",
+    "colOwner": "Owner",
+    "revenueTitle": "Revenue KPI",
+    "revenueHint": "target",
+    "revenueDesc": "Monthly recurring revenue vs goal",
+    "hiringTitle": "Hiring KPI",
+    "hiringHint": "target",
+    "hiringDesc": "Open roles filled this quarter",
+    "retentionTitle": "Retention KPI",
+    "retentionHint": "target",
+    "retentionDesc": "Employee retention rate",
+    "rowMrr": "Monthly Recurring Revenue",
+    "rowMrrSecondary": "Finance",
+    "rowMrrOwner": "Finance Ops",
+    "rowHire": "Time to Hire",
+    "rowHireSecondary": "People",
+    "rowHireOwner": "HR Ops",
+    "rowRetention": "Customer Retention",
+    "rowRetentionSecondary": "Success",
+    "rowRetentionOwner": "CS Team",
+    "statusMet": "Met",
+    "statusBehind": "Behind"
+  },
+  "employeePerformance": {
+    "title": "Employee Performance",
+    "action": "Export Report",
+    "colDepartment": "Department",
+    "colScore": "Score",
+    "colPeriod": "Period",
+    "avgTitle": "Avg. Rating",
+    "avgHint": "cycle",
+    "avgDesc": "Average employee score",
+    "reviewedTitle": "Reviewed",
+    "reviewedHint": "cycle",
+    "reviewedDesc": "Employees with completed reviews",
+    "focusTitle": "Needs Focus",
+    "focusHint": "cycle",
+    "focusDesc": "Below target performance",
+    "statusExcellent": "Excellent",
+    "statusGood": "Good",
+    "statusReview": "Review"
+  },
+  "customerEngagement": {
+    "title": "Customer Engagement",
+    "action": "Export Report",
+    "colTouches": "Touches",
+    "colOwner": "Owner",
+    "colLastActive": "Last Active",
+    "engagedTitle": "Engaged Accounts",
+    "engagedHint": "month",
+    "engagedDesc": "Customers with recent activity",
+    "npsTitle": "NPS Score",
+    "npsHint": "quarter",
+    "npsDesc": "Net promoter score",
+    "silentTitle": "Silent Accounts",
+    "silentHint": "month",
+    "silentDesc": "No activity in 30 days",
+    "touches": "{count} touches",
+    "statusHigh": "High",
+    "statusHealthy": "Healthy",
+    "statusAtRisk": "At Risk"
+  }
+}

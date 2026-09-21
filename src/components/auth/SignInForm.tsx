@@ -13,6 +13,7 @@ import {
   validateSignIn,
   validateSignInField,
 } from "@/lib/auth-validation";
+import { useI18n } from "@/i18n";
 
 const initialValues: SignInValues = {
   userName: "",
@@ -39,6 +40,7 @@ function readFromQuery(): string | null {
 
 export function SignInForm() {
   const toast = useToast();
+  const { t } = useI18n();
 
   const [values, setValues] = useState<SignInValues>(initialValues);
   const [errors, setErrors] = useState<FieldErrors<keyof SignInValues>>({});
@@ -48,6 +50,9 @@ export function SignInForm() {
   const [submitting, setSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+
+  const errorText = (code?: string) =>
+    code ? t(`auth.errors.${code}`) : undefined;
 
   const setFieldValue = (field: keyof SignInValues, value: string) => {
     const nextValues = { ...values, [field]: value };
@@ -92,8 +97,8 @@ export function SignInForm() {
       });
 
       toast.success({
-        title: "Logged in successfully",
-        message: "Redirecting to your workspace...",
+        title: t("auth.loginSuccessTitle"),
+        message: t("auth.loginSuccessMessage"),
       });
 
       window.setTimeout(() => {
@@ -101,11 +106,11 @@ export function SignInForm() {
       }, 700);
     } catch (error) {
       toast.error({
-        title: "Login failed",
+        title: t("auth.loginFailedTitle"),
         message:
           error instanceof ApiError
             ? error.message
-            : "Unable to login. Please try again.",
+            : t("auth.loginFailedMessage"),
       });
 
       setSubmitting(false);
@@ -114,10 +119,6 @@ export function SignInForm() {
 
   return (
     <form className="login-form" onSubmit={handleSubmit} noValidate>
-      {/* =====================================================
-          USERNAME
-         ===================================================== */}
-
       <div className="login-field">
         <div className="login-input-wrap">
           <UserRound size={21} strokeWidth={2} aria-hidden="true" />
@@ -125,8 +126,8 @@ export function SignInForm() {
           <input
             id="authUserName"
             type="text"
-            placeholder="User Name"
-            aria-label="User Name"
+            placeholder={t("auth.userName")}
+            aria-label={t("auth.userName")}
             name="userName"
             autoComplete="username"
             value={values.userName}
@@ -143,14 +144,10 @@ export function SignInForm() {
 
         {touched.userName && errors.userName && (
           <p id="authUserNameError" className="login-field-error">
-            {errors.userName}
+            {errorText(errors.userName)}
           </p>
         )}
       </div>
-
-      {/* =====================================================
-          PASSWORD
-         ===================================================== */}
 
       <div className="login-field">
         <div className="login-input-wrap">
@@ -159,8 +156,8 @@ export function SignInForm() {
           <input
             id="authVerifyPassword"
             type={showPassword ? "text" : "password"}
-            placeholder="Password"
-            aria-label="Password"
+            placeholder={t("auth.password")}
+            aria-label={t("auth.password")}
             name="password"
             autoComplete="current-password"
             value={values.password}
@@ -179,7 +176,7 @@ export function SignInForm() {
             className="login-eye-button"
             onPointerDown={(event) => event.preventDefault()}
             onClick={() => setShowPassword((current) => !current)}
-            aria-label={showPassword ? "Hide password" : "Show password"}
+            aria-label={showPassword ? t("auth.hidePassword") : t("auth.showPassword")}
             aria-pressed={showPassword}
           >
             {showPassword ? (
@@ -192,14 +189,10 @@ export function SignInForm() {
 
         {touched.password && errors.password && (
           <p id="authPasswordError" className="login-field-error">
-            {errors.password}
+            {errorText(errors.password)}
           </p>
         )}
       </div>
-
-      {/* =====================================================
-          REMEMBER + FORGOT PASSWORD
-         ===================================================== */}
 
       <div className="login-form-options">
         <label className="login-remember">
@@ -211,22 +204,18 @@ export function SignInForm() {
 
           <span className="login-checkmark" aria-hidden="true" />
 
-          <span>Remember me</span>
+          <span>{t("auth.rememberMe")}</span>
         </label>
 
         <Link href="/forgot-password" className="login-forgot-link">
-          Forgot password?
+          {t("auth.forgotPassword")}
         </Link>
       </div>
-
-      {/* =====================================================
-          LOGIN BUTTON
-         ===================================================== */}
 
       <button type="submit" className="login-submit" disabled={submitting}>
         <LogIn size={22} strokeWidth={2.3} aria-hidden="true" />
 
-        <span>{submitting ? "Logging in..." : "Login"}</span>
+        <span>{submitting ? t("auth.loggingIn") : t("auth.login")}</span>
       </button>
     </form>
   );

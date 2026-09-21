@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { StatCard } from "@/components/ui/StatCard";
 import { DataTable, PersonCell, SoftStatus } from "@/components/ui/DataTable";
 import { useToast } from "@/components/ui/ToastProvider";
+import { useI18n, translateHrmsLookup } from "@/i18n";
 import { getHrmsModule, getModuleFormFields } from "@/config/hrms-modules";
 import {
   ApiError,
@@ -116,14 +117,27 @@ function toFormRow(row: HrmsRow): HrmsRow {
 }
 
 export default function AssetAllocationPage() {
+  const { language, t } = useI18n();
   const config = getHrmsModule(MODULE_ID);
   const toast = useToast();
+  const pageTitle = translateHrmsLookup(language, "titles", config.title);
+  const pageSection = translateHrmsLookup(language, "sections", config.section);
   const [rows, setRows] = useState<HrmsRow[]>([]);
   const [employees, setEmployees] = useState<HrmsRow[]>([]);
   const [assets, setAssets] = useState<HrmsRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [addOpen, setAddOpen] = useState(false);
   const [editRow, setEditRow] = useState<HrmsRow | null>(null);
+  const employeeMap = useMemo(() => {
+    const map = new Map<string, HrmsRow>();
+    employees.forEach((emp) => {
+      const id = String(emp.Employee_id ?? emp.id ?? "").trim();
+      const code = String(emp.Employee_code ?? "").trim();
+      if (id && id !== "0") map.set(id, emp);
+      if (code) map.set(code.toLowerCase(), emp);
+    });
+    return map;
+  }, [employees]);
 
   const baseFormFields = useMemo(() => getModuleFormFields(config), [config]);
 
@@ -203,8 +217,12 @@ export default function AssetAllocationPage() {
       await loadRows();
 
       toast.success({
-        title: mode === "edit" ? "Allocation updated" : "Asset allocated",
-        message: `"${saved.Asset_name || saved.Asset_code}" is now ${String(saved.Allocation_status).toLowerCase()} to ${saved.Employee_name}.`,
+        title: mode === "edit" ? t("employees.assets.updatedToast") : t("employees.assets.allocatedToast"),
+        message: t("employees.assets.allocatedMessage", {
+          asset: String(saved.Asset_name || saved.Asset_code || ""),
+          status: String(saved.Allocation_status ?? "").toLowerCase(),
+          employee: String(saved.Employee_name ?? ""),
+        }),
       });
 
       if (mode === "edit") {
@@ -214,13 +232,13 @@ export default function AssetAllocationPage() {
       }
     } catch (error) {
       toast.error({
-        title: mode === "edit" ? "Update failed" : "Allocation failed",
+        title: mode === "edit" ? t("employees.assets.updateFailed") : t("employees.assets.allocateFailed"),
         message:
           error instanceof ApiError
             ? error.message
             : error instanceof Error
               ? error.message
-              : "Please review the form and try again.",
+              : t("employees.assets.formError"),
       });
     }
   };
@@ -254,53 +272,63 @@ export default function AssetAllocationPage() {
 
   return (
     <>
-      <PageHeader title={config.title} section={config.section} hideTitle />
+      <PageHeader title={pageTitle} section={pageSection} hideTitle />
       <div className="container-fluid">
         <div className="stat-grid mb-4">
           <StatCard
-            title="Currently Allocated"
+            title={t("employees.assets.allocated")}
             value={String(stats.allocated)}
             change="active"
             hint="issued"
-            description="Assets issued to employees"
+            description={t("employees.assets.allocatedDesc")}
             tone="info"
             icon="briefcase"
           />
           <StatCard
-            title="Available"
+            title={t("employees.assets.available")}
             value={String(stats.available)}
             change="in stock"
             hint="ready"
-            description="Assets free to allocate"
+            description={t("employees.assets.availableDesc")}
             tone="success"
             icon="users"
           />
           <StatCard
-            title="Returned"
+            title={t("employees.assets.returned")}
             value={String(stats.returned)}
             change="closed"
             hint="records"
-            description="Assets returned to inventory"
+            description={t("employees.assets.returnedDesc")}
             tone="primary"
             icon="clock"
           />
         </div>
 
         <DataTable
-          title={config.title}
-          searchPlaceholder="Search by employee, asset code, or serial..."
-          actionLabel={config.actionLabel}
+          title={pageTitle}
+          searchPlaceholder={t("employees.assets.search")}
+          actionLabel={
+            config.actionLabel
+              ? translateHrmsLookup(language, "actions", config.actionLabel)
+              : t("employees.assets.allocateTitle")
+          }
           onAction={() => setAddOpen(true)}
           rows={rows}
           loading={loading}
           searchKeys={config.searchKeys}
           filterFields={[
-            { key: "Asset_type", label: "Asset Type" },
-            { key: "Allocation_status", label: "Status" },
+            {
+              key: "Asset_type",
+              label: translateHrmsLookup(language, "labels", "Asset Type"),
+            },
+            {
+              key: "Allocation_status",
+              label: translateHrmsLookup(language, "labels", "Status"),
+            },
           ]}
           onRowEdit={(row) => setEditRow(toFormRow(row))}
           showRowActions
-          deleteConfirmTitle="Remove allocation record?"
+          deleteConfirmTitle={t("employees.assets.deleteConfirm")}
           deleteConfirmMessage='Remove the allocation of "{name}"? This does not delete the asset from the master list.'
           getDeleteLabel={(row) =>
             String(row.Asset_name ?? row.Asset_code ?? "this allocation")
@@ -309,52 +337,68 @@ export default function AssetAllocationPage() {
             void handleDelete(row);
           }}
           emptyStateIcon={getModuleEmptyIcon(MODULE_ID)}
-          emptyStateTitle="No asset allocations yet"
-          emptyStateMessage="Allocate a company asset to an employee to start tracking issue and return."
+          emptyStateTitle={t("employees.assets.emptyTitle")}
+          emptyStateMessage={t("employees.assets.emptyMessage")}
           columns={[
             {
               key: "Employee_name",
-              header: "Employee",
-              render: (row) => (
-                <PersonCell
-                  name={String(row.Employee_name ?? "—")}
-                  subtitle={String(row.Employee_code ?? "")}
-                />
-              ),
+              header: translateHrmsLookup(language, "headers", "Employee"),
+              render: (row) => {
+                const empId = String(row.Employee_id ?? "").trim();
+                const empCode = String(row.Employee_code ?? "").trim().toLowerCase();
+                const emp = employeeMap.get(empId) || employeeMap.get(empCode);
+                const avatar =
+                  row.Photo_path ||
+                  (row as any).photo_path ||
+                  (row as any).avatar ||
+                  emp?.Photo_path ||
+                  (emp as any)?.photo_path ||
+                  (emp as any)?.avatar ||
+                  (emp as any)?.Photo ||
+                  (emp as any)?.Logo_Url;
+
+                return (
+                  <PersonCell
+                    name={String(row.Employee_name ?? emp?.Employee_name ?? emp?.Display_name ?? "—")}
+                    subtitle={String(row.Employee_code ?? emp?.Employee_code ?? "")}
+                    avatar={avatar}
+                  />
+                );
+              },
             },
             {
               key: "Asset_code",
-              header: "Asset Code",
+              header: translateHrmsLookup(language, "headers", "Asset Code"),
               render: (row) => formatCell(row.Asset_code),
             },
             {
               key: "Asset_name",
-              header: "Asset",
+              header: translateHrmsLookup(language, "headers", "Asset"),
               render: (row) => formatCell(row.Asset_name),
             },
             {
               key: "Asset_type",
-              header: "Type",
+              header: translateHrmsLookup(language, "headers", "Type"),
               render: (row) => formatCell(row.Asset_type),
             },
             {
               key: "Serial_number",
-              header: "Serial Number",
+              header: translateHrmsLookup(language, "headers", "Serial Number"),
               render: (row) => formatCell(row.Serial_number),
             },
             {
               key: "Allocation_date",
-              header: "Allocated On",
+              header: translateHrmsLookup(language, "headers", "Allocated On"),
               render: (row) => formatDateDisplay(String(row.Allocation_date ?? "")) || "—",
             },
             {
               key: "Return_date",
-              header: "Return Date",
+              header: translateHrmsLookup(language, "headers", "Return Date"),
               render: (row) => formatDateDisplay(String(row.Return_date ?? "")) || "—",
             },
             {
               key: "Allocation_status",
-              header: "Status",
+              header: translateHrmsLookup(language, "headers", "Status"),
               render: (row) => <SoftStatus value={displayStatus(row)} />,
             },
           ]}
@@ -364,9 +408,9 @@ export default function AssetAllocationPage() {
       <MasterDataModal
         open={addOpen}
         onClose={() => setAddOpen(false)}
-        title="Allocate Asset"
-        subtitle="Issue a company asset to an employee."
-        submitLabel="Allocate"
+        title={t("employees.assets.allocateTitle")}
+        subtitle={t("employees.assets.allocateSubtitle")}
+        submitLabel={t("employees.assets.allocateSubmit")}
         fields={addFields}
         size={config.modalSize}
         onSubmit={(values) => handleSave(values, "add")}
@@ -375,9 +419,9 @@ export default function AssetAllocationPage() {
       <MasterDataModal
         open={Boolean(editRow)}
         onClose={() => setEditRow(null)}
-        title="Update Allocation"
-        subtitle="Change assignment details or mark the asset as returned."
-        submitLabel="Save Allocation"
+        title={t("employees.assets.updateTitle")}
+        subtitle={t("employees.assets.updateSubtitle")}
+        submitLabel={t("employees.assets.updateSubmit")}
         fields={editFields}
         size={config.modalSize}
         initialValues={editRow ?? undefined}

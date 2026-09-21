@@ -5,6 +5,7 @@ import { X } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import { DatePicker } from "@/components/ui/DatePicker";
 import { SearchableSelect } from "@/components/ui/SearchableSelect";
+import { useI18n, translateHrmsLookup } from "@/i18n";
 
 type AddEmployeeModalProps = {
   open: boolean;
@@ -19,14 +20,32 @@ const SHIFT_OPTIONS = [
   { value: "general", label: "General Shift" },
 ];
 
+const DEPARTMENT_OPTIONS = [
+  { value: "it", label: "IT Department" },
+  { value: "business", label: "Core Business" },
+  { value: "finance", label: "Finance & Legal" },
+  { value: "creative", label: "Creative & Growth" },
+  { value: "operations", label: "Operations" },
+  { value: "customer", label: "Customer Support" },
+  { value: "hr", label: "Human Resources" },
+];
+
+const EMPLOYMENT_TYPE_OPTIONS = [
+  { value: "fulltime", label: "Full Time" },
+  { value: "parttime", label: "Part Time" },
+  { value: "internship", label: "Internship" },
+  { value: "freelance", label: "Freelance" },
+];
+
 export function AddEmployeeModal({ open, onClose }: AddEmployeeModalProps) {
+  const { t, language } = useI18n();
   const [department, setDepartment] = useState("");
   const [employmentType, setEmploymentType] = useState("");
   const [joinDate, setJoinDate] = useState("");
-  
+
   // Shift state
   const [currentShift, setCurrentShift] = useState("");
-  const [selectedShifts, setSelectedShifts] = useState<{value: string, label: string}[]>([]);
+  const [selectedShifts, setSelectedShifts] = useState<{ value: string; label: string }[]>([]);
 
   useEffect(() => {
     if (!open) return;
@@ -37,17 +56,30 @@ export function AddEmployeeModal({ open, onClose }: AddEmployeeModalProps) {
     setSelectedShifts([]);
   }, [open]);
 
+  const translatedShiftOptions = SHIFT_OPTIONS.map((opt) => ({
+    ...opt,
+    label: translateHrmsLookup(language, "labels", opt.label),
+  }));
+
+  const translatedDepartmentOptions = DEPARTMENT_OPTIONS.map((opt) => ({
+    ...opt,
+    label: translateHrmsLookup(language, "labels", opt.label),
+  }));
+
+  const translatedEmploymentTypeOptions = EMPLOYMENT_TYPE_OPTIONS.map((opt) => ({
+    ...opt,
+    label: translateHrmsLookup(language, "labels", opt.label),
+  }));
+
   const handleAddShift = () => {
     if (!currentShift) return;
-    
-    // Find label
-    const option = SHIFT_OPTIONS.find((o) => o.value === currentShift);
+
+    const option = translatedShiftOptions.find((o) => o.value === currentShift);
     if (!option) return;
 
-    // Check if already added
     if (selectedShifts.some((s) => s.value === currentShift)) {
       setCurrentShift("");
-      return; // Already added
+      return;
     }
 
     setSelectedShifts((prev) => [...prev, option]);
@@ -62,16 +94,16 @@ export function AddEmployeeModal({ open, onClose }: AddEmployeeModalProps) {
     <Modal
       open={open}
       onClose={onClose}
-      title="Add New Employee Details"
-      subtitle="Add employee details to create their profile."
+      title={translateHrmsLookup(language, "titles", "Add New Employee Details")}
+      subtitle={translateHrmsLookup(language, "labels", "Add employee details to create their profile.")}
       size="xl"
       footer={
         <>
           <button type="button" className="btn btn-primary" onClick={onClose}>
-            Save & Continue
+            {translateHrmsLookup(language, "actions", "Save & Continue")}
           </button>
           <button type="button" className="btn btn-outline-danger" onClick={onClose}>
-            Close
+            {t("common.close")}
           </button>
         </>
       }
@@ -79,54 +111,64 @@ export function AddEmployeeModal({ open, onClose }: AddEmployeeModalProps) {
       <form className="form-grid" onSubmit={(e) => e.preventDefault()}>
         <div className="form-span-full">
           <label className="form-field-label" htmlFor="empFile">
-            Upload Employee Image / Documents
+            {translateHrmsLookup(language, "labels", "Upload Employee Image / Documents")}
           </label>
           <input id="empFile" type="file" className="form-control" multiple />
         </div>
 
         <div>
           <label className="form-field-label" htmlFor="empId">
-            Employee ID
+            {translateHrmsLookup(language, "labels", "Employee ID")}
           </label>
           <input id="empId" className="form-control" defaultValue="EMP-" />
         </div>
         <div>
           <label className="form-field-label" htmlFor="firstName">
-            First Name
+            {translateHrmsLookup(language, "labels", "First Name")}
           </label>
-          <input id="firstName" className="form-control" placeholder="First name" />
+          <input
+            id="firstName"
+            className="form-control"
+            placeholder={translateHrmsLookup(language, "labels", "First name")}
+          />
         </div>
         <div>
           <label className="form-field-label" htmlFor="lastName">
-            Last Name
+            {translateHrmsLookup(language, "labels", "Last Name")}
           </label>
-          <input id="lastName" className="form-control" placeholder="Last name" />
+          <input
+            id="lastName"
+            className="form-control"
+            placeholder={translateHrmsLookup(language, "labels", "Last name")}
+          />
         </div>
         <div>
           <label className="form-field-label" htmlFor="email">
-            Email ID
+            {translateHrmsLookup(language, "labels", "Email ID")}
           </label>
           <input id="email" type="email" className="form-control" placeholder="name@company.com" />
         </div>
         <div>
           <label className="form-field-label" htmlFor="phone">
-            Phone No
+            {translateHrmsLookup(language, "labels", "Phone No")}
           </label>
           <input id="phone" className="form-control" placeholder="+1 000 000 0000" />
         </div>
         <div>
           <label className="form-field-label" htmlFor="emergency">
-            Emergency No
+            {translateHrmsLookup(language, "labels", "Emergency No")}
           </label>
           <input id="emergency" className="form-control" />
         </div>
 
         <div className="form-span-full">
-          <p className="form-field-label">Employee Gender</p>
+          <p className="form-field-label">
+            {translateHrmsLookup(language, "labels", "Employee Gender")}
+          </p>
           <div className="radio-row">
             {["Female", "Male", "Other"].map((g) => (
               <label key={g} className="check-label">
-                <input type="radio" name="gender" /> {g}
+                <input type="radio" name="gender" /> {translateHrmsLookup(language, "labels", g)}
               </label>
             ))}
           </div>
@@ -134,13 +176,13 @@ export function AddEmployeeModal({ open, onClose }: AddEmployeeModalProps) {
 
         <div className="form-span-2">
           <label className="form-field-label" htmlFor="address">
-            Address
+            {translateHrmsLookup(language, "labels", "Address")}
           </label>
           <textarea id="address" className="form-control" rows={2} />
         </div>
         <div>
           <label className="form-field-label" htmlFor="joinDate">
-            Joining Date
+            {translateHrmsLookup(language, "headers", "Joining Date")}
           </label>
           <DatePicker
             id="joinDate"
@@ -152,62 +194,49 @@ export function AddEmployeeModal({ open, onClose }: AddEmployeeModalProps) {
         </div>
         <div>
           <label className="form-field-label" htmlFor="jobTitle">
-            Job Title
+            {translateHrmsLookup(language, "headers", "Job Title")}
           </label>
           <input id="jobTitle" className="form-control" />
         </div>
         <div>
           <label className="form-field-label" htmlFor="department">
-            Department
+            {translateHrmsLookup(language, "headers", "Department")}
           </label>
           <SearchableSelect
             id="department"
             name="department"
             value={department}
             onChange={setDepartment}
-            placeholder="Select Department"
-            searchPlaceholder="Search department..."
-            options={[
-              { value: "it", label: "IT Department" },
-              { value: "business", label: "Core Business" },
-              { value: "finance", label: "Finance & Legal" },
-              { value: "creative", label: "Creative & Growth" },
-              { value: "operations", label: "Operations" },
-              { value: "customer", label: "Customer Support" },
-              { value: "hr", label: "Human Resources" },
-            ]}
+            placeholder={translateHrmsLookup(language, "labels", "Select Department")}
+            searchPlaceholder={translateHrmsLookup(language, "labels", "Search department...")}
+            options={translatedDepartmentOptions}
           />
         </div>
         <div>
           <label className="form-field-label" htmlFor="empType">
-            Employment Type
+            {translateHrmsLookup(language, "headers", "Employment Type")}
           </label>
           <SearchableSelect
             id="empType"
             name="empType"
             value={employmentType}
             onChange={setEmploymentType}
-            placeholder="Select Employment Type"
-            searchPlaceholder="Search employment type..."
-            options={[
-              { value: "fulltime", label: "Full Time" },
-              { value: "parttime", label: "Part Time" },
-              { value: "internship", label: "Internship" },
-              { value: "freelance", label: "Freelance" },
-            ]}
+            placeholder={translateHrmsLookup(language, "labels", "Select Employment Type")}
+            searchPlaceholder={translateHrmsLookup(language, "labels", "Search employment type...")}
+            options={translatedEmploymentTypeOptions}
           />
         </div>
         <div>
           <label className="form-field-label" htmlFor="manager">
-            Reporting Manager
+            {translateHrmsLookup(language, "labels", "Reporting Manager")}
           </label>
           <input id="manager" className="form-control" />
         </div>
-        
+
         {/* SHIFT SELECTION SECTION */}
         <div>
           <label className="form-field-label" htmlFor="shift">
-            Shift Time
+            {translateHrmsLookup(language, "labels", "Shift Time")}
           </label>
           <div className="flex gap-2">
             <div className="flex-1">
@@ -216,9 +245,9 @@ export function AddEmployeeModal({ open, onClose }: AddEmployeeModalProps) {
                 name="shift"
                 value={currentShift}
                 onChange={setCurrentShift}
-                placeholder="Select Shift"
-                searchPlaceholder="Search shift..."
-                options={SHIFT_OPTIONS}
+                placeholder={translateHrmsLookup(language, "labels", "Select Shift")}
+                searchPlaceholder={translateHrmsLookup(language, "labels", "Search shift...")}
+                options={translatedShiftOptions}
               />
             </div>
             <button
@@ -227,7 +256,7 @@ export function AddEmployeeModal({ open, onClose }: AddEmployeeModalProps) {
               onClick={handleAddShift}
               disabled={!currentShift}
             >
-              Add
+              {translateHrmsLookup(language, "actions", "Add")}
             </button>
           </div>
           {selectedShifts.length > 0 && (
@@ -252,28 +281,32 @@ export function AddEmployeeModal({ open, onClose }: AddEmployeeModalProps) {
         </div>
 
         <div>
-          <p className="form-field-label">Work Model</p>
+          <p className="form-field-label">
+            {translateHrmsLookup(language, "labels", "Work Model")}
+          </p>
           <div className="radio-row">
             {["On-site", "Hybrid", "Remote"].map((m) => (
               <label key={m} className="check-label">
-                <input type="radio" name="workModel" /> {m}
+                <input type="radio" name="workModel" /> {translateHrmsLookup(language, "labels", m)}
               </label>
             ))}
           </div>
         </div>
         <div>
-          <p className="form-field-label">Asset Allocation</p>
+          <p className="form-field-label">
+            {translateHrmsLookup(language, "labels", "Asset Allocation")}
+          </p>
           <div className="radio-row">
             {["Laptop", "Mouse", "Headset", "Other"].map((a) => (
               <label key={a} className="check-label">
-                <input type="checkbox" /> {a}
+                <input type="checkbox" /> {translateHrmsLookup(language, "labels", a)}
               </label>
             ))}
           </div>
         </div>
         <div className="form-span-full">
           <label className="form-field-label" htmlFor="skills">
-            Skills
+            {translateHrmsLookup(language, "labels", "Skills")}
           </label>
           <textarea id="skills" className="form-control" rows={2} />
         </div>
@@ -281,3 +314,4 @@ export function AddEmployeeModal({ open, onClose }: AddEmployeeModalProps) {
     </Modal>
   );
 }
+

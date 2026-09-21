@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Eye, EyeOff, Send } from "lucide-react";
 import { FormFieldLabel } from "@/components/ui/FormFieldLabel";
 import { FormFieldsRenderer, buildInitialFormValues } from "@/components/ui/FormFieldsRenderer";
@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { RoundLoader } from "@/components/ui/RoundLoader";
 import { TableSectionHeader } from "@/components/ui/TableSectionHeader";
 import { useToast } from "@/components/ui/ToastProvider";
+import { useI18n } from "@/i18n";
 import { emailConfigService, toEmailConfigWritePayload } from "@/lib/api/services/email-config.service";
 import { validateFormField, validateFormFields, type FormValue } from "@/lib/form-validation";
 import { cn } from "@/lib/utils";
@@ -15,114 +16,6 @@ import type { FormField } from "@/types/hrms";
 
 const HOST_PATTERN =
   /^(?:(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}|(?:\d{1,3}\.){3}\d{1,3}|localhost)$/;
-
-const smtpFieldsTop: FormField[] = [
-  {
-    label: "Mailer",
-    name: "mailer",
-    type: "text",
-    required: true,
-    defaultValue: "SMTP",
-    readOnly: true,
-  },
-  {
-    label: "Host",
-    name: "host",
-    type: "text",
-    required: true,
-    placeholder: "prioritysolutions.in",
-    pattern: HOST_PATTERN,
-    patternMessage: "Enter a valid host name (e.g. smtp.example.com).",
-  },
-  {
-    label: "Port",
-    name: "port",
-    type: "number",
-    required: true,
-    defaultValue: "587",
-    min: 1,
-    max: 65535,
-    placeholder: "587",
-  },
-  {
-    label: "Username",
-    name: "username",
-    type: "email",
-    required: true,
-    placeholder: "otp@prioritysolutions.in",
-  },
-];
-
-const passwordField: FormField = {
-  label: "Password",
-  name: "password",
-  type: "password",
-  required: true,
-  minLength: 4,
-  placeholder: "Enter SMTP password",
-};
-
-const smtpFieldsBottom: FormField[] = [
-  {
-    label: "Encryption",
-    name: "encryption",
-    type: "select",
-    required: true,
-    defaultValue: "tls",
-    options: [
-      { value: "tls", label: "TLS" },
-      { value: "ssl", label: "SSL" },
-      { value: "none", label: "None" },
-    ],
-  },
-  {
-    label: "From Address",
-    name: "from_address",
-    type: "email",
-    required: true,
-    placeholder: "otp@prioritysolutions.in",
-  },
-  {
-    label: "From Name",
-    name: "from_name",
-    type: "text",
-    required: true,
-    minLength: 2,
-    maxLength: 100,
-    placeholder: "PrioBank",
-  },
-];
-
-const smtpFields: FormField[] = [...smtpFieldsTop, passwordField, ...smtpFieldsBottom];
-
-const testFields: FormField[] = [
-  {
-    label: "Recipient Email",
-    name: "to_email",
-    type: "email",
-    required: true,
-    placeholder: "Enter recipient email",
-  },
-  {
-    label: "Subject",
-    name: "subject",
-    type: "text",
-    required: true,
-    defaultValue: "PrioHRM SMTP configuration test",
-    minLength: 3,
-    maxLength: 150,
-  },
-  {
-    label: "Message",
-    name: "message",
-    type: "textarea",
-    required: true,
-    span: "full",
-    defaultValue: "This is a test email from PrioHRM to confirm the SMTP configuration.",
-    minLength: 5,
-    maxLength: 2000,
-  },
-];
 
 function asWritePayload(values: Record<string, FormValue>) {
   return toEmailConfigWritePayload({
@@ -137,7 +30,131 @@ function asWritePayload(values: Record<string, FormValue>) {
 }
 
 export default function EmailConfigPage() {
+  const { t } = useI18n();
   const toast = useToast();
+
+  const smtpFieldsTop: FormField[] = useMemo(
+    () => [
+      {
+        label: t("settings.email.fields.mailer"),
+        name: "mailer",
+        type: "text",
+        required: true,
+        defaultValue: "SMTP",
+        readOnly: true,
+      },
+      {
+        label: t("settings.email.fields.host"),
+        name: "host",
+        type: "text",
+        required: true,
+        placeholder: "prioritysolutions.in",
+        pattern: HOST_PATTERN,
+        patternMessage: t("settings.email.placeholders.hostPattern"),
+      },
+      {
+        label: t("settings.email.fields.port"),
+        name: "port",
+        type: "number",
+        required: true,
+        defaultValue: "587",
+        min: 1,
+        max: 65535,
+        placeholder: "587",
+      },
+      {
+        label: t("settings.email.fields.username"),
+        name: "username",
+        type: "email",
+        required: true,
+        placeholder: "otp@prioritysolutions.in",
+      },
+    ],
+    [t],
+  );
+
+  const passwordField: FormField = useMemo(
+    () => ({
+      label: t("settings.email.fields.password"),
+      name: "password",
+      type: "password",
+      required: true,
+      minLength: 4,
+      placeholder: t("settings.email.placeholders.password"),
+    }),
+    [t],
+  );
+
+  const smtpFieldsBottom: FormField[] = useMemo(
+    () => [
+      {
+        label: t("settings.email.fields.encryption"),
+        name: "encryption",
+        type: "select",
+        required: true,
+        defaultValue: "tls",
+        options: [
+          { value: "tls", label: t("settings.email.encryption.tls") },
+          { value: "ssl", label: t("settings.email.encryption.ssl") },
+          { value: "none", label: t("settings.email.encryption.none") },
+        ],
+      },
+      {
+        label: t("settings.email.fields.from_address"),
+        name: "from_address",
+        type: "email",
+        required: true,
+        placeholder: "otp@prioritysolutions.in",
+      },
+      {
+        label: t("settings.email.fields.from_name"),
+        name: "from_name",
+        type: "text",
+        required: true,
+        minLength: 2,
+        maxLength: 100,
+        placeholder: "PrioBank",
+      },
+    ],
+    [t],
+  );
+
+  const smtpFields: FormField[] = useMemo(
+    () => [...smtpFieldsTop, passwordField, ...smtpFieldsBottom],
+    [smtpFieldsTop, passwordField, smtpFieldsBottom],
+  );
+
+  const testFields: FormField[] = useMemo(
+    () => [
+      {
+        label: t("settings.email.fields.to_email"),
+        name: "to_email",
+        type: "email",
+        required: true,
+        placeholder: t("settings.email.placeholders.to_email"),
+      },
+      {
+        label: t("settings.email.fields.subject"),
+        name: "subject",
+        type: "text",
+        required: true,
+        defaultValue: "PrioHRM SMTP configuration test",
+        minLength: 3,
+        maxLength: 150,
+      },
+      {
+        label: t("settings.email.fields.message"),
+        name: "message",
+        type: "textarea",
+        required: true,
+        span: "full",
+        defaultValue: "This is a test email from PrioHRM to confirm the SMTP configuration.",
+        minLength: 5,
+        maxLength: 2000,
+      },
+    ],
+    [t],
+  );
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
@@ -169,7 +186,7 @@ export default function EmailConfigPage() {
         // First-time empty config is normal — don't toast an error
         if (!result.ok && !result.empty) {
           toast.error({
-            title: "Unable to load settings",
+            title: t("settings.common.loadFailed"),
             message: result.message,
           });
         }
@@ -177,7 +194,7 @@ export default function EmailConfigPage() {
         if (cancelled) return;
         toast.error({
           title: "Unable to load settings",
-          message: "Failed to load email configuration. Please try again.",
+          message: t("settings.email.loadError"),
         });
       } finally {
         if (!cancelled) setLoading(false);
@@ -221,7 +238,10 @@ export default function EmailConfigPage() {
     const nextErrors = validateFormFields(smtpFields, values);
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors);
-      toast.error({ title: "Validation error", message: "Please fill all mandatory SMTP fields." });
+      toast.error({
+        title: t("settings.common.validationError"),
+        message: t("settings.email.validationMessage"),
+      });
       return;
     }
 
@@ -230,7 +250,7 @@ export default function EmailConfigPage() {
       const result = await emailConfigService.update(asWritePayload(values));
       if (!result.ok) {
         toast.error({
-          title: "Save failed",
+          title: t("settings.common.saveFailed"),
           message: result.message,
         });
         return;
@@ -245,11 +265,11 @@ export default function EmailConfigPage() {
           password: String(values.password ?? ""),
         }),
       }));
-      toast.success({ title: "Saved", message: result.message });
+      toast.success({ title: t("settings.common.saved"), message: result.message });
     } catch {
       toast.error({
-        title: "Save failed",
-        message: "Failed to save email configuration. Please try again.",
+        title: t("settings.common.saveFailed"),
+        message: t("settings.email.saveError"),
       });
     } finally {
       setSaving(false);
@@ -264,15 +284,18 @@ export default function EmailConfigPage() {
     if (Object.keys(smtpErrors).length > 0) {
       setErrors(smtpErrors);
       toast.error({
-        title: "SMTP incomplete",
-        message: "Complete and validate SMTP configuration before sending a test email.",
+        title: t("settings.common.validationError"),
+        message: t("settings.email.validationMessage"),
       });
       return;
     }
 
     if (Object.keys(nextTestErrors).length > 0) {
       setTestErrors(nextTestErrors);
-      toast.error({ title: "Validation error", message: "Please fill all test email fields." });
+      toast.error({
+        title: t("settings.common.validationError"),
+        message: t("settings.email.validationMessage"),
+      });
       return;
     }
 
@@ -286,16 +309,16 @@ export default function EmailConfigPage() {
       });
       if (!result.ok) {
         toast.error({
-          title: "Test failed",
+          title: t("settings.email.testFailed"),
           message: result.message,
         });
         return;
       }
-      toast.success({ title: "Test email sent", message: result.message });
+      toast.success({ title: t("settings.email.testSuccess"), message: result.message });
     } catch {
       toast.error({
-        title: "Test failed",
-        message: "Failed to send test email. Please try again.",
+        title: t("settings.email.testFailed"),
+        message: t("settings.email.testError"),
       });
     } finally {
       setTesting(false);
@@ -306,15 +329,19 @@ export default function EmailConfigPage() {
 
   return (
     <>
-      <PageHeader title="Email Configuration" section="Settings" hideTitle />
+      <PageHeader
+        title={t("settings.email.title")}
+        section={t("settings.common.section")}
+        hideTitle
+      />
       {loading ? (
         <div className="container-fluid">
           <div className="card">
             <div className="card-body">
-              <TableSectionHeader title="Email Configuration" />
+              <TableSectionHeader title={t("settings.email.title")} />
               <div className="employee-profile-loading">
                 <RoundLoader />
-                <p>Loading email configuration…</p>
+                <p>{t("settings.email.loading")}</p>
               </div>
             </div>
           </div>
@@ -323,7 +350,7 @@ export default function EmailConfigPage() {
         <div className="container-fluid">
           <div className="card">
             <div className="card-body">
-              <TableSectionHeader title="Email Configuration" />
+              <TableSectionHeader title={t("settings.email.title")} />
 
               <form
                 id="email-config-form"
@@ -355,7 +382,7 @@ export default function EmailConfigPage() {
                       type="button"
                       className="ess-password-toggle"
                       onClick={() => setShowPassword((visible) => !visible)}
-                      aria-label={showPassword ? "Hide password" : "Show password"}
+                      aria-label={showPassword ? t("settings.email.hidePassword") : t("settings.email.showPassword")}
                     >
                       {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
@@ -376,13 +403,13 @@ export default function EmailConfigPage() {
 
                 <div className="form-span-full flex justify-end pt-2">
                   <button type="submit" className="btn btn-primary" disabled={saving}>
-                    {saving ? "Saving..." : "Save Configuration"}
+                    {saving ? t("settings.common.saving") : t("settings.common.saveConfiguration")}
                   </button>
                 </div>
               </form>
 
               <div className="email-config-test-block">
-                <TableSectionHeader title="Test Email" />
+                <TableSectionHeader title={t("settings.email.testTitle")} />
 
                 <form
                   id="email-test-form"
@@ -404,7 +431,7 @@ export default function EmailConfigPage() {
                       disabled={testing}
                     >
                       <Send size={16} />
-                      {testing ? "Sending..." : "Send Test Email"}
+                      {testing ? t("settings.email.sending") : t("settings.email.testSend")}
                     </button>
                   </div>
                 </form>

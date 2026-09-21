@@ -106,6 +106,9 @@ export function employeeRegisterReportToRow(
     Active_asset_codes: optionalText(
       readValue(source, ["Active_asset_codes", "active_asset_codes"]),
     ),
+    Photo_path: optionalText(
+      readValue(source, ["Photo_path", "photo_path", "Photo", "photo", "avatar", "Logo_Url"]),
+    ),
   };
 }
 

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { OnboardingModal } from "@/components/modals/OnboardingModal";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { useI18n, translateHrmsLookup } from "@/i18n";
 import { StatCard } from "@/components/ui/StatCard";
 import { DataTable, PersonCell, SoftStatus } from "@/components/ui/DataTable";
 import { useToast } from "@/components/ui/ToastProvider";
@@ -26,6 +27,7 @@ function asOnboardId(value: HrmsRow[string]): string | number | null {
 }
 
 export default function EmployeeOnboardingPage() {
+  const { t, language } = useI18n();
   const toast = useToast();
   const [rows, setRows] = useState<HrmsRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,13 +43,13 @@ export default function EmployeeOnboardingPage() {
     } catch (error) {
       console.error(error);
       toast.error({
-        title: "Error",
-        message: error instanceof ApiError ? error.message : "Failed to load onboarding list",
+        title: t("employees.onboarding.errorTitle"),
+        message: error instanceof ApiError ? error.message : t("employees.onboarding.loadError"),
       });
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [toast, t]);
 
   useEffect(() => {
     void loadRows();
@@ -69,7 +71,7 @@ export default function EmployeeOnboardingPage() {
     const onboardId = asOnboardId(row.Onboard_id ?? row.id);
     if (onboardId === null) {
       toast.error({
-        title: "Load failed",
+        title: t("employees.onboarding.errorTitle"),
         message: "Missing onboarding id for this record.",
       });
       return;
@@ -94,7 +96,7 @@ export default function EmployeeOnboardingPage() {
     } catch (error) {
       console.error(error);
       toast.error({
-        title: "Load failed",
+        title: t("employees.onboarding.errorTitle"),
         message:
           error instanceof ApiError
             ? error.message
@@ -140,7 +142,7 @@ export default function EmployeeOnboardingPage() {
       });
     } catch (error) {
       toast.error({
-        title: "Delete failed",
+        title: t("employees.onboarding.errorTitle"),
         message: error instanceof ApiError ? error.message : "Unable to delete onboarding record.",
       });
       throw error;
@@ -149,69 +151,73 @@ export default function EmployeeOnboardingPage() {
 
   return (
     <>
-      <PageHeader title="Employee Onboarding" section="Employee Management" hideTitle />
+      <PageHeader
+        title={t("employees.onboarding.title")}
+        section={t("employees.onboarding.section")}
+        hideTitle
+      />
       <div className="container-fluid">
         <div className="stat-grid mb-4">
           <StatCard
-            title="In Progress"
+            title={t("employees.onboarding.inProgress")}
             value={String(stats.inProgress)}
-            change={`${stats.documentsPending} docs pending`}
-            hint="active"
-            description="Employees mid-onboarding"
+            change={t("employees.onboarding.docsPending", { count: stats.documentsPending })}
+            hint={t("employees.onboarding.active")}
+            description={t("employees.onboarding.inProgressDesc")}
             tone="info"
             icon="userPlus"
           />
           <StatCard
-            title="Not Started"
+            title={t("employees.onboarding.notStarted")}
             value={String(stats.pending)}
-            change="awaiting"
-            hint="start"
-            description="Checklist not yet begun"
+            change={t("employees.onboarding.awaiting")}
+            hint={t("employees.onboarding.startHint")}
+            description={t("employees.onboarding.notStartedDesc")}
             tone="warning"
             icon="clock"
           />
           <StatCard
-            title="Completed"
+            title={t("employees.onboarding.completed")}
             value={String(stats.completed)}
-            change="ready"
-            hint="to join"
-            description="All checklist steps done"
+            change={t("employees.onboarding.ready")}
+            hint={t("employees.onboarding.toJoin")}
+            description={t("employees.onboarding.completedDesc")}
             tone="success"
             icon="users"
           />
         </div>
 
         <DataTable
-          title="Employee Onboarding"
-          searchPlaceholder="Search by employee code or name..."
-          actionLabel="Start Onboarding"
+          title={t("employees.onboarding.title")}
+          searchPlaceholder={t("employees.onboarding.search")}
+          actionLabel={t("employees.onboarding.start")}
           onAction={() => setAddOpen(true)}
           rows={rows}
           loading={loading || editLoading}
           searchKeys={["Employee_code", "Display_name", "Dept_Name", "Department_name", "Onboarding_stage"]}
           filterFields={[
-            { key: "Dept_Name", label: "Department" },
-            { key: "Onboarding_stage", label: "Stage" },
-            { key: "Employment_status_name", label: "Status" },
+            { key: "Dept_Name", label: translateHrmsLookup(language, "headers", "Department") },
+            { key: "Onboarding_stage", label: translateHrmsLookup(language, "headers", "Stage") },
+            { key: "Employment_status_name", label: translateHrmsLookup(language, "headers", "Status") },
           ]}
           onRowEdit={handleEdit}
           showRowActions
-          deleteConfirmTitle="Remove onboarding record?"
-          deleteConfirmMessage='Remove onboarding for "{name}"? This will not delete the employee profile.'
+          deleteConfirmTitle={t("employees.onboarding.deleteConfirm")}
+          deleteConfirmMessage={t("employees.onboarding.deleteConfirmMessage")}
           getDeleteLabel={(row) => String(row.Display_name ?? row.Employee_code ?? "this employee")}
           onRowDelete={handleDelete}
           emptyStateIcon={getModuleEmptyIcon("onboarding")}
-          emptyStateTitle="No onboarding records yet"
-          emptyStateMessage="Start onboarding for a new employee to track registration, documents, and checklist progress."
+          emptyStateTitle={t("employees.onboarding.emptyTitle")}
+          emptyStateMessage={t("employees.onboarding.emptyMessage")}
           columns={[
             {
               key: "Employee_code",
-              header: "Employee Code",
+              header: translateHrmsLookup(language, "headers", "Employee Code"),
               render: (row) => formatCell(row.Employee_code),
             },
             {
               key: "Display_name",
-              header: "Employee",
+              header: translateHrmsLookup(language, "headers", "Employee"),
               render: (row) => (
                 <PersonCell
                   name={String(row.Display_name ?? "—")}
@@ -222,17 +228,17 @@ export default function EmployeeOnboardingPage() {
             },
             {
               key: "Department",
-              header: "Department",
+              header: translateHrmsLookup(language, "headers", "Department"),
               render: (row) => formatCell(row.Dept_Name ?? row.Department_name ?? row.Department),
             },
             {
               key: "Date_of_joining",
-              header: "Join Date",
+              header: translateHrmsLookup(language, "headers", "Join Date"),
               render: (row) => formatDateDisplay(String(row.Date_of_joining ?? "")),
             },
             {
               key: "Checklist_progress",
-              header: "Checklist",
+              header: translateHrmsLookup(language, "headers", "Checklist"),
               render: (row) => {
                 const { completed, total, percent } = getChecklistProgress(row);
                 return (
@@ -248,7 +254,7 @@ export default function EmployeeOnboardingPage() {
                       />
                     </div>
                     <span className="onboarding-table-progress-label">
-                      {completed}/{total} steps
+                      {t("employees.onboarding.stepsProgress", { completed, total })}
                     </span>
                   </div>
                 );
@@ -256,12 +262,16 @@ export default function EmployeeOnboardingPage() {
             },
             {
               key: "Onboarding_stage",
-              header: "Stage",
-              render: (row) => formatCell(row.Onboarding_stage),
+              header: translateHrmsLookup(language, "headers", "Stage"),
+              render: (row) => {
+                const rawStage = String(row.Onboarding_stage ?? "");
+                const translatedStage = translateHrmsLookup(language, "labels", rawStage);
+                return formatCell(translatedStage || rawStage);
+              },
             },
             {
               key: "Employment_status",
-              header: "Status",
+              header: translateHrmsLookup(language, "headers", "Status"),
               render: (row) => (
                 <SoftStatus value={String(row.Employment_status_name || row.Employment_status || "Pending")} />
               ),
@@ -273,8 +283,8 @@ export default function EmployeeOnboardingPage() {
       <OnboardingModal
         open={addOpen}
         onClose={() => setAddOpen(false)}
-        title="Start Onboarding"
-        submitLabel="Save & Continue"
+        title={t("employees.onboarding.start")}
+        submitLabel={t("employees.onboarding.saveContinue")}
         onSubmit={(values) => handleSave(values, "add")}
       />
 
@@ -282,8 +292,8 @@ export default function EmployeeOnboardingPage() {
         key={editRow ? String(editRow.Onboard_id ?? editRow.id) : "onboarding-edit"}
         open={Boolean(editRow)}
         onClose={() => setEditRow(null)}
-        title="Continue Onboarding"
-        submitLabel="Save Progress"
+        title={t("employees.onboarding.continue")}
+        submitLabel={t("employees.onboarding.saveProgress")}
         initialValues={editRow ?? undefined}
         onSubmit={(values) => handleSave(values, "edit")}
       />

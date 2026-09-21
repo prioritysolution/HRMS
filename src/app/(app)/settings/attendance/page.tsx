@@ -13,6 +13,7 @@ import { RoundLoader } from "@/components/ui/RoundLoader";
 import { StatusToggle } from "@/components/ui/StatusToggle";
 import { TableSectionHeader } from "@/components/ui/TableSectionHeader";
 import { useToast } from "@/components/ui/ToastProvider";
+import { useI18n } from "@/i18n";
 import {
   applOptionService,
 } from "@/lib/api";
@@ -240,7 +241,19 @@ function buildAttendanceFormValues(
   };
 }
 
+function translateFields(
+  fields: FormField[],
+  t: (key: string) => string,
+  prefix: string,
+): FormField[] {
+  return fields.map((field) => ({
+    ...field,
+    label: t(`${prefix}.${field.name}`),
+  }));
+}
+
 export default function AttendanceSettingsPage() {
+  const { t } = useI18n();
   const toast = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -248,12 +261,21 @@ export default function AttendanceSettingsPage() {
     OtCalculationOption[]
   >([]);
   const overtimeValueFields = useMemo(
-    () => buildOvertimeValueFields(otCalculationOptions),
-    [otCalculationOptions],
+    () =>
+      translateFields(
+        buildOvertimeValueFields(otCalculationOptions),
+        t,
+        "settings.attendance.fields",
+      ),
+    [otCalculationOptions, t],
+  );
+  const lateEarlyTranslated = useMemo(
+    () => translateFields(lateEarlyFields, t, "settings.attendance.fields"),
+    [t],
   );
   const allFields = useMemo(
-    () => [...lateEarlyFields, ...overtimeValueFields],
-    [overtimeValueFields],
+    () => [...lateEarlyTranslated, ...overtimeValueFields],
+    [lateEarlyTranslated, overtimeValueFields],
   );
   const [values, setValues] = useState<Record<string, FormValue>>(() => ({
     ...buildInitialFormValues([...lateEarlyFields, ...buildOvertimeValueFields([])]),
@@ -287,18 +309,18 @@ export default function AttendanceSettingsPage() {
         }
         if (!result.ok) {
           toast.error({
-            title: "Unable to load settings",
+            title: t("settings.common.loadFailed"),
             message: result.message,
           });
         }
       } catch (error) {
         if (cancelled) return;
         toast.error({
-          title: "Unable to load settings",
+          title: t("settings.common.loadFailed"),
           message:
             error instanceof Error
               ? error.message
-              : "Failed to load attendance settings. Please try again.",
+              : t("settings.attendance.loadError"),
         });
       } finally {
         if (!cancelled) setLoading(false);
@@ -309,7 +331,7 @@ export default function AttendanceSettingsPage() {
     return () => {
       cancelled = true;
     };
-  }, [toast]);
+  }, [toast, t]);
 
   const handleChange = (name: string, value: FormValue) => {
     setValues((prev) => ({ ...prev, [name]: value }));
@@ -330,8 +352,8 @@ export default function AttendanceSettingsPage() {
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors);
       toast.error({
-        title: "Validation error",
-        message: "Please fill all mandatory attendance settings.",
+        title: t("settings.common.validationError"),
+        message: t("settings.attendance.validationMessage"),
       });
       return;
     }
@@ -354,15 +376,15 @@ export default function AttendanceSettingsPage() {
         weekly_off_ot: toFlag(values.weekly_off_ot),
       });
       if (!result.ok || !result.data) {
-        toast.error({ title: "Save failed", message: result.message });
+        toast.error({ title: t("settings.common.saveFailed"), message: result.message });
         return;
       }
       setValues(buildAttendanceFormValues(result.data, otCalculationOptions));
-      toast.success({ title: "Saved", message: result.message });
+      toast.success({ title: t("settings.common.saved"), message: result.message });
     } catch {
       toast.error({
-        title: "Save failed",
-        message: "Failed to save attendance settings. Please try again.",
+        title: t("settings.common.saveFailed"),
+        message: t("settings.attendance.saveError"),
       });
     } finally {
       setSaving(false);
@@ -371,15 +393,19 @@ export default function AttendanceSettingsPage() {
 
   return (
     <>
-      <PageHeader title="Attendance Settings" section="Settings" hideTitle />
+      <PageHeader
+        title={t("settings.attendance.title")}
+        section={t("settings.common.section")}
+        hideTitle
+      />
       {loading ? (
         <div className="container-fluid">
           <div className="card">
             <div className="card-body">
-              <TableSectionHeader title="Attendance Settings" />
+              <TableSectionHeader title={t("settings.attendance.title")} />
               <div className="employee-profile-loading">
                 <RoundLoader />
-                <p>Loading attendance settings…</p>
+                <p>{t("settings.attendance.loading")}</p>
               </div>
             </div>
           </div>
@@ -389,10 +415,10 @@ export default function AttendanceSettingsPage() {
           <div className="card">
             <div className="card-body">
               <form id="attendance-settings-form" onSubmit={(event) => void handleSave(event)} noValidate>
-                <TableSectionHeader title="Late & Early Rules" />
+                <TableSectionHeader title={t("settings.attendance.lateEarlyTitle")} />
                 <div className="form-grid form-grid-2">
                   <FormFieldsRenderer
-                    fields={lateEarlyFields}
+                    fields={lateEarlyTranslated}
                     values={values}
                     errors={errors}
                     onChange={handleChange}
@@ -400,7 +426,7 @@ export default function AttendanceSettingsPage() {
                 </div>
 
                 <div className="email-config-test-block">
-                  <TableSectionHeader title="Overtime Settings" />
+                  <TableSectionHeader title={t("settings.attendance.overtimeTitle")} />
 
                   <div className="notification-option-list">
                     {OT_TOGGLES.map((option) => {
@@ -412,15 +438,15 @@ export default function AttendanceSettingsPage() {
                               <Icon size={18} />
                             </div>
                             <div className="notification-option-copy">
-                              <h6>{option.label}</h6>
-                              <p>{option.description}</p>
+                              <h6>{t(`settings.attendance.toggles.${option.name}.label`)}</h6>
+                              <p>{t(`settings.attendance.toggles.${option.name}.description`)}</p>
                             </div>
                           </div>
                           <StatusToggle
                             name={option.name}
                             value={String(values[option.name] ?? "0")}
-                            activeLabel="Yes"
-                            inactiveLabel="No"
+                            activeLabel={t("common.yes")}
+                            inactiveLabel={t("common.no")}
                             onChange={(nextValue) => handleChange(option.name, nextValue)}
                             disabled={saving}
                           />
@@ -441,7 +467,7 @@ export default function AttendanceSettingsPage() {
 
                 <div className="flex justify-end pt-4">
                   <button type="submit" className="btn btn-primary" disabled={saving}>
-                    {saving ? "Saving..." : "Save Settings"}
+                    {saving ? t("settings.common.saving") : t("settings.common.saveSettings")}
                   </button>
                 </div>
               </form>

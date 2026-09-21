@@ -14,45 +14,34 @@ import { RoundLoader } from "@/components/ui/RoundLoader";
 import { StatusToggle } from "@/components/ui/StatusToggle";
 import { TableSectionHeader } from "@/components/ui/TableSectionHeader";
 import { useToast } from "@/components/ui/ToastProvider";
-import type { LeaveSettingsRecord, LeaveSettingsWritePayload } from "@/lib/api/types";
+import type { LeaveSettingsRecord } from "@/lib/api/types";
 import { leaveSettingsService } from "@/lib/api/services/leave-settings.service";
 import type { FormValue } from "@/lib/form-validation";
+import { useI18n } from "@/i18n";
 
 const OPTIONS = [
   {
     name: "apply_future_leave" as const,
-    label: "Apply for Future Leave",
-    description: "Allow employees to apply leave for future dates.",
     icon: CalendarRange,
   },
   {
     name: "apply_previous_leave" as const,
-    label: "Apply for Previous-date Leave",
-    description: "Allow employees to apply leave for past dates.",
     icon: CalendarClock,
   },
   {
     name: "half_day_allowed" as const,
-    label: "Half-day Leave Allowed",
-    description: "Allow employees to apply half-day leave.",
     icon: Split,
   },
   {
     name: "apply_during_probation" as const,
-    label: "Apply During Probation",
-    description: "Allow leave applications while an employee is on probation.",
     icon: ShieldAlert,
   },
   {
     name: "reason_mandatory" as const,
-    label: "Reason Mandatory",
-    description: "Require a reason when submitting a leave application.",
     icon: CircleAlert,
   },
   {
     name: "prevent_overlapping_leave" as const,
-    label: "Prevent Overlapping Leave",
-    description: "Block leave applications that overlap with existing leave.",
     icon: Layers,
   },
 ] as const;
@@ -73,6 +62,7 @@ function toFormValues(data: LeaveSettingsRecord): Record<string, FormValue> {
 }
 
 export default function LeaveSettingsPage() {
+  const { t } = useI18n();
   const toast = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -95,15 +85,15 @@ export default function LeaveSettingsPage() {
         if (result.data) setValues(toFormValues(result.data));
         if (!result.ok) {
           toast.error({
-            title: "Unable to load settings",
+            title: t("settings.common.loadFailed"),
             message: result.message,
           });
         }
       } catch {
         if (cancelled) return;
         toast.error({
-          title: "Unable to load settings",
-          message: "Failed to load leave settings. Please try again.",
+          title: t("settings.common.loadFailed"),
+          message: t("settings.leave.loadError"),
         });
       } finally {
         if (!cancelled) setLoading(false);
@@ -114,7 +104,7 @@ export default function LeaveSettingsPage() {
     return () => {
       cancelled = true;
     };
-  }, [toast]);
+  }, [toast, t]);
 
   const handleSave = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -130,17 +120,17 @@ export default function LeaveSettingsPage() {
       });
       if (!result.ok || !result.data) {
         toast.error({
-          title: "Save failed",
+          title: t("settings.common.saveFailed"),
           message: result.message,
         });
         return;
       }
       setValues(toFormValues(result.data));
-      toast.success({ title: "Saved", message: result.message });
+      toast.success({ title: t("settings.common.saved"), message: result.message });
     } catch {
       toast.error({
-        title: "Save failed",
-        message: "Failed to save leave settings. Please try again.",
+        title: t("settings.common.saveFailed"),
+        message: t("settings.leave.saveError"),
       });
     } finally {
       setSaving(false);
@@ -149,15 +139,19 @@ export default function LeaveSettingsPage() {
 
   return (
     <>
-      <PageHeader title="Leave Settings" section="Settings" hideTitle />
+      <PageHeader
+        title={t("settings.leave.title")}
+        section={t("settings.common.section")}
+        hideTitle
+      />
       {loading ? (
         <div className="container-fluid">
           <div className="card">
             <div className="card-body">
-              <TableSectionHeader title="Leave Settings" />
+              <TableSectionHeader title={t("settings.leave.title")} />
               <div className="employee-profile-loading">
                 <RoundLoader />
-                <p>Loading leave settings…</p>
+                <p>{t("settings.leave.loading")}</p>
               </div>
             </div>
           </div>
@@ -166,7 +160,7 @@ export default function LeaveSettingsPage() {
         <div className="container-fluid">
           <div className="card">
             <div className="card-body">
-              <TableSectionHeader title="Leave Settings" />
+              <TableSectionHeader title={t("settings.leave.title")} />
 
               <form id="leave-settings-form" onSubmit={(event) => void handleSave(event)}>
                 <div className="notification-option-list">
@@ -179,15 +173,15 @@ export default function LeaveSettingsPage() {
                             <Icon size={18} />
                           </div>
                           <div className="notification-option-copy">
-                            <h6>{option.label}</h6>
-                            <p>{option.description}</p>
+                            <h6>{t(`settings.leave.options.${option.name}.label`)}</h6>
+                            <p>{t(`settings.leave.options.${option.name}.description`)}</p>
                           </div>
                         </div>
                         <StatusToggle
                           name={option.name}
                           value={String(values[option.name] ?? "0")}
-                          activeLabel="Yes"
-                          inactiveLabel="No"
+                          activeLabel={t("common.yes")}
+                          inactiveLabel={t("common.no")}
                           onChange={(nextValue) =>
                             setValues((prev) => ({ ...prev, [option.name]: nextValue }))
                           }
@@ -200,7 +194,7 @@ export default function LeaveSettingsPage() {
 
                 <div className="flex justify-end pt-4">
                   <button type="submit" className="btn btn-primary" disabled={saving}>
-                    {saving ? "Saving..." : "Save Settings"}
+                    {saving ? t("settings.common.saving") : t("settings.common.saveSettings")}
                   </button>
                 </div>
               </form>

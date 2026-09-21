@@ -1,0 +1,231 @@
+{
+  "pages": {
+    "dashboard": {
+      "subtitle": "Live attendance snapshot for today across employees.",
+      "empty": "No attendance records for today yet."
+    },
+    "daily": {
+      "subtitle": "Mark and review employee attendance for a selected date.",
+      "empty": "No daily attendance entries for the selected date.",
+      "dateLabel": "Attendance date"
+    },
+    "monthly": {
+      "subtitle": "Monthly attendance summaries by employee.",
+      "empty": "No attendance summaries found for the selected month.",
+      "emptyTitle": "No monthly attendance yet",
+      "periodLabel": "Month & Year",
+      "searchPeriod": "Search month or year...",
+      "searchPlaceholder": "Search monthly attendance...",
+      "loadFailed": "Unable to load monthly attendance",
+      "loadFailedMessage": "Please check your connection and try again."
+    },
+    "processing": {
+      "subtitle": "Run and track attendance processing batches.",
+      "empty": "No processing batches yet. Run daily sync or monthly close."
+    },
+    "calendar": {
+      "subtitle": "Define working days, holidays, and offs on the attendance calendar.",
+      "empty": "Add calendar entries for working days, holidays, and weekly offs."
+    },
+    "sources": {
+      "subtitle": "Configure biometric, mobile, web, and API attendance sources.",
+      "empty": "Configure at least one attendance source to sync punches."
+    },
+    "register": {
+      "subtitle": "Attendance register with working time and overtime by day.",
+      "empty": "No register entries yet."
+    },
+    "checkInOut": {
+      "subtitle": "View and add check-in / check-out punch records.",
+      "empty": "No punch records yet. Add a check-in or check-out."
+    },
+    "regularization": {
+      "subtitle": "Request corrections to attendance check-in or check-out times.",
+      "empty": "No regularization requests yet."
+    },
+    "missingPunch": {
+      "subtitle": "Capture and resolve missing punch exceptions.",
+      "empty": "No missing punch records yet."
+    },
+    "overtime": {
+      "subtitle": "Record overtime minutes against attendance days.",
+      "empty": "No overtime entries yet."
+    },
+    "shifts": {
+      "subtitle": "Assign shifts to employees for attendance calculation.",
+      "empty": "No shift assignments yet. Assign a shift to get started."
+    },
+    "rules": {
+      "subtitle": "Configure grace, late, working hours, and overtime rules by shift.",
+      "empty": "Add attendance rules for each shift."
+    },
+    "onDuty": {
+      "subtitle": "Assign on-duty periods for employees working off-site.",
+      "empty": "No on-duty assignments yet."
+    },
+    "weeklyOff": {
+      "subtitle": "Define weekly off days by branch.",
+      "empty": "Add weekly off days for branches."
+    },
+    "reportEmployee": {
+      "empty": "Try adjusting the date range or filters.",
+      "emptyTitle": "No attendance records found",
+      "searchPlaceholder": "Search employee attendance...",
+      "exportEmpty": "No attendance records match the current filters.",
+      "exportSuccess": "Download started for the filtered employee attendance report.",
+      "loadError": "Unable to load employee attendance",
+      "connectionError": "Please check your connection and try again.",
+      "sheetName": "Employee Attendance"
+    },
+    "reportLate": {
+      "empty": "Try adjusting the date range or minimum late minutes.",
+      "emptyTitle": "No late coming records found",
+      "searchPlaceholder": "Search late coming report...",
+      "minLate": "Min Late (Mins)",
+      "minLatePlaceholder": "e.g. 15",
+      "exportEmpty": "No late coming records match the current filters.",
+      "exportSuccess": "Download started for the filtered late coming report.",
+      "loadError": "Unable to load late coming report",
+      "connectionError": "Please check your connection and try again.",
+      "sheetName": "Late Coming"
+    },
+    "reportEarly": {
+      "empty": "Try adjusting the date range or minimum early minutes.",
+      "emptyTitle": "No early leaving records found",
+      "searchPlaceholder": "Search early leaving report...",
+      "minEarly": "Min Early (Mins)",
+      "minEarlyPlaceholder": "e.g. 10",
+      "exportEmpty": "No early leaving records match the current filters.",
+      "exportSuccess": "Download started for the filtered early leaving report.",
+      "loadError": "Unable to load early leaving report",
+      "connectionError": "Please check your connection and try again.",
+      "sheetName": "Early Leaving"
+    },
+    "reportSummary": {
+      "empty": "Try adjusting the date range or filters.",
+      "emptyTitle": "No attendance summary found",
+      "searchPlaceholder": "Search attendance summary...",
+      "exportEmpty": "No attendance summary records match the current filters.",
+      "exportSuccess": "Download started for the filtered attendance summary.",
+      "loadError": "Unable to load attendance summary",
+      "connectionError": "Please check your connection and try again.",
+      "sheetName": "Attendance Summary"
+    }
+  },
+  "holidays": {
+    "title": "Holiday Calendar",
+    "viewMonth": "Month",
+    "viewYear": "Year",
+    "viewList": "List",
+    "addNew": "Add New",
+    "monthSubtext": "Click an empty day to add a holiday, or an existing holiday to edit it.",
+    "yearSubtext": "All months for {year}. Click a month name for details, or a day to add/edit.",
+    "upcomingHolidays": "Upcoming Holidays",
+    "corporateSchedule": "Corporate schedule for {year}",
+    "noHolidaysForYear": "No holidays found for {year}.",
+    "dayDetails": "Day details",
+    "purpose": "Purpose",
+    "date": "Date",
+    "financialYear": "Financial Year",
+    "alsoOnThisDay": "Also on this day",
+    "moreHolidays": "{count} more holiday(s)",
+    "tip": "Tip",
+    "clickToAdd": "Click to add a holiday on this date.",
+    "next": "Next",
+    "holiday": "Holiday",
+    "addHoliday": "Add Holiday",
+    "addHolidaySub": "Create a new holiday for the organization calendar.",
+    "updateHoliday": "Update Holiday",
+    "updateHolidaySub": "Edit holiday details.",
+    "saveHoliday": "Save Holiday",
+    "deleteHolidayTitle": "Delete holiday?",
+    "deleteHolidayMsg": "Remove \"{name}\" from the holiday calendar? This action cannot be undone.",
+    "noHolidaysYet": "No holidays yet",
+    "noHolidaysMsg": "Add a holiday to build the organization calendar.",
+    "searchPlaceholder": "Search holiday calendar...",
+    "closeDayDetails": "Close day details",
+    "mobileHint": "Tap a day to view details",
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month",
+    "prevYear": "Previous year",
+    "nextYear": "Next year",
+    "loadingCalendar": "Loading calendar…"
+  },
+  "stats": {
+    "Present Today": {
+      "title": "Present Today",
+      "hint": "today",
+      "description": "Employees marked present"
+    },
+    "Absent": {
+      "title": "Absent",
+      "hint": "today",
+      "description": "Absent or partial day"
+    },
+    "On Leave / Off": {
+      "title": "On Leave / Off",
+      "hint": "off",
+      "description": "Leave, holiday, or weekly off"
+    },
+    "Marked Today": {
+      "title": "Marked Today",
+      "hint": "records",
+      "description": "Daily attendance entries"
+    },
+    "Late Arrivals": {
+      "title": "Late Arrivals",
+      "hint": "exceptions",
+      "description": "Late or early departure"
+    },
+    "Exceptions": {
+      "title": "Exceptions",
+      "hint": "needed",
+      "description": "Absent, half-day, or on-duty"
+    },
+    "Summaries": {
+      "title": "Summaries",
+      "hint": "complete",
+      "description": "Monthly attendance summaries"
+    },
+    "Avg Present": {
+      "title": "Avg Present",
+      "hint": "per emp",
+      "description": "Average present days"
+    },
+    "Pending Review": {
+      "title": "Pending Review",
+      "hint": "close",
+      "description": "Summaries not yet closed"
+    },
+    "Completed": {
+      "title": "Completed",
+      "hint": "batches",
+      "description": "Successfully processed batches"
+    },
+    "Queued": {
+      "title": "Queued",
+      "hint": "pending",
+      "description": "Awaiting or failed processing"
+    },
+    "Records": {
+      "title": "Records",
+      "hint": "total",
+      "description": "Total records processed"
+    },
+    "Active Sources": {
+      "title": "Active Sources",
+      "hint": "total",
+      "description": "Enabled attendance sources"
+    },
+    "Device Sources": {
+      "title": "Device Sources",
+      "hint": "sync",
+      "description": "Biometric machine integrations"
+    },
+    "API / Mobile": {
+      "title": "API / Mobile",
+      "hint": "channels",
+      "description": "Digital attendance channels"
+    }
+  }
+}

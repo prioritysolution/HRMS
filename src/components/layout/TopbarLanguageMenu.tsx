@@ -1,48 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { Check, Globe } from "lucide-react";
-
-export type AppLanguage = "en" | "bn" | "hi" | "or";
-
-const LANGUAGE_STORAGE_KEY = "priohrm-language";
-
-const LANGUAGE_OPTIONS: Array<{
-  code: AppLanguage;
-  label: string;
-  nativeLabel: string;
-  shortLabel: string;
-}> = [
-  { code: "en", label: "English", nativeLabel: "English", shortLabel: "EN" },
-  { code: "bn", label: "Bengali", nativeLabel: "বাংলা", shortLabel: "BN" },
-  { code: "hi", label: "Hindi", nativeLabel: "हिन्दी", shortLabel: "HI" },
-  { code: "or", label: "Odia", nativeLabel: "ଓଡ଼ିଆ", shortLabel: "OR" },
-];
-
-function isAppLanguage(value: string | null): value is AppLanguage {
-  return value === "en" || value === "bn" || value === "hi" || value === "or";
-}
-
-function readStoredLanguage(): AppLanguage {
-  if (typeof window === "undefined") return "en";
-  const saved = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
-  return isAppLanguage(saved) ? saved : "en";
-}
-
-function applyDocumentLanguage(language: AppLanguage) {
-  document.documentElement.lang = language;
-  document.documentElement.setAttribute("data-language", language);
-}
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { Check, Globe, ChevronDown } from "lucide-react";
+import { useI18n } from "@/i18n";
 
 export function TopbarLanguageMenu() {
-  const [language, setLanguage] = useState<AppLanguage>("en");
+  const { language, setLanguage, options, t } = useI18n();
   const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    const saved = readStoredLanguage();
-    setLanguage(saved);
-    applyDocumentLanguage(saved);
-  }, []);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -56,15 +21,47 @@ export function TopbarLanguageMenu() {
     return () => document.removeEventListener("mousedown", onClick);
   }, [open]);
 
-  const selectLanguage = useCallback((next: AppLanguage) => {
-    setLanguage(next);
-    window.localStorage.setItem(LANGUAGE_STORAGE_KEY, next);
-    applyDocumentLanguage(next);
-    setOpen(false);
-  }, []);
+  useLayoutEffect(() => {
+    if (!open) return;
 
-  const current =
-    LANGUAGE_OPTIONS.find((option) => option.code === language) ?? LANGUAGE_OPTIONS[0];
+    function adjustPosition() {
+      const el = panelRef.current;
+      const root = document.getElementById("topbar-language-menu");
+      if (!el || !root) return;
+
+      const parentRect = root.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const padding = 12;
+      const panelWidth = el.offsetWidth || 245;
+
+      // On desktop, default align to left of button. On small screens (<=768px), default align to right of button.
+      let targetLeft = parentRect.left;
+      if (viewportWidth <= 768) {
+        targetLeft = parentRect.right - panelWidth;
+      }
+
+      // Clamp within viewport margins
+      const maxLeft = viewportWidth - panelWidth - padding;
+      const minLeft = padding;
+      const clampedLeft = Math.max(minLeft, Math.min(targetLeft, maxLeft));
+
+      // Calculate left offset relative to root container
+      const relativeLeft = clampedLeft - parentRect.left;
+
+      el.style.left = `${relativeLeft}px`;
+      el.style.right = "auto";
+    }
+
+    adjustPosition();
+    const rafId = requestAnimationFrame(adjustPosition);
+    window.addEventListener("resize", adjustPosition);
+    return () => {
+      cancelAnimationFrame(rafId);
+      window.removeEventListener("resize", adjustPosition);
+    };
+  }, [open]);
+
+  const current = options.find((option) => option.code === language) ?? options[0];
 
   return (
     <div id="topbar-language-menu" className="relative">
@@ -72,27 +69,38 @@ export function TopbarLanguageMenu() {
         type="button"
         className={`topbar-language-trigger${open ? " is-open" : ""}`}
         onClick={() => setOpen((value) => !value)}
-        aria-label={`Language: ${current.label}`}
+        aria-label={`${t("topbar.language")}: ${current.label}`}
         aria-expanded={open}
         aria-haspopup="menu"
         title={current.label}
       >
-        <Globe size={15} aria-hidden="true" />
-        <span className="topbar-language-trigger-text">
-          <strong>{current.shortLabel}</strong>
-          <small className="topbar-language-trigger-name">{current.label}</small>
+        <Globe className="topbar-language-globe-icon" size={15} aria-hidden="true" />
+        <span className="topbar-language-current-label">
+          <span className="topbar-language-badge">{current.shortLabel}</span>
+          <span className="topbar-language-native">{current.nativeLabel}</span>
         </span>
-        <span className="topbar-language-trigger-caret" aria-hidden="true" />
+        <ChevronDown
+          size={14}
+          className={`topbar-language-chevron${open ? " is-open" : ""}`}
+          aria-hidden="true"
+        />
       </button>
 
       {open ? (
-        <div className="dropdown-panel topbar-language-panel" role="menu">
-          <div className="border-b border-[var(--border)] px-4 py-3">
-            <h5 className="m-0 text-sm font-semibold">Language</h5>
-            <p className="m-0 text-xs text-muted">Choose your preferred language</p>
+        <div ref={panelRef} className="topbar-language-panel" role="menu">
+          <div className="topbar-language-panel-header">
+            <div className="flex items-center gap-2">
+              <Globe size={15} className="text-primary" />
+              <h5 className="m-0 text-sm font-semibold text-[var(--title)]">
+                {t("topbar.language")}
+              </h5>
+            </div>
+            <p className="m-0 text-xs text-[var(--muted)] mt-0.5">
+              {t("topbar.languageHint")}
+            </p>
           </div>
-          <div className="py-1">
-            {LANGUAGE_OPTIONS.map((option) => {
+          <div className="p-1.5 space-y-0.5">
+            {options.map((option) => {
               const active = option.code === language;
               return (
                 <button
@@ -101,16 +109,31 @@ export function TopbarLanguageMenu() {
                   role="menuitemradio"
                   aria-checked={active}
                   className={`topbar-language-option${active ? " is-active" : ""}`}
-                  onClick={() => selectLanguage(option.code)}
+                  onClick={() => {
+                    setLanguage(option.code);
+                    setOpen(false);
+                  }}
                 >
-                  <span>
-                    <strong>
-                      {option.nativeLabel}
-                      <em>{option.shortLabel}</em>
-                    </strong>
-                    <small>{option.label}</small>
-                  </span>
-                  {active ? <Check size={15} /> : null}
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <span className={`topbar-language-opt-badge${active ? " is-active" : ""}`}>
+                      {option.shortLabel}
+                    </span>
+                    <div className="flex flex-col text-left min-w-0">
+                      <span className="text-sm font-semibold text-[var(--title)] leading-tight">
+                        {option.nativeLabel}
+                      </span>
+                      {option.nativeLabel !== option.label && (
+                        <span className="text-[11px] text-[var(--muted)] leading-tight mt-0.5">
+                          {option.label}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  {active ? (
+                    <div className="topbar-language-check-wrapper">
+                      <Check size={13} strokeWidth={2.5} />
+                    </div>
+                  ) : null}
                 </button>
               );
             })}
@@ -120,3 +143,4 @@ export function TopbarLanguageMenu() {
     </div>
   );
 }
+
