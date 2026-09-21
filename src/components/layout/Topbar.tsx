@@ -24,6 +24,7 @@ import { LogoutButton } from "@/components/layout/LogoutButton";
 import { TopbarLanguageMenu } from "@/components/layout/TopbarLanguageMenu";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { menuService } from "@/lib/api/services/menu.service";
+import { toMenuLangCode } from "@/lib/menu/format-menu-label";
 import { menuTreeToNavigation } from "@/lib/menu/map-menu-tree";
 import { readMenuCache, writeMenuCache } from "@/lib/menu/menu-cache";
 import { useUIStore } from "@/components/layout/UIProvider";
@@ -40,10 +41,13 @@ type SearchResult = {
 function flattenNavigation(sections: NavSection[]): SearchResult[] {
   return sections.flatMap((section) =>
     section.items.flatMap((item) => {
-      const itemResult = item.href ? [{ label: item.label, href: item.href }] : [];
+      const itemLabel = item.labelSecondary
+        ? `${item.label} ${item.labelSecondary}`
+        : item.label;
+      const itemResult = item.href ? [{ label: itemLabel, href: item.href }] : [];
       const childResults = (item.children ?? []).map((child) => ({
-        label: child.label,
-        parent: item.label,
+        label: child.labelSecondary ? `${child.label} ${child.labelSecondary}` : child.label,
+        parent: item.labelSecondary ? `${item.label} ${item.labelSecondary}` : item.label,
         href: child.href,
       }));
       return [...itemResult, ...childResults];
@@ -115,7 +119,7 @@ export function Topbar() {
   const router = useRouter();
   const { theme, toggleTheme, toggleSidebar, mobileOpen } = useUIStore();
   const { user, ready } = useAuth();
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const [openNoti, setOpenNoti] = useState(false);
   const [openUser, setOpenUser] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
@@ -128,6 +132,7 @@ export function Topbar() {
   const displayName = user?.name ?? "";
   const displayEmail = user?.email ?? "";
   const displayRole = user?.role ?? "";
+  const langCode = toMenuLangCode(language);
 
   const searchResults = flattenNavigation(menuSections).filter((item) => {
     const query = searchQuery.trim().toLowerCase();
@@ -136,7 +141,7 @@ export function Topbar() {
 
   useEffect(() => {
     let active = true;
-    const cached = readMenuCache();
+    const cached = readMenuCache(langCode);
     if (cached?.length) {
       Promise.resolve().then(() => {
         if (active) setMenuSections(cached);
@@ -144,19 +149,19 @@ export function Topbar() {
     }
 
     menuService
-      .tree({ status: 1 })
+      .tree({ status: 1, Lang_Code: langCode })
       .then((tree) => {
         const mapped = menuTreeToNavigation(tree);
         if (!active || !mapped[0]?.items.length) return;
         setMenuSections(mapped);
-        writeMenuCache(mapped);
+        writeMenuCache(mapped, langCode);
       })
       .catch(() => undefined);
 
     return () => {
       active = false;
     };
-  }, []);
+  }, [langCode]);
 
   useEffect(() => {
     const onClick = (event: MouseEvent) => {

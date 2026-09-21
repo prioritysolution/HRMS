@@ -68,6 +68,8 @@ export type MenuSubItem = {
   Icon?: string | null;
   Route?: string | null;
   Status: MenuStatus | number | string;
+  Lang_Code?: string | null;
+  Lang_SubMenu_Name?: string | null;
 };
 
 export type MenuTreeItem = {
@@ -77,6 +79,8 @@ export type MenuTreeItem = {
   Icon?: string | null;
   Route?: string | null;
   Status: MenuStatus | number | string;
+  Lang_Code?: string | null;
+  Lang_Menu_Name?: string | null;
   SubMenus?: MenuSubItem[];
 };
 
@@ -89,10 +93,14 @@ export type MenuListItem = {
   Icon?: string | null;
   Route?: string | null;
   Status: MenuStatus | number | string;
+  Lang_Code?: string | null;
+  Lang_Menu_Name?: string | null;
+  Lang_SubMenu_Name?: string | null;
 };
 
 export type MenuTreeQuery = {
   status?: MenuStatus;
+  Lang_Code?: string;
 };
 
 export type RegisterRequest = {
