@@ -1,5 +1,6 @@
 import type { MenuSubItem, MenuTreeItem } from "@/lib/api/types";
 import type { NavChild, NavIcon, NavItem, NavSection } from "@/config/navigation";
+import { formatMenuLabel } from "@/lib/menu/format-menu-label";
 import { isExactNavRoute, resolveAppRoute } from "@/lib/menu/route-map";
 
 function optionalText(value: unknown): string | null {
@@ -38,16 +39,22 @@ function resolveIcon(icon: string | null | undefined, label: string): NavIcon {
   return "dashboard";
 }
 
-function mapSubMenus(subMenus: MenuSubItem[] | undefined): NavChild[] {
+function mapSubMenus(subMenus: MenuSubItem[] | undefined, fallbackLangCode?: string | null): NavChild[] {
   if (!Array.isArray(subMenus)) return [];
 
   const children: NavChild[] = [];
   for (const sub of subMenus) {
-    const label = optionalText(sub.SubMenu_Name) ?? "Untitled";
-    const href = resolveAppRoute(sub.Route, label);
+    const english = optionalText(sub.SubMenu_Name);
+    const { label, labelSecondary } = formatMenuLabel(
+      english,
+      optionalText(sub.Lang_SubMenu_Name),
+      optionalText(sub.Lang_Code) ?? fallbackLangCode,
+    );
+    const href = resolveAppRoute(sub.Route, english ?? label);
     if (!href) continue;
     children.push({
       label,
+      labelSecondary,
       href,
       exact: isExactNavRoute(href),
     });
@@ -59,18 +66,24 @@ export function menuTreeToNavigation(tree: MenuTreeItem[]): NavSection[] {
   const items: NavItem[] = [];
 
   for (const menu of tree) {
-    const label = optionalText(menu.Menu_Name) ?? "Untitled";
-    const href = resolveAppRoute(menu.Route, label);
-    const children = mapSubMenus(menu.SubMenus);
-    const icon = resolveIcon(menu.Icon, label);
+    const english = optionalText(menu.Menu_Name);
+    const langCode = optionalText(menu.Lang_Code);
+    const { label, labelSecondary } = formatMenuLabel(
+      english,
+      optionalText(menu.Lang_Menu_Name),
+      langCode,
+    );
+    const href = resolveAppRoute(menu.Route, english ?? label);
+    const children = mapSubMenus(menu.SubMenus, langCode);
+    const icon = resolveIcon(menu.Icon, english ?? label);
 
     if (children.length > 0) {
-      items.push({ label, icon, children });
+      items.push({ label, labelSecondary, icon, children });
       continue;
     }
 
     if (href) {
-      items.push({ label, href, icon });
+      items.push({ label, labelSecondary, href, icon });
     }
   }
 

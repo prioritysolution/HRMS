@@ -6,6 +6,7 @@ import { normalizeMenuTree } from "@/lib/menu/normalize-menu-tree";
 function withQuery(basePath: string, query?: MenuTreeQuery & { menu_id?: number }) {
   const params = new URLSearchParams();
   if (query?.status !== undefined) params.set("status", String(query.status));
+  if (query?.Lang_Code) params.set("Lang_Code", query.Lang_Code);
   if (query?.menu_id !== undefined) params.set("menu_id", String(query.menu_id));
   const suffix = params.toString() ? `?${params.toString()}` : "";
   return `${basePath}${suffix}`;
@@ -27,7 +28,10 @@ export const menuService = {
 
   tree: async (query?: MenuTreeQuery) => {
     const payload = await apiClient.get<unknown>(
-      withQuery(API_ENDPOINTS.menu.tree, { status: query?.status ?? 1 }),
+      withQuery(API_ENDPOINTS.menu.tree, {
+        status: query?.status ?? 1,
+        Lang_Code: query?.Lang_Code,
+      }),
       { unwrap: false },
     );
     return normalizeMenuTree(payload);

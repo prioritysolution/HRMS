@@ -21,9 +21,10 @@ import { navigation, type NavIcon, type NavItem, type NavSection } from "@/confi
 import { LogoutButton } from "@/components/layout/LogoutButton";
 import { useUIStore } from "@/components/layout/UIProvider";
 import { menuService } from "@/lib/api/services/menu.service";
+import { toMenuLangCode } from "@/lib/menu/format-menu-label";
 import { menuTreeToNavigation } from "@/lib/menu/map-menu-tree";
 import { readMenuCache, writeMenuCache } from "@/lib/menu/menu-cache";
-import { useI18n, translateHrmsLookup } from "@/i18n";
+import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 
 const sectionIcons: Record<string, LucideIcon> = {
@@ -59,6 +60,35 @@ function sameSections(a: NavSection[], b: NavSection[]) {
   return JSON.stringify(a) === JSON.stringify(b);
 }
 
+function menuTitle(label: string, labelSecondary?: string) {
+  return labelSecondary ? `${label} — ${labelSecondary}` : label;
+}
+
+function MenuLabelText({
+  label,
+  labelSecondary,
+  className,
+}: {
+  label: string;
+  labelSecondary?: string;
+  className?: string;
+}) {
+  const title = menuTitle(label, labelSecondary);
+  if (!labelSecondary) {
+    return (
+      <span className={cn("menu-text", className)} title={title}>
+        {label}
+      </span>
+    );
+  }
+  return (
+    <span className={cn("menu-text has-secondary", className)} title={title}>
+      <span className="menu-text-primary">{label}</span>
+      <span className="menu-text-secondary">{labelSecondary}</span>
+    </span>
+  );
+}
+
 const FLYOUT_VIEWPORT_PADDING = 12;
 
 function placeCollapsedFlyout(el: HTMLElement | null) {
@@ -89,40 +119,43 @@ function placeCollapsedFlyout(el: HTMLElement | null) {
 export function Sidebar() {
   const pathname = usePathname();
   const { closeMobile, mobileOpen, isMobile, sidebarCollapsed } = useUIStore();
-  const { language, t } = useI18n();
+  const { language } = useI18n();
   const [sections, setSections] = useState<NavSection[]>([]);
   const [menuReady, setMenuReady] = useState(false);
+  const langCode = toMenuLangCode(language);
 
   useLayoutEffect(() => {
     let active = true;
 
-    const cached = readMenuCache();
+    const cached = readMenuCache(langCode);
     if (cached?.length) {
       setSections(cached);
       setMenuReady(true);
+    } else {
+      setMenuReady(false);
     }
 
     async function loadMenu() {
       try {
-        const tree = await menuService.tree({ status: 1 });
+        const tree = await menuService.tree({ status: 1, Lang_Code: langCode });
         const mapped = menuTreeToNavigation(tree);
         const fromApi =
           mapped.length && mapped[0].items.length > 0 ? mapped : null;
 
         // Prefer API tree; if empty/unavailable keep cache; else static fallback.
-        const existing = readMenuCache();
+        const existing = readMenuCache(langCode);
         const next = fromApi ?? (existing?.length ? existing : navigation);
 
         // Always persist — do not skip because of Strict Mode remount/cancel.
         if (!existing?.length || !sameSections(existing, next)) {
-          writeMenuCache(next);
+          writeMenuCache(next, langCode);
         }
 
         if (!active) return;
         setSections((prev) => (sameSections(prev, next) ? prev : next));
         setMenuReady(true);
       } catch {
-        const existing = readMenuCache();
+        const existing = readMenuCache(langCode);
         if (existing?.length) {
           if (active) {
             setSections(existing);
@@ -130,7 +163,7 @@ export function Sidebar() {
           }
           return;
         }
-        writeMenuCache(navigation);
+        writeMenuCache(navigation, langCode);
         if (!active) return;
         setSections(navigation);
         setMenuReady(true);
@@ -141,7 +174,7 @@ export function Sidebar() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [langCode]);
 
   const initiallyOpen = useMemo(() => {
     const open: Record<string, boolean> = {};
@@ -345,10 +378,11 @@ export function Sidebar() {
                     >
                       <button
                         type="button"
-                        title={item.label}
+                        title={menuTitle(item.label, item.labelSecondary)}
                         className={cn(
                           "nav-link menu-drop-btn",
                           iconOnly ? isActiveParent && "active" : open && "open",
+                          item.labelSecondary && "has-secondary-label",
                         )}
                         onClick={() => {
                           if (iconOnly) {
@@ -362,9 +396,7 @@ export function Sidebar() {
                           <span className="menu-icon">
                             <Icon size={18} strokeWidth={1.75} />
                           </span>
-                          <span className="menu-text" title={item.label}>
-                            {item.label}
-                          </span>
+                          <MenuLabelText label={item.label} labelSecondary={item.labelSecondary} />
                         </div>
                         <ChevronDown size={16} className="menu-arrow" />
                       </button>
@@ -373,21 +405,28 @@ export function Sidebar() {
                           className="sub-menu"
                           ref={flyoutLabel === item.label ? flyoutMenuRef : undefined}
                         >
-                          <div className="collapsed-flyout-title">{item.label}</div>
+                          <div className="collapsed-flyout-title">
+                            <MenuLabelText label={item.label} labelSecondary={item.labelSecondary} />
+                          </div>
                           {item.children.map((child) => (
                             <div className="nav-item" key={`${item.label}-${child.href}`}>
                               <Link
                                 href={child.href}
                                 onClick={() => handleNavClick(item.label)}
+                                title={menuTitle(child.label, child.labelSecondary)}
                                 className={cn(
                                   "nav-link",
+                                  child.labelSecondary && "has-secondary-label",
                                   isActivePath(pathname, child.href, child.exact) && "active",
                                 )}
                               >
                                 <span className="menu-icon">
                                   <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" />
                                 </span>
-                                <span className="menu-text">{child.label}</span>
+                                <MenuLabelText
+                                  label={child.label}
+                                  labelSecondary={child.labelSecondary}
+                                />
                               </Link>
                             </div>
                           ))}
@@ -402,16 +441,17 @@ export function Sidebar() {
                     <Link
                       href={item.href!}
                       onClick={() => handleNavClick()}
-                      title={item.label}
+                      title={menuTitle(item.label, item.labelSecondary)}
                       className={cn(
                         "nav-link",
+                        item.labelSecondary && "has-secondary-label",
                         isActivePath(pathname, item.href) && "active",
                       )}
                     >
                       <span className="menu-icon">
                         <Icon size={18} strokeWidth={1.75} />
                       </span>
-                      <span className="menu-text">{item.label}</span>
+                      <MenuLabelText label={item.label} labelSecondary={item.labelSecondary} />
                     </Link>
                   </div>
                 );

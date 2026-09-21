@@ -410,6 +410,10 @@ textarea {
     display: block !important;
   }
 
+  .page-layout.sidebar-collapsed .nav-item.is-flyout-open>.sub-menu .menu-text.has-secondary {
+    display: flex !important;
+  }
+
   .page-layout.sidebar-collapsed .nav-item.is-flyout-open>.sub-menu .collapsed-flyout-title {
     padding: 0.45rem 0.65rem 0.35rem;
     margin-bottom: 0.15rem;
@@ -419,6 +423,29 @@ textarea {
     text-transform: uppercase;
     color: var(--secondary);
     border-bottom: 1px solid var(--border);
+  }
+
+  .page-layout.sidebar-collapsed .nav-item.is-flyout-open>.sub-menu .collapsed-flyout-title .menu-text {
+    text-transform: none;
+    letter-spacing: normal;
+    font-size: inherit;
+    font-weight: inherit;
+    color: inherit;
+  }
+
+  .page-layout.sidebar-collapsed .nav-item.is-flyout-open>.sub-menu .collapsed-flyout-title .menu-text-primary {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .page-layout.sidebar-collapsed .nav-item.is-flyout-open>.sub-menu .collapsed-flyout-title .menu-text-secondary {
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: normal;
+    text-transform: none;
+    opacity: 0.85;
   }
 
   .page-layout.sidebar-collapsed .nav-item.is-flyout-open>.sub-menu .nav-link {
@@ -703,6 +730,54 @@ textarea {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.menu-text.has-secondary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: unset;
+}
+
+.menu-text-primary {
+  display: block;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.menu-text-secondary {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 500;
+  line-height: 1.2;
+  opacity: 0.72;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.nav-link.has-secondary-label {
+  min-height: 52px;
+  align-items: center;
+}
+
+.sub-menu .nav-link.has-secondary-label {
+  min-height: 44px;
+  align-items: flex-start;
+}
+
+.sub-menu .nav-link.has-secondary-label .menu-icon {
+  margin-top: 0.35rem;
 }
 
 .menu-drop-btn {
@@ -781,6 +856,15 @@ textarea {
   display: block;
   padding-block: 0.05rem;
   text-align: left;
+}
+
+.sub-menu .menu-text.has-secondary {
+  display: flex;
+  white-space: normal;
+}
+
+.sub-menu .menu-text-secondary {
+  font-size: 0.68rem;
 }
 
 /* Cards & UI */

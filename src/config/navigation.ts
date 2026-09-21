@@ -1,5 +1,7 @@
 export type NavChild = {
   label: string;
+  /** Localized label shown under English when language ≠ EN */
+  labelSecondary?: string;
   href: string;
   exact?: boolean;
 };
@@ -18,6 +20,8 @@ export type NavIcon =
 
 export type NavItem = {
   label: string;
+  /** Localized label shown under English when language ≠ EN */
+  labelSecondary?: string;
   href?: string;
   icon: NavIcon;
   children?: NavChild[];

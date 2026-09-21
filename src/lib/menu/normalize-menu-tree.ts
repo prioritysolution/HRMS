@@ -58,6 +58,13 @@ function normalizeSubMenu(raw: unknown): MenuSubItem | null {
     Icon: readString(record, ["Icon", "icon"]),
     Route: readString(record, ["Route", "route", "Menu_Route", "menu_route", "Path", "path", "Url", "url"]),
     Status: typeof status === "number" ? status : 1,
+    Lang_Code: readString(record, ["Lang_Code", "lang_code", "LangCode", "langCode"]),
+    Lang_SubMenu_Name: readString(record, [
+      "Lang_SubMenu_Name",
+      "lang_sub_menu_name",
+      "LangSubMenuName",
+      "langSubMenuName",
+    ]),
   };
 }
 
@@ -87,6 +94,13 @@ function normalizeMenuItem(raw: unknown): MenuTreeItem | null {
     Icon: readString(record, ["Icon", "icon"]),
     Route: readString(record, ["Route", "route", "Menu_Route", "menu_route", "Path", "path", "Url", "url"]),
     Status: typeof status === "number" ? status : 1,
+    Lang_Code: readString(record, ["Lang_Code", "lang_code", "LangCode", "langCode"]),
+    Lang_Menu_Name: readString(record, [
+      "Lang_Menu_Name",
+      "lang_menu_name",
+      "LangMenuName",
+      "langMenuName",
+    ]),
     SubMenus: subMenus.length > 0 ? subMenus : undefined,
   };
 }
