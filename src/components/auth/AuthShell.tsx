@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import { LoginBackgroundVideo } from "@/components/auth/LoginBackgroundVideo";
-import { TopbarLanguageMenu } from "@/components/layout/TopbarLanguageMenu";
 import { useI18n } from "@/i18n";
 
 type AuthShellProps = {
@@ -55,10 +54,6 @@ export function AuthShell({ title, subtitle, children }: AuthShellProps) {
 
         <div className="login-form-panel">
           <div className="login-form-card">
-            <div className="login-card-header">
-              <TopbarLanguageMenu />
-            </div>
-
             <div className="login-card-brand">
               <Image
                 src="/images/logos/prio-hrm-login-brand.png"

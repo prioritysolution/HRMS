@@ -4,6 +4,7 @@ import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { Eye, EyeOff, LockKeyhole, LogIn, UserRound } from "lucide-react";
 
+import { LoginLanguageSelect } from "@/components/auth/LoginLanguageSelect";
 import { useToast } from "@/components/ui/ToastProvider";
 import { ApiError, authService } from "@/lib/api";
 import { DEFAULT_AUTH_REDIRECT, isAuthPublicPath } from "@/lib/auth/constants";
@@ -119,6 +120,8 @@ export function SignInForm() {
 
   return (
     <form className="login-form" onSubmit={handleSubmit} noValidate>
+      <LoginLanguageSelect />
+
       <div className="login-field">
         <div className="login-input-wrap">
           <UserRound size={21} strokeWidth={2} aria-hidden="true" />

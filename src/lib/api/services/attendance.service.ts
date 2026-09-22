@@ -524,11 +524,11 @@ export function rowToAttendancePayload(
     throw new Error("Employee is required.");
   }
 
-  const attendanceDateRaw = row.Attendance_date;
-  const attendanceDate = parseDateToIso(attendanceDateRaw) || optionalText(attendanceDateRaw);
-  if (!attendanceDate) {
+  const attendanceDateRaw = optionalText(row.Attendance_date);
+  if (!attendanceDateRaw) {
     throw new Error("Attendance date is required.");
   }
+  const attendanceDate = parseDateToIso(attendanceDateRaw) || attendanceDateRaw;
 
   const shiftId = resolveShiftId(row, context.shifts);
   const attendanceStatus = resolveOptionCode(
