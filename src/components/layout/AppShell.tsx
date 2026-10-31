@@ -4,6 +4,7 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
 import { AppFooter } from "@/components/layout/AppFooter";
 import { UIProvider, useUIStore } from "@/components/layout/UIProvider";
+import { SupportLiveProvider } from "@/components/support/SupportLive";
 import { ToastProvider } from "@/components/ui/ToastProvider";
 
 function Shell({ children }: { children: React.ReactNode }) {
@@ -33,7 +34,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <UIProvider>
       <ToastProvider>
-        <Shell>{children}</Shell>
+        <SupportLiveProvider>
+          <Shell>{children}</Shell>
+        </SupportLiveProvider>
       </ToastProvider>
     </UIProvider>
   );

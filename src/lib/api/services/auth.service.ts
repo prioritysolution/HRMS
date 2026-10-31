@@ -15,7 +15,7 @@ import type {
   VerifyOtpRequest,
 } from "@/lib/api/types";
 import { registerLocal } from "@/lib/auth/local-auth";
-import { clearAccessToken, getAccessToken, getStoredUser, setSession, setStoredUser } from "@/lib/auth/session";
+import { clearAccessToken, getAccessToken, getStoredUser, setSession, setStoredMeData, setStoredUser } from "@/lib/auth/session";
 import { extractAccessToken, extractAuthUser } from "@/lib/auth/token";
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -112,11 +112,43 @@ export function parseAuthMeProfile(payload: unknown): AuthMeProfile | null {
     firstName: readString(data, ["first_name", "First_Name", "firstName"]),
     lastName: readString(data, ["last_name", "Last_Name", "lastName"]),
     email: readString(data, ["email", "Email"]),
-    mobile: readString(data, ["mobile", "Mobile", "contact", "Contact"]),
+    mobile: readString(data, [
+      "userPhone",
+      "user_phone",
+      "User_Phone",
+      "mobile",
+      "Mobile",
+      "phone",
+      "Phone",
+      "contact",
+      "Contact",
+      "userMob",
+      "user_mob",
+      "User_Mob",
+    ]),
     photoPath: readString(data, ["photo_path", "Photo_Path", "photoPath"]),
     loginStatus:
       readString(data, ["login_status", "Login_Status", "loginStatus"]) ?? "",
   };
+}
+
+function persistMePayload(payload: unknown) {
+  const record = asRecord(payload);
+  if (!record) return;
+
+  const data = asRecord(record.data);
+  const nestedUser = data ? asRecord(data.user) ?? asRecord(data.User) : asRecord(record.user);
+  const isProfile = (value: Record<string, unknown> | null) =>
+    Boolean(
+      value &&
+        (value.user_id != null ||
+          value.User_Id != null ||
+          value.display_name != null ||
+          value.employee_id != null),
+    );
+
+  const profile = isProfile(data) ? data : isProfile(nestedUser) ? nestedUser : isProfile(record) ? record : null;
+  if (profile) setStoredMeData(profile);
 }
 
 function enrichAuthUser(
@@ -205,7 +237,17 @@ export const authService = {
       },
       { auth: false, unwrap: false },
     );
-    return persistAuth(normalizeAuthPayload(raw, payload.user_name.trim()));
+    persistMePayload(raw);
+    const session = persistAuth(normalizeAuthPayload(raw, payload.user_name.trim()));
+
+    try {
+      const me = await apiClient.get<unknown>(API_ENDPOINTS.auth.me, { unwrap: false });
+      persistMePayload(me);
+    } catch {
+      // The login body was already saved when it included the profile.
+    }
+
+    return session;
   },
 
   register: async (payload: RegisterRequest) => persistAuth(await registerLocal(payload)),
@@ -224,6 +266,7 @@ export const authService = {
     const stored = getStoredUser();
     try {
       const raw = await apiClient.get<unknown>(API_ENDPOINTS.auth.me, { unwrap: false });
+      persistMePayload(raw);
       const user = extractAuthUser(raw, stored?.email ?? stored?.userName ?? "");
       if (!user) return stored;
 
@@ -245,6 +288,7 @@ export const authService = {
   getMeProfile: async (): Promise<AuthMeProfile | null> => {
     try {
       const raw = await apiClient.get<unknown>(API_ENDPOINTS.auth.me, { unwrap: false });
+      persistMePayload(raw);
       return parseAuthMeProfile(raw);
     } catch {
       return null;

@@ -11,6 +11,11 @@ export const env = {
   apiTimeoutMs: readNumber(process.env.NEXT_PUBLIC_API_TIMEOUT_MS, 30000),
   authTokenKey: (process.env.NEXT_PUBLIC_AUTH_TOKEN_KEY ?? "hrms_access_token").trim() || "hrms_access_token",
   appEnv: process.env.NEXT_PUBLIC_APP_ENV ?? "development",
+  supportApiBaseUrl: (
+    process.env.NEXT_PUBLIC_SUPPORT_API_BASE_URL ?? ""
+  ).replace(/\/$/, ""),
+  supportApiKey: (process.env.NEXT_PUBLIC_SUPPORT_API_KEY ?? "").trim(),
+  supportDomain: (process.env.NEXT_PUBLIC_SUPPORT_DOMAIN ?? "").trim(),
 } as const;
 
 export function getApiOrigin(): string {

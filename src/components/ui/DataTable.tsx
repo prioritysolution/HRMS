@@ -56,6 +56,7 @@ type DataTableProps<T extends object> = {
   onAction?: () => void;
   showRowActions?: boolean;
   renderRowActions?: (row: T) => React.ReactNode;
+  getRowClassName?: (row: T) => string | undefined;
   onRowEdit?: (row: T) => void;
   onRowDelete?: (row: T) => void | Promise<void>;
   onRowActivate?: (row: T) => void | Promise<void>;
@@ -77,6 +78,12 @@ type DataTableProps<T extends object> = {
   filterExtra?: React.ReactNode;
   /** Fires whenever search/filter results change (full filtered set, before pagination). */
   onFilteredRowsChange?: (rows: T[]) => void;
+  /**
+   * When set, search and column filters are not applied in the browser.
+   * The parent reloads `rows` from the API. Pair this with `serverPagination`.
+   */
+  onServerQueryChange?: (query: { search: string; filters: Record<string, string> }) => void;
+  onFiltersReset?: () => void;
   /**
    * Server-driven pagination. When set, `rows` is treated as the current page
    * and page/size changes are delegated to the parent (API reload).
@@ -263,6 +270,7 @@ export function DataTable<T extends object>({
   onAction,
   showRowActions = false,
   renderRowActions,
+  getRowClassName,
   onRowEdit,
   onRowDelete,
   onRowActivate,
@@ -282,6 +290,8 @@ export function DataTable<T extends object>({
   extraActions,
   filterExtra,
   onFilteredRowsChange,
+  onServerQueryChange,
+  onFiltersReset,
   serverPagination,
 }: DataTableProps<T>) {
   const { t } = useI18n();
@@ -324,9 +334,18 @@ export function DataTable<T extends object>({
   );
 
   const filteredRows = useMemo(() => {
+    if (onServerQueryChange) return rows;
     const searched = applyTableSearch(rows, search, resolvedSearchKeys);
     return applyTableFilters(searched, filters);
-  }, [rows, search, filters, resolvedSearchKeys]);
+  }, [onServerQueryChange, rows, search, filters, resolvedSearchKeys]);
+
+  useEffect(() => {
+    if (!onServerQueryChange) return;
+    const timer = window.setTimeout(() => {
+      onServerQueryChange({ search, filters });
+    }, 350);
+    return () => window.clearTimeout(timer);
+  }, [filters, onServerQueryChange, search]);
 
   useEffect(() => {
     onFilteredRowsChange?.(filteredRows);
@@ -387,6 +406,7 @@ export function DataTable<T extends object>({
           .map((field) => [field.key, field.defaultValue as string]),
       ),
     );
+    onFiltersReset?.();
   };
 
   const hasActiveFilters =
@@ -538,7 +558,10 @@ export function DataTable<T extends object>({
                 ))
               ) : paginatedRows.length > 0 ? (
                 paginatedRows.map((row, index) => (
-                  <tr key={"id" in row ? String((row as { id?: string }).id) : JSON.stringify(row)}>
+                  <tr
+                    key={"id" in row ? String((row as { id?: string }).id) : JSON.stringify(row)}
+                    className={getRowClassName?.(row)}
+                  >
                     <td className="si-col">{(activePage - 1) * activePageSize + index + 1}</td>
                     {columns.map((column) => (
                       <td key={column.key}>{column.render(row)}</td>

@@ -2,11 +2,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Bell,
   ChevronDown,
+  Headset,
   Maximize,
   Menu,
   Minimize,
@@ -18,8 +19,7 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { notifications } from "@/data/mock";
-import { navigation, type NavSection } from "@/config/navigation";
+import { type NavSection } from "@/config/navigation";
 import { LogoutButton } from "@/components/layout/LogoutButton";
 import { TopbarLanguageMenu } from "@/components/layout/TopbarLanguageMenu";
 import { useAuth } from "@/lib/auth/AuthProvider";
@@ -31,6 +31,7 @@ import { useUIStore } from "@/components/layout/UIProvider";
 import { BrandLogo } from "@/components/ui/BrandLogo";
 import { resolvePublicFileUrl } from "@/lib/env";
 import { useI18n } from "@/i18n";
+import { useSupportLive, supportCountLabel } from "@/components/support/SupportLive";
 
 type SearchResult = {
   label: string;
@@ -117,6 +118,10 @@ function TopbarAvatar({
 
 export function Topbar() {
   const router = useRouter();
+  const pathname = usePathname();
+  const supportActive = pathname === "/support" || pathname.startsWith("/support/");
+  const { unreadCount, notices, markAllRead, openNotice } = useSupportLive();
+  const supportBadge = supportCountLabel(unreadCount);
   const { theme, toggleTheme, toggleSidebar, mobileOpen } = useUIStore();
   const { user, ready } = useAuth();
   const { t, language } = useI18n();
@@ -301,36 +306,71 @@ export function Topbar() {
             <Settings size={16} />
           </button>
 
+          <Link
+            href="/support"
+            data-support-icon=""
+            data-count={unreadCount}
+            className={`topbar-icon${supportActive ? " is-open" : ""}${unreadCount > 0 ? " has-news" : ""}`}
+            aria-label={
+              unreadCount > 0 ? `${t("topbar.support")}, ${unreadCount} new` : t("topbar.support")
+            }
+            aria-current={supportActive ? "page" : undefined}
+          >
+            <Headset size={16} />
+            {unreadCount > 0 ? <span className="support-icon-count">{supportBadge}</span> : null}
+          </Link>
+
           <div className="relative" ref={notiRef}>
             <button
               type="button"
-              className="topbar-icon"
+              data-support-bell=""
+              data-count={unreadCount}
+              className={`topbar-icon${unreadCount > 0 ? " has-news" : ""}`}
               onClick={() => {
                 setOpenNoti((v) => !v);
                 setOpenUser(false);
               }}
-              aria-label={t("topbar.notifications")}
+              aria-label={
+                unreadCount > 0 ? `${t("topbar.notifications")}, ${unreadCount} new` : t("topbar.notifications")
+              }
             >
               <Bell size={16} />
-              <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[var(--danger)]" />
+              {unreadCount > 0 ? <span className="support-icon-count">{supportBadge}</span> : null}
             </button>
             {openNoti && (
               <div className="dropdown-panel">
-                <div className="border-b border-[var(--border)] px-4 py-3">
+                <div className="flex items-center justify-between gap-3 border-b border-[var(--border)] px-4 py-3">
                   <h5 className="m-0 text-sm font-semibold">{t("topbar.notificationsTitle")}</h5>
-                  <p className="m-0 text-xs text-muted">{t("topbar.notificationsSubtitle")}</p>
+                  {notices.length > 0 ? (
+                    <button type="button" className="btn btn-link btn-sm p-0" onClick={markAllRead}>
+                      {t("topbar.supportMarkAllRead")}
+                    </button>
+                  ) : null}
                 </div>
                 <div className="max-h-72 overflow-auto">
-                  {notifications.map((item) => (
-                    <div
-                      key={item.title}
-                      className="border-b border-[var(--border)] px-4 py-3 last:border-0"
-                    >
-                      <h6 className="m-0 text-sm font-semibold">{item.title}</h6>
-                      <p className="mb-1 mt-1 text-xs text-muted">{item.message}</p>
-                      <small className="text-secondary">{item.time}</small>
-                    </div>
-                  ))}
+                  {notices.length === 0 ? (
+                    <p className="m-0 px-4 py-3 text-sm text-muted">{t("topbar.supportNoNotices")}</p>
+                  ) : (
+                    notices.map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        className="support-notice"
+                        onClick={() => {
+                          setOpenNoti(false);
+                          openNotice(item.number);
+                        }}
+                      >
+                        <span className="support-notice-copy">
+                          <strong>{item.title || t("topbar.supportUpdate")}</strong>
+                          {item.number ? <small>{item.number}</small> : null}
+                          {item.body ? <span>{item.body}</span> : null}
+                          <time>{new Date(item.at).toLocaleString()}</time>
+                        </span>
+                        {item.unread ? <span className="support-notice-dot" aria-hidden="true" /> : null}
+                      </button>
+                    ))
+                  )}
                 </div>
               </div>
             )}
