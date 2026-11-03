@@ -222,7 +222,6 @@ export function SupportLiveProvider({ children }: { children: ReactNode }) {
         const popup = new Notification(title, {
           body: body || undefined,
           tag: event.number,
-          renotify: true,
           silent: false,
           ...(icon ? { icon } : {}),
         });
