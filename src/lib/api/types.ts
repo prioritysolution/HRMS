@@ -119,9 +119,10 @@ export type VerifyOtpRequest = {
 };
 
 export type ChangePasswordRequest = {
-  current_password: string;
+  password: string;
   new_password: string;
   confirm_password: string;
+  current_password?: string;
 };
 
 export type ResetPasswordRequest = {

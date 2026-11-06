@@ -344,7 +344,7 @@ export const authService = {
     const raw = await apiClient.post<unknown>(
       API_ENDPOINTS.auth.changePassword,
       {
-        current_password: payload.current_password,
+        password: payload.password ?? payload.current_password,
         new_password: payload.new_password,
         confirm_password: payload.confirm_password,
       },

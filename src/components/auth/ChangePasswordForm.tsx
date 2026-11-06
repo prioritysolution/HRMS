@@ -43,7 +43,7 @@ export function ChangePasswordForm({ compact = false, className }: ChangePasswor
     setSaving(true);
     try {
       await authService.changePassword({
-        current_password: currentPassword,
+        password: currentPassword,
         new_password: newPassword,
         confirm_password: confirmPassword,
       });
