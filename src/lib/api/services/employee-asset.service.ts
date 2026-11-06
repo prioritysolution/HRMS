@@ -195,9 +195,13 @@ export const employeeAssetService = {
     employee_id: number;
     status?: EmployeeAssetListQuery["status"];
   }) => {
+    const employeeId = Number(query?.employee_id ?? 0);
+    if (!Number.isFinite(employeeId) || employeeId <= 0) {
+      return [];
+    }
     const payload = await apiClient.get<unknown>(
       withListQuery(API_ENDPOINTS.employeeAsset.employeeList, {
-        employee_id: query.employee_id,
+        employee_id: employeeId,
         status: query.status ?? 1,
       }),
     );

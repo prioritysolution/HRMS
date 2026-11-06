@@ -429,16 +429,20 @@ function filterApplOptions(
   groupNeedles: string[],
 ): ApplOptionRecord[] {
   const labelSet = new Set(labels.map((label) => label.toLowerCase()));
+  const seenLabels = new Set<string>();
   return [...options]
+    .sort((left, right) => Number(left.Srl_No ?? 0) - Number(right.Srl_No ?? 0))
     .filter((option) => {
       const group = String(option.Opt_Group ?? "").toLowerCase();
       const label = String(option.Opt_Description ?? "").trim().toLowerCase();
-      return (
+      const matches =
         labelSet.has(label) ||
-        (groupNeedles.length > 0 && groupNeedles.every((needle) => group.includes(needle)))
-      );
-    })
-    .sort((left, right) => Number(left.Srl_No ?? 0) - Number(right.Srl_No ?? 0));
+        (groupNeedles.length > 0 && groupNeedles.every((needle) => group.includes(needle)));
+      if (!matches || !label) return false;
+      if (seenLabels.has(label)) return false;
+      seenLabels.add(label);
+      return true;
+    });
 }
 
 export function filterAttendanceStatusOptions(options: ApplOptionRecord[]): ApplOptionRecord[] {

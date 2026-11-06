@@ -79,40 +79,83 @@ export function parseAuthMeProfile(payload: unknown): AuthMeProfile | null {
   if (!record) return null;
 
   const data = asRecord(record.data) ?? record;
-  const userId = readNumber(data, ["user_id", "User_Id", "userId", "id"]);
-  const userName = readString(data, ["user_name", "User_Name", "userName"]);
+  const user = asRecord(data.user) ?? asRecord(data.User) ?? asRecord(record.user);
+  const source = user ? { ...data, ...user } : data;
+  const nestedEmp = asRecord(source.employee) ?? asRecord(source.Employee);
+
+  const userId =
+    readNumber(source, ["user_id", "User_Id", "userId", "id"]) ??
+    readNumber(data, ["user_id", "User_Id", "userId", "id"]);
+  const userName =
+    readString(source, ["user_name", "User_Name", "userName"]) ??
+    readString(data, ["user_name", "User_Name", "userName"]);
   if (userId === undefined || !userName) return null;
 
-  const roleId = readNumber(data, ["role_id", "Role_Id", "roleId"]) ?? 0;
+  const roleId = readNumber(source, ["role_id", "Role_Id", "roleId"]) ?? 0;
   const roleName =
-    readString(data, ["role_name", "Role_Name", "roleName"]) ?? "User";
-  const orgId = readNumber(data, ["org_id", "Org_Id", "orgId"]) ?? 0;
-  const branchId = readNumber(data, ["branch_id", "Branch_Id", "branchId"]) ?? 0;
-  const employeeId = readNumber(data, ["employee_id", "Employee_Id", "employeeId"]);
+    readString(source, ["role_name", "Role_Name", "roleName"]) ?? "User";
+  const orgId = readNumber(source, ["org_id", "Org_Id", "orgId"]) ?? 0;
+  const branchId = readNumber(source, ["branch_id", "Branch_Id", "branchId"]) ?? 0;
+  const employeeId =
+    readNumber(source, [
+      "employee_id",
+      "Employee_id",
+      "Employee_Id",
+      "employeeId",
+      "emp_id",
+      "Emp_Id",
+      "Emp_id",
+    ]) ??
+    (nestedEmp
+      ? readNumber(nestedEmp, [
+          "id",
+          "employee_id",
+          "Employee_id",
+          "Employee_Id",
+          "emp_id",
+        ])
+      : undefined);
 
   return {
     userId,
     userName,
     roleId,
     roleName,
-    isAdmin: readBoolean(data, ["is_admin", "Is_Admin", "isAdmin"]) ?? false,
-    roles: parseAuthMeRoles(data.roles),
+    isAdmin: readBoolean(source, ["is_admin", "Is_Admin", "isAdmin"]) ?? false,
+    roles: parseAuthMeRoles(source.roles ?? data.roles),
     orgId,
-    orgCode: readString(data, ["org_code", "Org_Code", "orgCode"]) ?? "",
-    orgName: readString(data, ["org_name", "Org_Name", "orgName"]) ?? "",
-    orgLogo: readString(data, ["org_logo", "Org_Logo", "orgLogo"]),
-    orgSchema: readString(data, ["org_schema", "Org_Schema", "orgSchema"]) ?? "",
+    orgCode: readString(source, ["org_code", "Org_Code", "orgCode"]) ?? "",
+    orgName: readString(source, ["org_name", "Org_Name", "orgName"]) ?? "",
+    orgLogo: readString(source, ["org_logo", "Org_Logo", "orgLogo"]),
+    orgSchema: readString(source, ["org_schema", "Org_Schema", "orgSchema"]) ?? "",
     branchId,
-    branchCode: readString(data, ["branch_code", "Branch_Code", "branchCode"]) ?? "",
-    branchName: readString(data, ["branch_name", "Branch_Name", "branchName"]) ?? "",
+    branchCode: readString(source, ["branch_code", "Branch_Code", "branchCode"]) ?? "",
+    branchName: readString(source, ["branch_name", "Branch_Name", "branchName"]) ?? "",
     employeeId: employeeId ?? null,
-    employeeCode: readString(data, ["employee_code", "Employee_Code", "employeeCode"]),
+    employeeCode:
+      (readString(source, [
+        "employee_code",
+        "Employee_code",
+        "Employee_Code",
+        "employeeCode",
+        "emp_code",
+        "Emp_Code",
+        "Emp_code",
+      ]) ??
+      (nestedEmp
+        ? readString(nestedEmp, [
+            "code",
+            "employee_code",
+            "Employee_code",
+            "Employee_Code",
+          ])
+        : null)) ?? null,
     displayName:
-      readString(data, ["display_name", "Display_Name", "displayName"]) ?? userName,
-    firstName: readString(data, ["first_name", "First_Name", "firstName"]),
-    lastName: readString(data, ["last_name", "Last_Name", "lastName"]),
-    email: readString(data, ["email", "Email"]),
-    mobile: readString(data, [
+      readString(source, ["display_name", "Display_Name", "displayName"]) ?? userName,
+    firstName: readString(source, ["first_name", "First_Name", "firstName"]),
+    lastName: readString(source, ["last_name", "Last_Name", "lastName"]),
+    email: readString(source, ["email", "Email"]),
+    mobile: readString(source, [
       "userPhone",
       "user_phone",
       "User_Phone",
@@ -126,9 +169,9 @@ export function parseAuthMeProfile(payload: unknown): AuthMeProfile | null {
       "user_mob",
       "User_Mob",
     ]),
-    photoPath: readString(data, ["photo_path", "Photo_Path", "photoPath"]),
+    photoPath: readString(source, ["photo_path", "Photo_Path", "photoPath"]),
     loginStatus:
-      readString(data, ["login_status", "Login_Status", "loginStatus"]) ?? "",
+      readString(source, ["login_status", "Login_Status", "loginStatus"]) ?? "",
   };
 }
 
@@ -144,7 +187,9 @@ function persistMePayload(payload: unknown) {
         (value.user_id != null ||
           value.User_Id != null ||
           value.display_name != null ||
-          value.employee_id != null),
+          value.employee_id != null ||
+          value.Employee_id != null ||
+          value.Employee_Id != null),
     );
 
   const profile = isProfile(data) ? data : isProfile(nestedUser) ? nestedUser : isProfile(record) ? record : null;

@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 :root {
   --primary: #4666e1;
   --primary-rgb: 70, 102, 225;
@@ -88,7 +90,13 @@
   background: var(--secondary);
 }
 
-html,
+html {
+  min-height: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+  scrollbar-gutter: stable;
+}
+
 body {
   min-height: 100%;
   max-width: 100%;
@@ -3613,14 +3621,27 @@ textarea {
   align-items: center;
   justify-content: center;
   padding: 1rem;
+  overscroll-behavior: contain;
 }
 
 .modal-backdrop {
   position: absolute;
   inset: 0;
   border: 0;
-  background: rgba(13, 32, 66, 0.45);
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   cursor: pointer;
+  animation: backdropFadeIn 0.2s ease-out;
+}
+
+@keyframes backdropFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .modal-dialog {
@@ -3629,17 +3650,26 @@ textarea {
   z-index: 1;
   max-height: calc(100vh - 2rem);
   min-width: 0;
+  margin: auto;
+  overscroll-behavior: contain;
 }
 
 .modal-content {
-  background: var(--modal-bg);
-  border: 1px solid var(--border);
-  border-radius: 1rem;
-  box-shadow: var(--shadow);
+  background: var(--card-bg);
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  border-radius: 1.25rem;
+  box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.22), 0 0 0 1px rgba(15, 23, 42, 0.05);
   display: flex;
   flex-direction: column;
   max-height: calc(100vh - 2rem);
   overflow: hidden;
+  overscroll-behavior: contain;
+}
+
+[data-theme="dark"] .modal-content {
+  background: var(--modal-bg);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.06);
 }
 
 .modal-content:has(.confirm-dialog-body) {
@@ -3647,58 +3677,92 @@ textarea {
 }
 
 .animate-modal-in {
-  animation: modalIn 0.28s ease-out;
+  animation: modalIn 0.26s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes modalIn {
   from {
     opacity: 0;
-    transform: translateY(-28px) scale(0.98);
+    transform: translateY(-20px) scale(0.97);
   }
-
   to {
     opacity: 1;
-    transform: none;
+    transform: translateY(0) scale(1);
   }
 }
 
 .modal-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 1.15rem 1.25rem 0.85rem;
+  padding: 1.2rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--card-bg);
+}
+
+.modal-header-content {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.modal-header-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 0.75rem;
+  background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.14), rgba(var(--primary-rgb), 0.04));
+  border: 1px solid rgba(var(--primary-rgb), 0.2);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.modal-header-text {
+  min-width: 0;
+  flex: 1;
 }
 
 .modal-title {
   margin: 0;
-  font-size: 1.1rem;
-  font-weight: 800;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
   color: var(--title);
+  line-height: 1.3;
 }
 
 .modal-subtitle {
-  margin: 0.25rem 0 0;
+  margin: 0.2rem 0 0;
   color: var(--muted);
-  font-size: 0.9rem;
+  font-size: 0.86rem;
+  line-height: 1.4;
 }
 
 .modal-close {
   width: 34px;
   height: 34px;
-  border: 0;
+  border: 1px solid var(--border);
   border-radius: 999px;
-  background: var(--card-bg);
-  color: var(--title);
+  background: var(--card-soft);
+  color: var(--secondary);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
 }
 
 .modal-close:hover {
   background: var(--danger-soft);
+  border-color: rgba(var(--danger-rgb), 0.25);
   color: var(--danger);
+  transform: scale(1.06);
 }
 
 .modal-divider {
@@ -3708,9 +3772,29 @@ textarea {
 }
 
 .modal-body {
-  padding: 1.15rem 1.25rem;
-  overflow: auto;
+  padding: 1.35rem 1.5rem 2.25rem;
+  overflow-y: auto;
   overflow-x: hidden;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--primary-rgb), 0.25) transparent;
+}
+
+.modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.35);
+  border-radius: 999px;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.6);
 }
 
 .modal-body:has(.confirm-dialog-body) {
@@ -3725,12 +3809,43 @@ textarea {
 .modal-footer {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.65rem;
+  gap: 0.75rem;
   justify-content: flex-end;
   align-items: center;
-  padding: 0.95rem 1.25rem 1.15rem;
+  padding: 1rem 1.5rem;
   border-top: 1px solid var(--border);
+  background: var(--card-soft);
+}
+
+.btn-modal-cancel {
+  padding: 0.55rem 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
   background: var(--card-bg);
+  color: var(--title);
+  font-weight: 500;
+  font-size: 0.88rem;
+  transition: all 0.15s ease;
+}
+
+.btn-modal-cancel:hover:not(:disabled) {
+  background: var(--card-soft);
+  border-color: rgba(148, 163, 184, 0.45);
+  color: var(--title);
+}
+
+.btn-modal-submit {
+  padding: 0.55rem 1.45rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  font-size: 0.88rem;
+  box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.25);
+  transition: all 0.15s ease;
+}
+
+.btn-modal-submit:hover:not(:disabled) {
+  box-shadow: 0 6px 16px rgba(var(--primary-rgb), 0.35);
+  transform: translateY(-1px);
 }
 
 /* Forms inside modals / pages */
@@ -3916,10 +4031,14 @@ textarea {
   padding: 1rem;
 }
 
-/* Searchable select — combobox style */
+/* Searchable select — modern combobox style with auto-flip */
 .searchable-select {
   position: relative;
   width: 100%;
+}
+
+.searchable-select.is-open {
+  z-index: 55;
 }
 
 .searchable-select-control {
@@ -3930,6 +4049,7 @@ textarea {
   width: 100%;
   padding-right: 2.5rem;
   cursor: text;
+  transition: all 0.15s ease;
 }
 
 .searchable-select-control.has-clear .searchable-select-input {
@@ -3941,8 +4061,8 @@ textarea {
 }
 
 .searchable-select.is-open .searchable-select-input {
-  border-color: rgba(var(--primary-rgb), 0.55);
-  box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.12);
+  border-color: rgba(var(--primary-rgb), 0.75);
+  box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.14);
 }
 
 .searchable-select-icons {
@@ -3952,7 +4072,8 @@ textarea {
   transform: translateY(-50%);
   display: inline-flex;
   align-items: center;
-  gap: 0.2rem;
+  gap: 0.25rem;
+  pointer-events: auto;
 }
 
 .searchable-select-toggle {
@@ -3962,14 +4083,21 @@ textarea {
   width: 24px;
   height: 24px;
   border: 0;
+  border-radius: 6px;
   background: transparent;
   color: var(--secondary);
   cursor: pointer;
   padding: 0;
+  transition: all 0.15s ease;
+}
+
+.searchable-select-toggle:hover {
+  background: var(--card-soft);
+  color: var(--title);
 }
 
 .searchable-select-chevron {
-  transition: transform 0.15s ease;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .searchable-select.is-open .searchable-select-chevron {
@@ -3988,58 +4116,146 @@ textarea {
   background: var(--card-soft);
   cursor: pointer;
   padding: 0;
+  transition: all 0.15s ease;
 }
 
 .searchable-select-clear:hover {
   color: var(--danger);
   background: var(--danger-soft);
+  transform: scale(1.08);
 }
 
 .searchable-select-dropdown {
   position: absolute;
-  top: calc(100% + 0.35rem);
   left: 0;
   right: 0;
-  z-index: 60;
+  z-index: 100;
   border: 1px solid var(--border);
-  border-radius: 0.75rem;
+  border-radius: 0.85rem;
   background: var(--card-bg);
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.1);
+  box-shadow: 0 16px 36px -4px rgba(15, 23, 42, 0.16), 0 4px 12px -2px rgba(15, 23, 42, 0.08);
   overflow: hidden;
+}
+
+[data-theme="dark"] .searchable-select-dropdown {
+  box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.6), 0 4px 12px -2px rgba(0, 0, 0, 0.4);
+}
+
+/* Placement: bottom (default) */
+.searchable-select.placement-bottom .searchable-select-dropdown,
+.searchable-select:not(.placement-top) .searchable-select-dropdown {
+  top: calc(100% + 0.35rem);
+  bottom: auto;
+  transform-origin: top center;
+  animation: selectDropdownInBottom 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Placement: top (auto-flip inside modals & near viewport bottom) */
+.searchable-select.placement-top .searchable-select-dropdown {
+  top: auto;
+  bottom: calc(100% + 0.35rem);
+  transform-origin: bottom center;
+  box-shadow: 0 -16px 36px -4px rgba(15, 23, 42, 0.16), 0 -4px 12px -2px rgba(15, 23, 42, 0.08);
+  animation: selectDropdownInTop 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes selectDropdownInBottom {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes selectDropdownInTop {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .searchable-select-options {
   list-style: none;
   margin: 0;
-  padding: 0.4rem;
+  padding: 0.35rem;
   max-height: 220px;
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--primary-rgb), 0.25) transparent;
+}
+
+.searchable-select-options::-webkit-scrollbar {
+  width: 5px;
+}
+
+.searchable-select-options::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 999px;
 }
 
 .searchable-select-option {
-  padding: 0.6rem 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.55rem 0.75rem;
   border-radius: 0.55rem;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   color: var(--title);
   cursor: pointer;
-  transition: background-color 0.12s ease;
+  transition: all 0.12s ease;
+  user-select: none;
+}
+
+.searchable-select-option-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.searchable-select-check {
+  color: var(--primary);
+  flex-shrink: 0;
 }
 
 .searchable-select-option:hover,
 .searchable-select-option.is-highlighted {
   background: var(--card-soft);
+  color: var(--title);
 }
 
 .searchable-select-option.is-selected {
-  background: var(--card-soft);
+  background: rgba(var(--primary-rgb), 0.08);
+  color: var(--primary);
   font-weight: 600;
 }
 
+.searchable-select-option.is-selected.is-highlighted {
+  background: rgba(var(--primary-rgb), 0.14);
+}
+
 .searchable-select-empty {
-  padding: 0.75rem 0.65rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 1rem 0.75rem;
   font-size: 0.84rem;
   color: var(--muted);
   text-align: center;
+}
+
+.searchable-select-empty-icon {
+  opacity: 0.6;
 }
 
 .searchable-select-sm .searchable-select-input {
@@ -4056,6 +4272,162 @@ textarea {
 .searchable-select.is-disabled .searchable-select-input {
   opacity: 0.65;
   cursor: not-allowed;
+}
+
+/* Custom Checkboxes — Modern Cards & Indicators */
+.custom-checkbox-wrapper {
+  margin-top: 0.35rem;
+  width: 100%;
+}
+
+.custom-checkbox-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.58rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background: var(--card-bg);
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.16s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.custom-checkbox-card:hover:not(.is-disabled) {
+  border-color: rgba(var(--primary-rgb), 0.45);
+  background: var(--card-soft);
+}
+
+.custom-checkbox-card.is-checked {
+  border-color: rgba(var(--primary-rgb), 0.4);
+  background: rgba(var(--primary-rgb), 0.04);
+}
+
+.custom-checkbox-card.is-disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.custom-checkbox-indicator {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  border: 1.5px solid var(--border);
+  background: var(--card-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.custom-checkbox-card:hover:not(.is-disabled) .custom-checkbox-indicator:not(.is-checked) {
+  border-color: var(--primary);
+}
+
+.custom-checkbox-indicator.is-checked {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(var(--primary-rgb), 0.3);
+}
+
+.custom-checkbox-icon {
+  stroke-dasharray: 20;
+  stroke-dashoffset: 0;
+  animation: checkmarkPop 0.16s ease-out;
+}
+
+@keyframes checkmarkPop {
+  from {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.custom-checkbox-label-text {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--title);
+  line-height: 1.35;
+}
+
+/* Custom Radio Chips — Modern Segmented Controls */
+.custom-radio-group {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+  padding: 0.15rem 0;
+}
+
+.custom-radio-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.95rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.15s ease;
+}
+
+.custom-radio-chip:hover:not(.is-disabled) {
+  border-color: rgba(var(--primary-rgb), 0.45);
+  background: var(--card-soft);
+}
+
+.custom-radio-chip.is-selected {
+  border-color: var(--primary);
+  background: rgba(var(--primary-rgb), 0.08);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.custom-radio-chip.is-disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.custom-radio-indicator {
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border);
+  background: var(--card-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.custom-radio-chip.is-selected .custom-radio-indicator {
+  border-color: var(--primary);
+}
+
+.custom-radio-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--primary);
+}
+
+.custom-radio-text {
+  font-size: 0.88rem;
+  color: var(--title);
+}
+
+.custom-radio-chip.is-selected .custom-radio-text {
+  color: var(--primary);
 }
 
 /* Date picker */

@@ -10,6 +10,8 @@ import type {
   DashboardTodayAttendance,
   DashboardTrend,
   EmpDashboard,
+  EmpDashboardAnnouncement,
+  EmpDashboardAttendanceSummary,
   EmpDashboardHeader,
   EmpDashboardLastPayslip,
   EmpDashboardLeaveBalance,
@@ -18,6 +20,8 @@ import type {
   EmpDashboardSalaryHistoryItem,
   EmpDashboardSummary,
   EmpDashboardTimelineItem,
+  EmpDashboardTodaySchedule,
+  EmpDashboardUpcomingHoliday,
 } from "@/lib/api/types";
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -158,6 +162,8 @@ function withEmpDashboardQuery(basePath: string, query: EmpDashboardQuery): stri
   const params = new URLSearchParams();
   params.set("employee_id", String(query.employee_id));
   if (query.as_of_date) params.set("as_of_date", query.as_of_date);
+  if (query.fin_year !== undefined) params.set("fin_year", String(query.fin_year));
+  else if (query.year_id !== undefined) params.set("year_id", String(query.year_id));
   return `${basePath}?${params.toString()}`;
 }
 
@@ -326,6 +332,73 @@ function toEmpMonthlyAttendance(value: unknown): EmpDashboardMonthlyAttendance |
     Absent_count: optionalNumber(readValue(record, ["Absent_count", "absent_count"])) ?? 0,
     Leave_count: optionalNumber(readValue(record, ["Leave_count", "leave_count"])) ?? 0,
     Holiday_count: optionalNumber(readValue(record, ["Holiday_count", "holiday_count"])) ?? 0,
+    Total_working_days:
+      optionalNumber(
+        readValue(record, [
+          "Total_working_days",
+          "total_working_days",
+          "working_days",
+          "Working_days",
+        ]),
+      ) ?? undefined,
+  };
+}
+
+function toEmpUpcomingHoliday(value: unknown): EmpDashboardUpcomingHoliday | null {
+  const record = asRecord(value);
+  if (!record) return null;
+  const name = optionalText(readValue(record, ["name", "Name", "Holiday_name", "holiday_name"])) ?? "";
+  const date = optionalText(readValue(record, ["date", "Date", "Holiday_date", "holiday_date"])) ?? "";
+  if (!name && !date) return null;
+  return {
+    name: name || "Holiday",
+    date: date || "",
+    display_date: optionalText(readValue(record, ["display_date", "displayDate"])) ?? date,
+    day_name: optionalText(readValue(record, ["day_name", "dayName", "day"])) ?? undefined,
+  };
+}
+
+function toEmpTodaySchedule(value: unknown): EmpDashboardTodaySchedule | null {
+  const record = asRecord(value);
+  if (!record) return null;
+  const shiftName = optionalText(readValue(record, ["shift_name", "shiftName", "shift", "name"])) ?? "";
+  const startTime = optionalText(readValue(record, ["start_time", "startTime", "in_time"])) ?? "";
+  const endTime = optionalText(readValue(record, ["end_time", "endTime", "out_time"])) ?? "";
+  if (!shiftName && !startTime) return null;
+  return {
+    shift_name: shiftName || "General Shift",
+    start_time: startTime || "09:30 AM",
+    end_time: endTime || "06:30 PM",
+    display_time: optionalText(readValue(record, ["display_time", "displayTime"])) ?? `${startTime} – ${endTime}`,
+  };
+}
+
+function toEmpAnnouncements(value: unknown): EmpDashboardAnnouncement[] {
+  if (!Array.isArray(value)) return [];
+  const list: EmpDashboardAnnouncement[] = [];
+  value.forEach((item, idx) => {
+    const record = asRecord(item) ?? {};
+    const title = optionalText(readValue(record, ["title", "Title", "name", "subject"])) ?? "";
+    if (!title) return;
+    list.push({
+      id: optionalNumber(readValue(record, ["id", "Id"])) ?? idx + 1,
+      title,
+      date: optionalText(readValue(record, ["date", "Date", "created_at"])) ?? "",
+      link: optionalText(readValue(record, ["link", "url"])) ?? undefined,
+    });
+  });
+  return list;
+}
+
+function toEmpAttendanceSummary(value: unknown): EmpDashboardAttendanceSummary | null {
+  const record = asRecord(value);
+  if (!record) return null;
+  const presentDays = optionalNumber(readValue(record, ["present_days", "presentDays", "present"])) ?? 0;
+  const totalDays = optionalNumber(readValue(record, ["total_working_days", "totalDays", "working_days", "total"])) ?? 0;
+  return {
+    present_days: presentDays,
+    total_working_days: totalDays,
+    display_label: optionalText(readValue(record, ["display_label", "displayLabel"])) ?? `${presentDays} / ${totalDays}`,
   };
 }
 
@@ -343,6 +416,12 @@ function asEmpDashboard(payload: unknown): EmpDashboard {
     monthly_attendance: toEmpMonthlyAttendance(
       readValue(nested, ["monthly_attendance", "monthlyAttendance"]),
     ),
+    upcoming_holiday: toEmpUpcomingHoliday(readValue(nested, ["upcoming_holiday", "upcomingHoliday"])),
+    today_schedule: toEmpTodaySchedule(readValue(nested, ["today_schedule", "todaySchedule"])),
+    announcements: toEmpAnnouncements(readValue(nested, ["announcements", "Announcements"])),
+    attendance_summary: toEmpAttendanceSummary(readValue(nested, ["attendance_summary", "attendanceSummary"])),
+    designation: optionalText(readValue(nested, ["designation", "Designation_name", "role"])) ?? undefined,
+    department: optionalText(readValue(nested, ["department", "Department_name"])) ?? undefined,
   };
 }
 
@@ -403,8 +482,15 @@ export const dashboardService = {
   },
 
   empDashboard: async (query: EmpDashboardQuery): Promise<EmpDashboard> => {
+    const employeeId = Number(query?.employee_id ?? 0);
+    if (!Number.isFinite(employeeId) || employeeId <= 0) {
+      return asEmpDashboard({});
+    }
     const payload = await apiClient.get<unknown>(
-      withEmpDashboardQuery(API_ENDPOINTS.dashboard.empDashboard, query),
+      withEmpDashboardQuery(API_ENDPOINTS.dashboard.empDashboard, {
+        ...query,
+        employee_id: employeeId,
+      }),
     );
     return asEmpDashboard(payload);
   },

@@ -6,13 +6,16 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { AnalyticsStatCard } from "@/components/dashboard/AnalyticsStatCard";
 import { AttendancePercentageChart } from "@/components/dashboard/AttendancePercentageChart";
 import { TodayAttendanceTable } from "@/components/dashboard/TodayAttendanceTable";
+import { EssDashboard } from "@/components/ess/EssDashboard";
 import { useToast } from "@/components/ui/ToastProvider";
 import { useI18n } from "@/i18n";
+import { authService } from "@/lib/api/services/auth.service";
 import {
   attendanceTrendToPercentages,
   dashboardService,
 } from "@/lib/api/services/dashboard.service";
 import type {
+  AuthMeProfile,
   DashboardOverview,
   DashboardSummaryMetric,
   DashboardTrend,
@@ -141,9 +144,28 @@ function DashboardSkeleton() {
 export default function DashboardPage() {
   const { t } = useI18n();
   const toast = useToast();
+  const [profile, setProfile] = useState<AuthMeProfile | null>(null);
+  const [viewMode, setViewMode] = useState<"admin" | "employee">("admin");
   const [overview, setOverview] = useState<DashboardOverview | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    authService
+      .getMeProfile()
+      .then((me) => {
+        if (cancelled) return;
+        setProfile(me);
+        if (me && !me.isAdmin) {
+          setViewMode("employee");
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const loadOverview = useCallback(
     async (mode: "initial" | "refresh" = "initial") => {
@@ -266,17 +288,60 @@ export default function DashboardPage() {
 
   const attendanceTrend = attendanceTrendToPercentages(overview?.attendance_trend ?? []);
 
+  const viewSwitcher = profile?.isAdmin ? (
+    <div className="inline-flex items-center rounded-xl bg-slate-100 dark:bg-slate-800 p-1 border border-border">
+      <button
+        type="button"
+        onClick={() => setViewMode("admin")}
+        className={`px-3 py-1 text-xs rounded-lg transition-colors ${
+          viewMode === "admin"
+            ? "font-bold bg-white dark:bg-slate-700 text-title shadow-2xs"
+            : "font-semibold text-slate-500 hover:text-title"
+        }`}
+      >
+        Admin Analytics
+      </button>
+      <button
+        type="button"
+        onClick={() => setViewMode("employee")}
+        className={`px-3 py-1 text-xs rounded-lg transition-colors ${
+          viewMode === "employee"
+            ? "font-bold bg-white dark:bg-slate-700 text-title shadow-2xs"
+            : "font-semibold text-slate-500 hover:text-title"
+        }`}
+      >
+        Employee View
+      </button>
+    </div>
+  ) : null;
+
+  if (viewMode === "employee") {
+    return (
+      <>
+        {profile?.isAdmin && (
+          <div className="container-fluid pt-3 pb-1 flex justify-end">
+            {viewSwitcher}
+          </div>
+        )}
+        <EssDashboard />
+      </>
+    );
+  }
+
   const refreshAction = (
-    <button
-      type="button"
-      className="btn btn-primary btn-sm rounded-md inline-flex items-center gap-2"
-      onClick={() => void loadOverview("refresh")}
-      disabled={loading || refreshing}
-      aria-label={t("dashboard.refreshAria")}
-    >
-      <RefreshCw size={16} strokeWidth={2} className={refreshing ? "animate-spin" : ""} />
-      {t("dashboard.refresh")}
-    </button>
+    <div className="flex items-center gap-2">
+      {viewSwitcher}
+      <button
+        type="button"
+        className="btn btn-primary btn-sm rounded-md inline-flex items-center gap-2"
+        onClick={() => void loadOverview("refresh")}
+        disabled={loading || refreshing}
+        aria-label={t("dashboard.refreshAria")}
+      >
+        <RefreshCw size={16} strokeWidth={2} className={refreshing ? "animate-spin" : ""} />
+        {t("dashboard.refresh")}
+      </button>
+    </div>
   );
 
   if (loading && !overview) {

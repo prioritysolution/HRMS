@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { AlertCircle } from "lucide-react";
 import {
   CalendarDetailsSidebar,
   attendanceToneClass,
@@ -20,13 +21,14 @@ import { useToast } from "@/components/ui/ToastProvider";
 import { useI18n } from "@/i18n";
 import { ApiError } from "@/lib/api/client";
 import { authService } from "@/lib/api/services/auth.service";
+import { employeeService } from "@/lib/api/services/employee.service";
 import {
   myAttendanceDayLabel,
   myAttendanceDayTone,
   myAttendanceService,
 } from "@/lib/api/services/my-attendance.service";
 import { isSameDay } from "@/lib/date-utils";
-import type { MyAttendanceCalendar } from "@/lib/api/types";
+import type { AuthMeProfile, MyAttendanceCalendar } from "@/lib/api/types";
 
 function formatMinutes(value: number | null | undefined): string | null {
   if (value == null || !Number.isFinite(Number(value))) return null;
@@ -48,6 +50,10 @@ export default function EssAttendancePage() {
   const [calendar, setCalendar] = useState<MyAttendanceCalendar | null>(null);
   const [loading, setLoading] = useState(true);
   const [employeeId, setEmployeeId] = useState<number | null>(null);
+  const [profile, setProfile] = useState<AuthMeProfile | null>(null);
+  const [employeeOptions, setEmployeeOptions] = useState<
+    Array<{ id: number; label: string }>
+  >([]);
 
   const legend = useMemo(
     (): MonthCalendarLegendItem[] => [
@@ -65,17 +71,44 @@ export default function EssAttendancePage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
+      let currentMe = profile;
+      if (!currentMe) {
+        currentMe = await authService.getMeProfile();
+        setProfile(currentMe);
+      }
+
       let empId = employeeId;
       if (empId == null) {
-        const me = await authService.getMeProfile();
-        empId = me?.employeeId ?? null;
+        empId = currentMe?.employeeId ?? null;
+        if (!empId && currentMe?.isAdmin) {
+          try {
+            const list = await employeeService.list({ status: 1 });
+            const options = list
+              .map((row) => ({
+                id: Number(row.Employee_id ?? row.id ?? 0),
+                label: `${row.Display_name ?? row.Employee_name ?? "Employee"} (${row.Employee_code ?? "—"})`,
+              }))
+              .filter((o) => o.id > 0);
+            setEmployeeOptions(options);
+            if (options.length > 0) {
+              empId = options[0].id;
+            }
+          } catch {
+            setEmployeeOptions([]);
+          }
+        }
         setEmployeeId(empId);
+      }
+
+      if (!empId || empId <= 0) {
+        setCalendar(null);
+        return;
       }
 
       const data = await myAttendanceService.calendar({
         year,
         month,
-        ...(empId ? { employee_id: empId } : {}),
+        employee_id: empId,
       });
       setCalendar(data);
     } catch (err) {
@@ -90,7 +123,7 @@ export default function EssAttendancePage() {
     } finally {
       setLoading(false);
     }
-  }, [employeeId, month, t, toast, year]);
+  }, [employeeId, month, profile, t, toast, year]);
 
   useEffect(() => {
     void load();
@@ -253,10 +286,54 @@ export default function EssAttendancePage() {
   const monthLabel =
     calendar?.month_name || `${MONTH_CALENDAR_MONTHS[Math.max(0, month - 1)]} ${year}`;
 
+  if (!loading && !employeeId && !calendar) {
+    return (
+      <>
+        <PageHeader title={t("ess.attendancePage.title")} section={t("ess.section")} />
+        <div className="container-fluid">
+          <div className="card">
+            <div className="card-body p-4 text-center">
+              <AlertCircle className="mx-auto mb-2 text-warning" size={32} />
+              <h5 className="mb-1">{t("ess.profileUnavailable")}</h5>
+              <p className="text-muted mb-0">{t("ess.employeeNotLinked")}</p>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
       <PageHeader title={t("ess.attendancePage.title")} section={t("ess.section")} />
       <div className="container-fluid">
+        {profile?.isAdmin && employeeOptions.length > 0 ? (
+          <div className="card mb-4 border-0 shadow-sm">
+            <div className="card-body py-2 px-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+              <div className="d-flex align-items-center gap-2">
+                <span className="badge bg-primary-subtle text-primary fw-medium px-2 py-1">
+                  Admin View
+                </span>
+                <span className="text-muted text-sm">Select Employee:</span>
+              </div>
+              <select
+                className="form-select form-select-sm"
+                style={{ width: "auto", minWidth: 260 }}
+                value={employeeId ?? ""}
+                onChange={(e) => {
+                  const val = Number(e.target.value);
+                  if (val > 0) setEmployeeId(val);
+                }}
+              >
+                {employeeOptions.map((opt) => (
+                  <option key={opt.id} value={opt.id}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        ) : null}
         <div className="ess-stat-grid ess-stat-grid--attendance mb-4">
           <StatCard
             title={t("ess.present")}

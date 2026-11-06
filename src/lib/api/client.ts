@@ -8,12 +8,16 @@ import { API_ENDPOINTS } from "@/lib/api/endpoints";
 export class ApiError extends Error {
   status: number;
   data?: unknown;
+  method?: string;
+  url?: string;
 
-  constructor(message: string, status: number, data?: unknown) {
+  constructor(message: string, status: number, data?: unknown, method?: string, url?: string) {
     super(message);
     this.name = "ApiError";
     this.status = status;
     this.data = data;
+    this.method = method;
+    this.url = url;
   }
 }
 
@@ -261,6 +265,8 @@ async function sendRequest<T>(
           extractErrorMessage(payload, `Request failed with status ${response.status}`),
           response.status,
           payload,
+          method,
+          path,
         );
       }
       const errorMessage = extractErrorMessage(
@@ -270,7 +276,7 @@ async function sendRequest<T>(
       if (!throwOnError) {
         return asSoftApiError(errorMessage, response.status, payload) as T;
       }
-      throw new ApiError(errorMessage, response.status, payload);
+      throw new ApiError(errorMessage, response.status, payload, method, path);
     }
 
     return unwrap ? unwrapResponse<T>(payload) : (payload as T);

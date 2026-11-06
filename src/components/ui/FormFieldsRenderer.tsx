@@ -1,5 +1,6 @@
 "use client";
 
+import { Check } from "lucide-react";
 import { DatePicker } from "@/components/ui/DatePicker";
 import { FileUploadField } from "@/components/ui/FileUploadField";
 import { FormFieldLabel } from "@/components/ui/FormFieldLabel";
@@ -94,7 +95,7 @@ export function FormFieldsRenderer({
         const floor = numberFloor(field);
         const fieldLabel = translateHrmsLookup(language, "labels", field.label);
 
-        const localizedOptions = field.options?.map((opt) => {
+        const rawLocalizedOptions = field.options?.map((opt) => {
           if (typeof opt === "string") {
             return {
               value: opt,
@@ -105,6 +106,15 @@ export function FormFieldsRenderer({
             ...opt,
             label: translateHrmsLookup(language, "labels", opt.label),
           };
+        });
+
+        // Deduplicate options by value to prevent React duplicate key errors
+        const seenOptionValues = new Set<string>();
+        const localizedOptions = rawLocalizedOptions?.filter((opt) => {
+          const key = String(opt.value ?? opt.label ?? "");
+          if (seenOptionValues.has(key)) return false;
+          seenOptionValues.add(key);
+          return true;
         });
 
         let selectPlaceholder = "";
@@ -145,22 +155,35 @@ export function FormFieldsRenderer({
           {field.type === "radio" ? (
             <>
               <FormFieldLabel htmlFor={field.name} label={fieldLabel} required={field.required} />
-              <div className="radio-row" role="radiogroup" aria-label={fieldLabel}>
-                {(localizedOptions ?? []).map((option) => {
+              <div className="custom-radio-group" role="radiogroup" aria-label={fieldLabel}>
+                {(localizedOptions ?? []).map((option, index) => {
                   const optionValue = option.value;
                   const optionLabel = option.label;
+                  const isSelected = asText(values[field.name]) === optionValue;
                   return (
-                    <label key={optionValue} className="check-label" htmlFor={`${field.name}-${optionValue}`}>
+                    <label
+                      key={`${optionValue}-${index}`}
+                      className={cn(
+                        "custom-radio-chip",
+                        isSelected && "is-selected",
+                        isDisabled && "is-disabled",
+                      )}
+                      htmlFor={`${field.name}-${optionValue}`}
+                    >
                       <input
                         id={`${field.name}-${optionValue}`}
                         type="radio"
                         name={field.name}
                         value={optionValue}
-                        checked={asText(values[field.name]) === optionValue}
+                        checked={isSelected}
                         onChange={() => onChange(field.name, optionValue)}
                         disabled={isDisabled}
+                        className="sr-only"
                       />
-                      {optionLabel}
+                      <span className={cn("custom-radio-indicator", isSelected && "is-selected")}>
+                        {isSelected ? <span className="custom-radio-dot" /> : null}
+                      </span>
+                      <span className="custom-radio-text">{optionLabel}</span>
                     </label>
                   );
                 })}
@@ -172,24 +195,43 @@ export function FormFieldsRenderer({
               ) : null}
             </>
           ) : field.type === "checkbox" ? (
-            <>
-              <label className="check-label mt-2">
+            <div className="custom-checkbox-wrapper">
+              <label
+                className={cn(
+                  "custom-checkbox-card",
+                  isCheckedValue(values[field.name]) && "is-checked",
+                  isDisabled && "is-disabled",
+                )}
+              >
                 <input
                   type="checkbox"
                   name={field.name}
                   checked={isCheckedValue(values[field.name])}
                   onChange={(event) => onChange(field.name, event.target.checked)}
                   disabled={isDisabled}
+                  className="sr-only"
                 />
-                {fieldLabel}
-                {field.required ? <span className="field-required">*</span> : null}
+                <span
+                  className={cn(
+                    "custom-checkbox-indicator",
+                    isCheckedValue(values[field.name]) && "is-checked",
+                  )}
+                >
+                  {isCheckedValue(values[field.name]) && (
+                    <Check size={12} strokeWidth={3} className="custom-checkbox-icon" />
+                  )}
+                </span>
+                <span className="custom-checkbox-label-text">
+                  {fieldLabel}
+                  {field.required ? <span className="field-required">*</span> : null}
+                </span>
               </label>
               {errors[field.name] ? (
                 <p className="form-field-error" role="alert">
                   {errors[field.name]}
                 </p>
               ) : null}
-            </>
+            </div>
           ) : field.type === "file" ? (
             <FileUploadField
               id={field.name}

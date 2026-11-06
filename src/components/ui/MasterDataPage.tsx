@@ -1056,12 +1056,15 @@ export function MasterDataPage({
             value: status,
             label: status,
           }));
-          const apiStatusOptions = filterAttendanceStatusOptions(applOptions)
+          const rawApiStatusOptions = filterAttendanceStatusOptions(applOptions)
             .map((option) => {
               const label = String(option.Opt_Description ?? "").trim();
               return { value: label, label };
             })
             .filter((option) => option.value && option.label);
+          const apiStatusOptions = Array.from(
+            new Map(rawApiStatusOptions.map((opt) => [opt.value, opt])).values(),
+          );
 
           setAttendanceStatusOptions(
             apiStatusOptions.length > 0 ? apiStatusOptions : fallbackStatusOptions,

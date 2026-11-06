@@ -2169,6 +2169,8 @@ export type DashboardOverviewQuery = {
 export type EmpDashboardQuery = {
   employee_id: number;
   as_of_date?: string;
+  fin_year?: number;
+  year_id?: number;
 };
 
 export type EmpDashboardHeader = {
@@ -2230,6 +2232,34 @@ export type EmpDashboardMonthlyAttendance = {
   Absent_count: number;
   Leave_count: number;
   Holiday_count: number;
+  Total_working_days?: number;
+};
+
+export type EmpDashboardUpcomingHoliday = {
+  name: string;
+  date: string;
+  display_date: string;
+  day_name?: string;
+};
+
+export type EmpDashboardTodaySchedule = {
+  shift_name: string;
+  start_time: string;
+  end_time: string;
+  display_time: string;
+};
+
+export type EmpDashboardAnnouncement = {
+  id: number;
+  title: string;
+  date: string;
+  link?: string;
+};
+
+export type EmpDashboardAttendanceSummary = {
+  present_days: number;
+  total_working_days: number;
+  display_label: string;
 };
 
 export type EmpDashboard = {
@@ -2240,6 +2270,12 @@ export type EmpDashboard = {
   last_payslip: EmpDashboardLastPayslip | null;
   salary_history: EmpDashboardSalaryHistoryItem[];
   monthly_attendance: EmpDashboardMonthlyAttendance | null;
+  upcoming_holiday?: EmpDashboardUpcomingHoliday | null;
+  today_schedule?: EmpDashboardTodaySchedule | null;
+  announcements?: EmpDashboardAnnouncement[];
+  attendance_summary?: EmpDashboardAttendanceSummary | null;
+  designation?: string;
+  department?: string;
 };
 
 export type EmailConfigRecord = {

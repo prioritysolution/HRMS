@@ -1,7 +1,21 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronDown } from "lucide-react";
+import {
+  Briefcase,
+  Building2,
+  Calendar,
+  Check,
+  ChevronDown,
+  Clock,
+  CreditCard,
+  FileEdit,
+  FilePlus2,
+  Laptop,
+  Settings,
+  ShieldCheck,
+  Users,
+} from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import {
   buildInitialFormValues,
@@ -56,6 +70,20 @@ function resolveFields(fields: FormField[] | undefined, sections: FormSection[] 
 
 function findSectionIdForField(sections: FormSection[], fieldName: string): string | undefined {
   return sections.find((section) => section.fields.some((field) => field.name === fieldName))?.id;
+}
+
+function getModalIcon(title: string, isEdit: boolean) {
+  const lower = title.toLowerCase();
+  if (lower.includes("leave")) return <Calendar size={20} strokeWidth={2.2} />;
+  if (lower.includes("employee") || lower.includes("staff")) return <Users size={20} strokeWidth={2.2} />;
+  if (lower.includes("department") || lower.includes("branch") || lower.includes("company") || lower.includes("organization")) return <Building2 size={20} strokeWidth={2.2} />;
+  if (lower.includes("designation") || lower.includes("role") || lower.includes("job")) return <Briefcase size={20} strokeWidth={2.2} />;
+  if (lower.includes("shift") || lower.includes("attendance") || lower.includes("holiday") || lower.includes("time")) return <Clock size={20} strokeWidth={2.2} />;
+  if (lower.includes("payroll") || lower.includes("salary") || lower.includes("tax") || lower.includes("allowance")) return <CreditCard size={20} strokeWidth={2.2} />;
+  if (lower.includes("asset") || lower.includes("device")) return <Laptop size={20} strokeWidth={2.2} />;
+  if (lower.includes("setting") || lower.includes("config")) return <Settings size={20} strokeWidth={2.2} />;
+  if (lower.includes("approval") || lower.includes("permission")) return <ShieldCheck size={20} strokeWidth={2.2} />;
+  return isEdit ? <FileEdit size={20} strokeWidth={2.2} /> : <FilePlus2 size={20} strokeWidth={2.2} />;
 }
 
 export function MasterDataModal({
@@ -396,25 +424,36 @@ export function MasterDataModal({
       title={displayTitle}
       subtitle={displaySubtitle}
       size={size}
+      icon={getModalIcon(title, isEdit)}
       footer={
-        <>
-          <button
-            type="submit"
-            form="master-data-form"
-            className="btn btn-primary"
-            disabled={submitting || disableSubmit}
-          >
-            {submitting ? t("common.loading") : displaySubmitLabel}
-          </button>
+        <div className="flex items-center justify-end gap-3 w-full">
           <button
             type="button"
-            className="btn btn-outline-danger"
+            className="btn btn-modal-cancel"
             onClick={handleClose}
             disabled={submitting}
           >
             {displayCancelLabel}
           </button>
-        </>
+          <button
+            type="submit"
+            form="master-data-form"
+            className="btn btn-primary btn-modal-submit"
+            disabled={submitting || disableSubmit}
+          >
+            {submitting ? (
+              <span className="inline-flex items-center gap-2">
+                <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
+                {t("common.loading")}
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-2">
+                <Check size={16} strokeWidth={2.5} />
+                {displaySubmitLabel}
+              </span>
+            )}
+          </button>
+        </div>
       }
     >
       <form id="master-data-form" className="master-data-form" onSubmit={handleSubmit} noValidate>

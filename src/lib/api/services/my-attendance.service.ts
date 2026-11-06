@@ -163,10 +163,41 @@ export function myAttendanceDayLabel(day: MyAttendanceCalendarDay): string {
   );
 }
 
+function emptyCalendar(year: number, month: number): MyAttendanceCalendar {
+  return {
+    year,
+    month,
+    employee_id: 0,
+    employee_name: "",
+    display_name: "",
+    employee_code: "",
+    month_name: "",
+    month_start: "",
+    month_end: "",
+    summary: {
+      Present_count: 0,
+      Absent_count: 0,
+      Leave_count: 0,
+      Holiday_count: 0,
+      Late_count: 0,
+      Half_day_count: 0,
+      Weekly_off_count: 0,
+    },
+    days: [],
+  };
+}
+
 export const myAttendanceService = {
   calendar: async (query: MyAttendanceCalendarQuery): Promise<MyAttendanceCalendar> => {
+    const employeeId = Number(query?.employee_id ?? 0);
+    if (!Number.isFinite(employeeId) || employeeId <= 0) {
+      return emptyCalendar(query?.year ?? new Date().getFullYear(), query?.month ?? new Date().getMonth() + 1);
+    }
     const payload = await apiClient.get<unknown>(
-      withCalendarQuery(API_ENDPOINTS.myAttendance.calendar, query),
+      withCalendarQuery(API_ENDPOINTS.myAttendance.calendar, {
+        ...query,
+        employee_id: employeeId,
+      }),
     );
     return asCalendar(payload);
   },

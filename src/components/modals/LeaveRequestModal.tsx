@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Calendar, Check } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import { SearchableSelect } from "@/components/ui/SearchableSelect";
 import {
@@ -85,15 +86,19 @@ export function LeaveRequestModal({ open, onClose }: LeaveRequestModalProps) {
       title={translateHrmsLookup(language, "titles", "Leave Requisition")}
       subtitle={translateHrmsLookup(language, "labels", "Fill out the form to submit leave request")}
       size="lg"
+      icon={<Calendar size={20} strokeWidth={2.2} />}
       footer={
-        <>
-          <button type="submit" form="leave-request-form" className="btn btn-primary">
-            {translateHrmsLookup(language, "actions", "Apply Leave")}
-          </button>
-          <button type="button" className="btn btn-outline-danger" onClick={onClose}>
+        <div className="flex items-center justify-end gap-3 w-full">
+          <button type="button" className="btn btn-modal-cancel" onClick={onClose}>
             {t("common.cancel")}
           </button>
-        </>
+          <button type="submit" form="leave-request-form" className="btn btn-primary btn-modal-submit">
+            <span className="inline-flex items-center gap-2">
+              <Check size={16} strokeWidth={2.5} />
+              {translateHrmsLookup(language, "actions", "Apply Leave")}
+            </span>
+          </button>
+        </div>
       }
     >
       <form id="leave-request-form" className="form-grid form-grid-2" onSubmit={handleSubmit} noValidate>

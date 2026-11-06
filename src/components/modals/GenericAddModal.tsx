@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Check, Sparkles } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import {
   buildInitialFormValues,
@@ -126,15 +127,19 @@ export function GenericAddModal({
       title={displayTitle}
       subtitle={displaySubtitle}
       size="lg"
+      icon={<Sparkles size={20} strokeWidth={2.2} />}
       footer={
-        <>
-          <button type="submit" form="generic-add-form" className="btn btn-primary">
-            {displaySubmitLabel}
-          </button>
-          <button type="button" className="btn btn-outline-danger" onClick={onClose}>
+        <div className="flex items-center justify-end gap-3 w-full">
+          <button type="button" className="btn btn-modal-cancel" onClick={onClose}>
             {t("common.close")}
           </button>
-        </>
+          <button type="submit" form="generic-add-form" className="btn btn-primary btn-modal-submit">
+            <span className="inline-flex items-center gap-2">
+              <Check size={16} strokeWidth={2.5} />
+              {displaySubmitLabel}
+            </span>
+          </button>
+        </div>
       }
     >
       <form id="generic-add-form" className="form-grid form-grid-2" onSubmit={handleSubmit} noValidate>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Calendar, Check } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import { FormFieldLabel } from "@/components/ui/FormFieldLabel";
 import { SearchableSelect } from "@/components/ui/SearchableSelect";
@@ -146,12 +147,14 @@ export function LeaveEntitlementModal({
       open={open}
       onClose={submitting ? () => undefined : onClose}
       title={resolvedTitle}
+      subtitle={resolvedSubtitle}
       size="lg"
+      icon={<Calendar size={20} strokeWidth={2.2} />}
       footer={
-        <>
+        <div className="flex items-center justify-end gap-3 w-full">
           <button
             type="button"
-            className="btn btn-light"
+            className="btn btn-modal-cancel"
             onClick={onClose}
             disabled={submitting}
           >
@@ -160,16 +163,25 @@ export function LeaveEntitlementModal({
           <button
             type="submit"
             form="leave-entitlement-form"
-            className="btn btn-primary"
+            className="btn btn-primary btn-modal-submit"
             disabled={submitting || lines.length === 0}
           >
-            {submitting ? t("leave.entitlementModal.saving") : resolvedSubmit}
+            {submitting ? (
+              <span className="inline-flex items-center gap-2">
+                <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
+                {t("leave.entitlementModal.saving")}
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-2">
+                <Check size={16} strokeWidth={2.5} />
+                {resolvedSubmit}
+              </span>
+            )}
           </button>
-        </>
+        </div>
       }
     >
       <form id="leave-entitlement-form" onSubmit={(event) => void handleSubmit(event)}>
-        {resolvedSubtitle ? <p className="text-muted mb-3">{resolvedSubtitle}</p> : null}
 
         <div className="form-grid form-grid-2">
           <div className="form-field">

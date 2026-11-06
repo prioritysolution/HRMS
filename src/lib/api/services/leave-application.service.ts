@@ -398,9 +398,13 @@ export const leaveApplicationService = {
   },
 
   balance: async (query: LeaveBalanceQuery) => {
+    const employeeId = Number(query?.employee_id ?? 0);
+    if (!Number.isFinite(employeeId) || employeeId <= 0) {
+      return [];
+    }
     const payload = await apiClient.get<unknown>(
       withQuery(API_ENDPOINTS.leaveApplication.balance, [
-        ["employee_id", query.employee_id],
+        ["employee_id", employeeId],
         ["fin_year", query.fin_year],
         ["leave_id", query.leave_id],
       ]),

@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useId, useMemo, useRef, useState } from "react";
-import { ChevronDown, X } from "lucide-react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { Check, ChevronDown, Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type SearchableSelectOption = {
@@ -26,9 +26,18 @@ type SearchableSelectProps = {
 };
 
 function normalizeOptions(options: Array<string | SearchableSelectOption>): SearchableSelectOption[] {
-  return options.map((option) =>
-    typeof option === "string" ? { value: option, label: option } : option,
-  );
+  const seen = new Set<string>();
+  const result: SearchableSelectOption[] = [];
+  for (const option of options) {
+    const item = typeof option === "string" ? { value: option, label: option } : option;
+    if (!item) continue;
+    const key = String(item.value ?? item.label ?? "");
+    if (!seen.has(key)) {
+      seen.add(key);
+      result.push(item);
+    }
+  }
+  return result;
 }
 
 export function SearchableSelect({
@@ -48,9 +57,13 @@ export function SearchableSelect({
   const listId = useId();
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const optionsListRef = useRef<HTMLUListElement>(null);
+
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [highlightIndex, setHighlightIndex] = useState(0);
+  const [placement, setPlacement] = useState<"bottom" | "top">("bottom");
+  const [maxMenuHeight, setMaxMenuHeight] = useState<number>(220);
 
   const normalizedOptions = useMemo(() => normalizeOptions(options), [options]);
 
@@ -74,8 +87,34 @@ export function SearchableSelect({
 
   const closedDisplay = selectedOption?.label ?? (allowEmpty && !value ? emptyLabel : "");
 
+  // Smart placement calculation: auto-flip when near bottom of viewport or modal
+  const updatePlacement = useCallback(() => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const modalBody = containerRef.current.closest(".modal-body") as HTMLElement | null;
+
+    let spaceBelow = window.innerHeight - rect.bottom - 16;
+    let spaceAbove = rect.top - 16;
+
+    if (modalBody) {
+      const modalRect = modalBody.getBoundingClientRect();
+      spaceBelow = Math.min(spaceBelow, modalRect.bottom - rect.bottom - 16);
+      spaceAbove = Math.min(spaceAbove, rect.top - modalRect.top - 16);
+    }
+
+    // Default dropdown height is ~210px. If space below is constrained and space above is greater:
+    if (spaceBelow < 210 && spaceAbove > spaceBelow) {
+      setPlacement("top");
+      setMaxMenuHeight(Math.max(120, Math.min(240, Math.floor(spaceAbove))));
+    } else {
+      setPlacement("bottom");
+      setMaxMenuHeight(Math.max(120, Math.min(240, Math.floor(spaceBelow))));
+    }
+  }, []);
+
   useEffect(() => {
     if (!open) return;
+    updatePlacement();
 
     const handlePointerDown = (event: MouseEvent) => {
       if (!containerRef.current?.contains(event.target as Node)) {
@@ -85,13 +124,34 @@ export function SearchableSelect({
       }
     };
 
+    const handleScrollOrResize = () => {
+      updatePlacement();
+    };
+
     window.addEventListener("mousedown", handlePointerDown);
-    return () => window.removeEventListener("mousedown", handlePointerDown);
-  }, [open]);
+    window.addEventListener("resize", handleScrollOrResize, { passive: true });
+    const scrollParent = containerRef.current?.closest(".modal-body") || window;
+    scrollParent.addEventListener("scroll", handleScrollOrResize, { passive: true });
+
+    return () => {
+      window.removeEventListener("mousedown", handlePointerDown);
+      window.removeEventListener("resize", handleScrollOrResize);
+      scrollParent.removeEventListener("scroll", handleScrollOrResize);
+    };
+  }, [open, updatePlacement]);
 
   useEffect(() => {
     setHighlightIndex(0);
   }, [query, open]);
+
+  // Keep highlighted item in view during keyboard navigation
+  useEffect(() => {
+    if (!open || !optionsListRef.current) return;
+    const highlightedEl = optionsListRef.current.children[highlightIndex] as HTMLElement | undefined;
+    if (highlightedEl && typeof highlightedEl.scrollIntoView === "function") {
+      highlightedEl.scrollIntoView({ block: "nearest" });
+    }
+  }, [highlightIndex, open]);
 
   const handleSelect = (nextValue: string) => {
     onChange(nextValue);
@@ -112,6 +172,7 @@ export function SearchableSelect({
 
   const handleFocus = () => {
     if (disabled) return;
+    updatePlacement();
     setOpen(true);
     setQuery("");
   };
@@ -123,24 +184,34 @@ export function SearchableSelect({
         setQuery("");
         setHighlightIndex(0);
       }
-    }, 120);
+    }, 140);
   };
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setQuery(event.target.value);
-    setOpen(true);
+    if (!open) {
+      updatePlacement();
+      setOpen(true);
+    }
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "ArrowDown") {
       event.preventDefault();
-      if (!open) setOpen(true);
+      if (!open) {
+        updatePlacement();
+        setOpen(true);
+      }
       setHighlightIndex((prev) => Math.min(prev + 1, Math.max(listOptions.length - 1, 0)));
       return;
     }
 
     if (event.key === "ArrowUp") {
       event.preventDefault();
+      if (!open) {
+        updatePlacement();
+        setOpen(true);
+      }
       setHighlightIndex((prev) => Math.max(prev - 1, 0));
       return;
     }
@@ -168,11 +239,12 @@ export function SearchableSelect({
       inputRef.current?.blur();
       return;
     }
+    updatePlacement();
+    setOpen(true);
     inputRef.current?.focus();
   };
 
   const showClear = clearable && Boolean(value) && !disabled;
-
   const inputValue = open ? query : closedDisplay;
 
   return (
@@ -180,6 +252,7 @@ export function SearchableSelect({
       ref={containerRef}
       className={cn(
         "searchable-select",
+        `placement-${placement}`,
         size === "sm" && "searchable-select-sm",
         open && "is-open",
         disabled && "is-disabled",
@@ -217,7 +290,7 @@ export function SearchableSelect({
               onMouseDown={(event) => event.preventDefault()}
               onClick={handleClear}
             >
-              <X size={14} />
+              <X size={13} strokeWidth={2.5} />
             </button>
           ) : null}
           <button
@@ -236,26 +309,41 @@ export function SearchableSelect({
 
       {open ? (
         <div className="searchable-select-dropdown">
-          <ul id={listId} className="searchable-select-options" role="listbox">
-            {listOptions.map((option, index) => (
-              <li
-                key={option.value || `empty-${option.label}`}
-                role="option"
-                aria-selected={option.value === value}
-                className={cn(
-                  "searchable-select-option",
-                  option.value === value && "is-selected",
-                  index === highlightIndex && "is-highlighted",
-                )}
-                onMouseDown={(event) => event.preventDefault()}
-                onMouseEnter={() => setHighlightIndex(index)}
-                onClick={() => handleSelect(option.value)}
-              >
-                {option.label}
-              </li>
-            ))}
+          <ul
+            ref={optionsListRef}
+            id={listId}
+            className="searchable-select-options"
+            role="listbox"
+            style={{ maxHeight: `${maxMenuHeight}px` }}
+          >
+            {listOptions.map((option, index) => {
+              const isSelected = option.value === value;
+              return (
+                <li
+                  key={`${option.value || `empty-${option.label}`}-${index}`}
+                  role="option"
+                  aria-selected={isSelected}
+                  className={cn(
+                    "searchable-select-option",
+                    isSelected && "is-selected",
+                    index === highlightIndex && "is-highlighted",
+                  )}
+                  onMouseDown={(event) => event.preventDefault()}
+                  onMouseEnter={() => setHighlightIndex(index)}
+                  onClick={() => handleSelect(option.value)}
+                >
+                  <span className="searchable-select-option-label">{option.label}</span>
+                  {isSelected ? (
+                    <Check size={14} strokeWidth={2.5} className="searchable-select-check" />
+                  ) : null}
+                </li>
+              );
+            })}
             {listOptions.length === 0 ? (
-              <li className="searchable-select-empty">No options found</li>
+              <li className="searchable-select-empty">
+                <Search size={14} className="searchable-select-empty-icon" />
+                <span>No options found</span>
+              </li>
             ) : null}
           </ul>
         </div>
