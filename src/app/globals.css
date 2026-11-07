@@ -5918,6 +5918,7 @@ textarea {
 .confirm-dialog-footer {
   display: grid;
   grid-template-columns: 1fr 1fr;
+  align-items: stretch;
   gap: 0.75rem;
   border-top: 0;
   padding: 1rem 1.35rem 1.35rem;
