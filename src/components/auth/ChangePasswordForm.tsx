@@ -6,6 +6,7 @@ import { useToast } from "@/components/ui/ToastProvider";
 import { authService } from "@/lib/api/services/auth.service";
 import { ApiError } from "@/lib/api/client";
 import { useI18n } from "@/i18n";
+import { SIGN_IN_PATH } from "@/lib/auth/constants";
 
 type ChangePasswordFormProps = {
   compact?: boolean;
@@ -29,6 +30,10 @@ export function ChangePasswordForm({ compact = false, className }: ChangePasswor
       toast.error(t("profile.passwordMinLength"));
       return;
     }
+    if (new TextEncoder().encode(newPassword).length > 72 || newPassword.includes("\0")) {
+      toast.error("The new password must be at most 72 bytes and cannot contain null characters.");
+      return;
+    }
 
     if (newPassword !== confirmPassword) {
       toast.error(t("profile.passwordMismatch"));
@@ -43,11 +48,11 @@ export function ChangePasswordForm({ compact = false, className }: ChangePasswor
     setSaving(true);
     try {
       await authService.changePassword({
-        password: currentPassword,
-        new_password: newPassword,
-        confirm_password: confirmPassword,
+        current_password: currentPassword,
+        password: newPassword,
+        password_confirmation: confirmPassword,
       });
-      toast.success(t("profile.passwordSuccess"));
+      window.location.assign(SIGN_IN_PATH);
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");

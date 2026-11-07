@@ -43,6 +43,11 @@ export type AuthMeProfile = {
   email: string | null;
   mobile: string | null;
   photoPath: string | null;
+  photoUrl: string | null;
+  employeeStatus: string | null;
+  personalDetails: Record<string, unknown> | null;
+  jobDetails: Record<string, unknown> | null;
+  contactAddress: Record<string, unknown> | null;
   loginStatus: string;
 };
 
@@ -56,6 +61,8 @@ export type AuthResponse = {
 export type LoginRequest = {
   user_name: string;
   password: string;
+  replace_existing_session?: boolean;
+  confirmation_token?: string;
 };
 
 export type MenuStatus = 0 | 1;
@@ -119,10 +126,9 @@ export type VerifyOtpRequest = {
 };
 
 export type ChangePasswordRequest = {
+  current_password: string;
   password: string;
-  new_password: string;
-  confirm_password: string;
-  current_password?: string;
+  password_confirmation: string;
 };
 
 export type ResetPasswordRequest = {

@@ -21,6 +21,8 @@ import { authService } from "@/lib/api/services/auth.service";
 import type { AuthMeProfile } from "@/lib/api/types";
 import { resolvePublicFileUrl } from "@/lib/env";
 import { useI18n } from "@/i18n";
+import { useToast } from "@/components/ui/ToastProvider";
+import { ApiError } from "@/lib/api/client";
 
 function displayValue(value: string | number | null | undefined): string {
   if (value === undefined || value === null || value === "") return "—";
@@ -92,6 +94,8 @@ function ProfileFact({
 
 export default function EmployeeProfilePage() {
   const { t } = useI18n();
+  const toast = useToast();
+  const [uploading, setUploading] = useState(false);
   const [profile, setProfile] = useState<AuthMeProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -119,9 +123,9 @@ export default function EmployeeProfilePage() {
     void loadProfile();
   }, [loadProfile]);
 
-  const photoUrl = profile?.photoPath
+  const photoUrl = profile?.photoUrl || (profile?.photoPath
     ? resolvePublicFileUrl(profile.photoPath, "storage/employees/photos")
-    : "";
+    : "");
   const orgLogoUrl = profile?.orgLogo
     ? resolvePublicFileUrl(profile.orgLogo, "storage/organizations/logos")
     : "";
@@ -165,7 +169,7 @@ export default function EmployeeProfilePage() {
                   <div className="employee-profile-hero-copy">
                     <div className="employee-profile-hero-title">
                       <h2>{profile.displayName || profile.userName}</h2>
-                      <SoftStatus value={profile.loginStatus || "Active"} />
+                      {profile.employeeStatus && <SoftStatus value={profile.employeeStatus} />}
                     </div>
                     <div className="employee-profile-hero-meta">
                       <span className="badge bg-soft-primary">{profile.roleName}</span>
@@ -180,6 +184,29 @@ export default function EmployeeProfilePage() {
                     </p>
                   </div>
                 </div>
+
+                {profile.employeeId != null && (
+                  <label className="btn btn-outline-primary btn-sm">
+                    {uploading ? "Uploading…" : "Change photo"}
+                    <input type="file" accept="image/jpeg,image/png,image/webp" hidden disabled={uploading} onChange={async (event) => {
+                      const file = event.currentTarget.files?.[0];
+                      event.currentTarget.value = "";
+                      if (!file) return;
+                      if (!["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 2048 * 1024) {
+                        toast.error("Choose a JPEG, PNG, or WebP image up to 2 MB.");
+                        return;
+                      }
+                      setUploading(true);
+                      try {
+                        await authService.uploadPhoto(file);
+                        await loadProfile();
+                        toast.success("Profile photo updated.");
+                      } catch (error) {
+                        toast.error(error instanceof ApiError ? error.message : "Unable to upload photo.");
+                      } finally { setUploading(false); }
+                    }} />
+                  </label>
+                )}
 
                 <div className="employee-profile-hero-side">
                   {orgLogoUrl ? (
@@ -211,6 +238,18 @@ export default function EmployeeProfilePage() {
 
             <div className="employee-profile-content">
               <div className="employee-profile-info-grid">
+                {([
+                  ["Personal details", profile.personalDetails, ["date_of_birth", "blood_group", "father_name", "mother_name", "spouse_name"]],
+                  ["Job details", profile.jobDetails, ["designation", "department", "grade", "employee_type", "date_of_joining", "confirmation_date", "probation_end_date", "employment_status", "work_location", "branch_id", "reporting_manager_id"]],
+                  ["Contact and address", profile.contactAddress, ["mobile", "alternate_mobile", "email", "emergency_contact", "address_line1", "address_line2", "city", "state", "country", "pincode"]],
+                ] as const).map(([title, details, fields]) => details && (
+                  <div className="card" key={title}><div className="card-body">
+                    <div className="employee-profile-section-head"><h4>{title}</h4></div>
+                    <div className="employee-profile-fact-grid">
+                      {fields.map((key) => <ProfileFact key={key} label={key.replaceAll("_", " ").replace(/^./, (c) => c.toUpperCase())} value={displayValue(typeof details[key] === "string" || typeof details[key] === "number" ? details[key] : null)} />)}
+                    </div>
+                  </div></div>
+                ))}
                 <div className="card">
                   <div className="card-body">
                     <div className="employee-profile-section-head">

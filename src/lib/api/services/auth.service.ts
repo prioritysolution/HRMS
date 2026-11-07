@@ -82,6 +82,10 @@ export function parseAuthMeProfile(payload: unknown): AuthMeProfile | null {
   const user = asRecord(data.user) ?? asRecord(data.User) ?? asRecord(record.user);
   const source = user ? { ...data, ...user } : data;
   const nestedEmp = asRecord(source.employee) ?? asRecord(source.Employee);
+  const profile = asRecord(data.profile);
+  const personal = asRecord(data.personal_details);
+  const job = asRecord(data.job_details);
+  const contact = asRecord(data.contact_address);
 
   const userId =
     readNumber(source, ["user_id", "User_Id", "userId", "id"]) ??
@@ -151,11 +155,11 @@ export function parseAuthMeProfile(payload: unknown): AuthMeProfile | null {
           ])
         : null)) ?? null,
     displayName:
-      readString(source, ["display_name", "Display_Name", "displayName"]) ?? userName,
-    firstName: readString(source, ["first_name", "First_Name", "firstName"]),
-    lastName: readString(source, ["last_name", "Last_Name", "lastName"]),
-    email: readString(source, ["email", "Email"]),
-    mobile: readString(source, [
+      (profile && readString(profile, ["full_name"])) ?? readString(source, ["display_name", "Display_Name", "displayName"]) ?? userName,
+    firstName: (personal && readString(personal, ["first_name"])) ?? readString(source, ["first_name", "First_Name", "firstName"]),
+    lastName: (personal && readString(personal, ["last_name"])) ?? readString(source, ["last_name", "Last_Name", "lastName"]),
+    email: (contact && readString(contact, ["email"])) ?? readString(source, ["email", "Email"]),
+    mobile: (contact && readString(contact, ["mobile"])) ?? readString(source, [
       "userPhone",
       "user_phone",
       "User_Phone",
@@ -170,6 +174,11 @@ export function parseAuthMeProfile(payload: unknown): AuthMeProfile | null {
       "User_Mob",
     ]),
     photoPath: readString(source, ["photo_path", "Photo_Path", "photoPath"]),
+    photoUrl: (profile && readString(profile, ["photo_url"])) ?? readString(source, ["photo_url"]),
+    employeeStatus: profile ? readString(profile, ["status_label"]) : null,
+    personalDetails: personal,
+    jobDetails: job,
+    contactAddress: contact,
     loginStatus:
       readString(source, ["login_status", "Login_Status", "loginStatus"]) ?? "",
   };
@@ -274,11 +283,20 @@ function persistAuth(response: AuthResponse): AuthResponse {
 
 export const authService = {
   login: async (payload: LoginRequest) => {
+    const deviceKey = "hrms_device_id";
+    let deviceId = localStorage.getItem(deviceKey);
+    if (!deviceId) {
+      deviceId = crypto.randomUUID();
+      localStorage.setItem(deviceKey, deviceId);
+    }
     const raw = await apiClient.post<unknown>(
       API_ENDPOINTS.auth.login,
       {
         user_name: payload.user_name.trim(),
         password: payload.password,
+        device_id: deviceId,
+        device_name: `${/Edg\//.test(navigator.userAgent) ? "Edge" : /Firefox\//.test(navigator.userAgent) ? "Firefox" : /Chrome\//.test(navigator.userAgent) ? "Chrome" : /Safari\//.test(navigator.userAgent) ? "Safari" : "Browser"} on ${/Windows/.test(navigator.userAgent) ? "Windows" : /Android/.test(navigator.userAgent) ? "Android" : /iPhone|iPad/.test(navigator.userAgent) ? "iOS" : /Mac/.test(navigator.userAgent) ? "macOS" : /Linux/.test(navigator.userAgent) ? "Linux" : "unknown device"}`,
+        ...(payload.replace_existing_session ? { replace_existing_session: true, confirmation_token: payload.confirmation_token } : {}),
       },
       { auth: false, unwrap: false },
     );
@@ -288,7 +306,8 @@ export const authService = {
     try {
       const me = await apiClient.get<unknown>(API_ENDPOINTS.auth.me, { unwrap: false });
       persistMePayload(me);
-    } catch {
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) throw error;
       // The login body was already saved when it included the profile.
     }
 
@@ -344,9 +363,9 @@ export const authService = {
     const raw = await apiClient.post<unknown>(
       API_ENDPOINTS.auth.changePassword,
       {
-        password: payload.password ?? payload.current_password,
-        new_password: payload.new_password,
-        confirm_password: payload.confirm_password,
+        current_password: payload.current_password,
+        password: payload.password,
+        password_confirmation: payload.password_confirmation,
       },
       { unwrap: false },
     );
@@ -355,7 +374,14 @@ export const authService = {
     const message =
       (typeof record?.message === "string" && record.message) ||
       "Password changed successfully.";
+    clearAccessToken();
     return { message };
+  },
+
+  uploadPhoto: async (file: File): Promise<void> => {
+    const form = new FormData();
+    form.append("photo", file);
+    await apiClient.post(API_ENDPOINTS.auth.profilePhoto, form);
   },
 
   forgotPassword: async (_payload: ForgotPasswordRequest): Promise<ApiMessageResponse> => ({

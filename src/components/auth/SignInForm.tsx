@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Eye, EyeOff, LockKeyhole, LogIn, UserRound } from "lucide-react";
 
 import { LoginLanguageSelect } from "@/components/auth/LoginLanguageSelect";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { useToast } from "@/components/ui/ToastProvider";
 import { ApiError, authService } from "@/lib/api";
 import { DEFAULT_AUTH_REDIRECT, isAuthPublicPath } from "@/lib/auth/constants";
@@ -51,6 +52,12 @@ export function SignInForm() {
   const [submitting, setSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [confirmation, setConfirmation] = useState<{
+    userName: string;
+    password: string;
+    token: string;
+    device: string;
+  } | null>(null);
 
   const errorText = (code?: string) =>
     code ? t(`auth.errors.${code}`) : undefined;
@@ -77,6 +84,32 @@ export function SignInForm() {
     }));
   };
 
+  const signIn = async (userName: string, password: string, confirmationToken?: string) => {
+    setSubmitting(true);
+    try {
+      await authService.login({
+        user_name: userName,
+        password,
+        ...(confirmationToken ? { replace_existing_session: true, confirmation_token: confirmationToken } : {}),
+      });
+      setConfirmation(null);
+      toast.success({ title: t("auth.loginSuccessTitle"), message: t("auth.loginSuccessMessage") });
+      window.setTimeout(() => window.location.assign(safeNextPath(readFromQuery())), 700);
+    } catch (error) {
+      const envelope = error instanceof ApiError && error.status === 409 && error.data && typeof error.data === "object"
+        ? error.data as { data?: { confirmation_required?: boolean; previous_device?: string; confirmation_token?: string } }
+        : null;
+      const next = envelope?.data;
+      if (next?.confirmation_required && next.confirmation_token) {
+        setConfirmation({ userName, password, token: next.confirmation_token, device: next.previous_device || "Unknown device" });
+      } else {
+        setConfirmation(null);
+        toast.error({ title: t("auth.loginFailedTitle"), message: error instanceof ApiError ? error.message : t("auth.loginFailedMessage") });
+      }
+      setSubmitting(false);
+    }
+  };
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -89,36 +122,11 @@ export function SignInForm() {
       return;
     }
 
-    setSubmitting(true);
-
-    try {
-      await authService.login({
-        user_name: values.userName.trim(),
-        password: values.password,
-      });
-
-      toast.success({
-        title: t("auth.loginSuccessTitle"),
-        message: t("auth.loginSuccessMessage"),
-      });
-
-      window.setTimeout(() => {
-        window.location.assign(safeNextPath(readFromQuery()));
-      }, 700);
-    } catch (error) {
-      toast.error({
-        title: t("auth.loginFailedTitle"),
-        message:
-          error instanceof ApiError
-            ? error.message
-            : t("auth.loginFailedMessage"),
-      });
-
-      setSubmitting(false);
-    }
+    await signIn(values.userName.trim(), values.password);
   };
 
   return (
+    <>
     <form className="login-form" onSubmit={handleSubmit} noValidate>
       <LoginLanguageSelect />
 
@@ -221,5 +229,15 @@ export function SignInForm() {
         <span>{submitting ? t("auth.loggingIn") : t("auth.login")}</span>
       </button>
     </form>
+    <ConfirmDialog
+      open={confirmation !== null}
+      title="Another device is signed in"
+      message={`Another device (${confirmation?.device ?? "Unknown device"}) is signed in. Sign it out and continue?`}
+      confirmLabel="Sign out and continue"
+      loading={submitting}
+      onClose={() => setConfirmation(null)}
+      onConfirm={() => confirmation ? signIn(confirmation.userName, confirmation.password, confirmation.token) : undefined}
+    />
+    </>
   );
 }
